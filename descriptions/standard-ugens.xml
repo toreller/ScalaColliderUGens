@@ -6474,16 +6474,16 @@
                     when passing from non-positive to positive.
                 </doc>
             </arg>
-            <arg name="value" default="0" pos="2">
-                <doc>
-                    a changing signal or constant that will be polled at the time of trigger,
-                    and its value passed with the trigger message
-                </doc>
-            </arg>
-            <arg name="id" default="0" pos="1">
+            <arg name="id" default="0" pos="2">
                 <doc>
                     an arbitrary integer that will be sent along with the `"/tr"` message.
                     This is useful to distinguish between several SendTrig instances per SynthDef.
+                </doc>
+            </arg>
+            <arg name="value" default="0" pos="1">
+                <doc>
+                    a changing signal or constant that will be polled at the time of trigger,
+                    and its value passed with the trigger message
                 </doc>
             </arg>
             <doc warnpos="true">
