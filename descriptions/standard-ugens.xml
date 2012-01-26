@@ -2541,7 +2541,7 @@
     <file name="DiskIOUGens">
         <!-- // side-effect: advancing sf offset -->
         <ugen name="DiskIn" readsbuf="true" sideeffect="true">
-            <rate name="audio" implied="true"/>
+            <rate name="audio"/> <!-- implied="true" -->
             <outputs num="numChannels"/>
             <arg name="numChannels" type="Int">
                 <doc>
@@ -2575,7 +2575,7 @@
         </ugen>
 
         <ugen name="DiskOut" writesbuf="true">
-            <rate name="audio" implied="true"/>
+            <rate name="audio"/> <!-- implied="true" -->
             <arg name="buf">
                 <doc>
                     the buffer used internally by the UGen. this number of frames in the buffer must
@@ -2609,7 +2609,7 @@
         <!-- // side-effect: advancing sf offset -->
         <ugen name="VDiskIn" readsbuf="true" sideeffect="true">
             <!-- note: argument 'rate' renamed to 'speed' -->
-            <rate name="audio" implied="true"/>
+            <rate name="audio"/> <!-- implied="true" -->
             <outputs num="numChannels"/>
             <arg name="numChannels" type="Int">
                 <doc>
