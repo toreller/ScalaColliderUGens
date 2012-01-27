@@ -33,7 +33,7 @@ object UGens {
    val name          = "ScalaCollider-UGens"
    val version       = 0.14
    val copyright     = "(C)opyright 2008-2012 Hanns Holger Rutz"
-   val isSnapshot    = true
+   val isSnapshot    = false
 
    def versionString = {
       val s = (version + 0.001).toString.substring( 0, 4 )

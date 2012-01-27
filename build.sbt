@@ -1,6 +1,6 @@
 name := "scalacolliderugens"
 
-version := "0.14-SNAPSHOT"
+version := "0.14"
 
 organization := "de.sciss"
 
