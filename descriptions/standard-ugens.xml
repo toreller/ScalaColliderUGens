@@ -5086,11 +5086,11 @@
             <outputs num="in"/>
             <arg name="in" multi="true"/>
         </ugen>
-        <ugen name="Silent">
+<!--        <ugen name="Silent">
             <rate name="audio" implied="true"/>
             <outputs num="numChannels"/>
             <arg name="numChannels" type="Int" default="1"/>
-        </ugen>
+        </ugen> -->
         <ugen name="Line" sideeffect="true" doneflag="true">
             <rate name="audio"/>
             <rate name="control"/>
