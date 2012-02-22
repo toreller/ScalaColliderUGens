@@ -750,7 +750,6 @@ with Tracing with CompilerProvider /* with MyNodePrinter */ with CompilerAccess 
  * (ScalaCollider-UGens)
  *
  * This is a synthetically generated file.
- * Created: """ + dateString + """
  * ScalaCollider-UGens version: """ + UGens.versionString + """
  */
 

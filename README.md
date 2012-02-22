@@ -8,7 +8,7 @@ Big thanks to Mirko Stocker for the [Scala-Refactoring Library](http://scala-ref
 
 ### compilation
 
-ScalaCollider-UGens builds with xsbt (sbt 0.10) against Scala 2.9.1. To compile run `sbt compile`. In order to keep up with the scala-refactoring snapshots, you may need to wipe the Ivy2 cache before updating: `rm -r ~/.ivy2/cache/org.scala-refactoring`.
+ScalaCollider-UGens builds with sbt (version 0.10 or higher) against Scala 2.9.1. To compile run `sbt compile`. In order to keep up with the scala-refactoring snapshots, you may need to wipe the Ivy2 cache before updating: `rm -r ~/.ivy2/cache/org.scala-refactoring`.
 
 ### running
 
@@ -16,7 +16,7 @@ The UGen descriptions reside in XML files. The project already comes with a file
 
 To synthesize the source code for a given UGen description XML file, run as follows:
 
-    $ xsbt
+    $ sbt
     > run -d path/to/scala/source/output path/to/descriptions.xml
 
 Thus if ScalaCollider-UGens and ScalaCollider reside in the same parent directory, to re-create the standard UGens' class files:

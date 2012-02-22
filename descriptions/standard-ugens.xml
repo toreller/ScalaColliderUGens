@@ -5226,7 +5226,7 @@
                 <see>ugen.Clip</see>
             </doc>
         </ugen>
-        <ugen name="LinLin">
+<!--        <ugen name="LinLin">
             <rate name="scalar"/>
             <rate name="control"/>
             <rate name="audio"/>
@@ -5266,6 +5266,7 @@
                 <see>ugen.Clip</see>
             </doc>
         </ugen>
+-->
         <ugen name="EnvGen" sideeffect="true" doneflag="true">
             <rate name="control"/>
             <rate name="audio"/>
