@@ -8,7 +8,7 @@ Big thanks to Mirko Stocker for the [Scala-Refactoring Library](http://scala-ref
 
 ### compilation
 
-ScalaCollider-UGens builds with sbt (version 0.10 or higher) against Scala 2.9.1. To compile run `sbt compile`. In order to keep up with the scala-refactoring snapshots, you may need to wipe the Ivy2 cache before updating: `rm -r ~/.ivy2/cache/org.scala-refactoring`.
+ScalaCollider-UGens builds with sbt v0.11.2 against Scala 2.9.2. To compile run `sbt compile`.
 
 ### running
 

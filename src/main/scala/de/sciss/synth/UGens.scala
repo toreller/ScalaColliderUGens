@@ -31,7 +31,7 @@ import java.io.{IOException, File}
 
 object UGens {
    val name          = "ScalaCollider-UGens"
-   val version       = 0.14
+   val version       = 0.15
    val copyright     = "(C)opyright 2008-2012 Hanns Holger Rutz"
    val isSnapshot    = false
 

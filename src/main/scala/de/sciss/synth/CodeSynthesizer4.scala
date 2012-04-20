@@ -26,15 +26,16 @@
 package de.sciss.synth
 
 import scala.tools.nsc.symtab.Flags
-import tools.refactoring.Refactoring
-import tools.refactoring.util.CompilerProvider
+import _root_.scala.tools.refactoring
+import refactoring.Refactoring
+import refactoring.util.CompilerProvider
 import xml.Node
 import collection.breakOut
 import collection.immutable.{ IndexedSeq => IIdxSeq }
 //import net.virtualvoid.string.MyNodePrinter
-import tools.refactoring.transformation.TreeFactory
-import tools.refactoring.common.{CompilerAccess, Tracing}
-import tools.nsc.io.AbstractFile
+import refactoring.transformation.TreeFactory
+import refactoring.common.{CompilerAccess, Tracing}
+import scala.tools.nsc.io.AbstractFile
 import java.io.{FileOutputStream, OutputStreamWriter, File}
 import sys.{error => err}
 
