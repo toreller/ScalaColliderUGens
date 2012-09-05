@@ -4393,10 +4393,46 @@
         <ugen name="DetectSilence" sideeffect="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="in" rate="ugen"/>
-            <arg name="amp" default="0.0001"/>
-            <arg name="dur" default="0.1"/>
-            <arg name="doneAction" default="doNothing"/>
+            <arg name="in" rate="ugen">
+                <doc>
+                    input signal to be measured.
+                </doc>
+            </arg>
+            <arg name="amp" default="0.0001">
+                <doc>
+                    minimum amplitude threshold which must be exceeded for the input signal
+                    to be considered non-silent.
+                </doc>
+            </arg>
+            <arg name="dur" default="0.1">
+                <doc>
+                    The duration in seconds for which the input signal must be continuously smaller than or equal
+                    to the threshold to be considered silent.
+                </doc>
+            </arg>
+            <arg name="doneAction" default="doNothing">
+                <doc>
+                    an action to be performed when the output changes from zero to one (silence detected).
+                </doc>
+            </arg>
+            <doc>
+                <text>
+                    A UGen which detects whether its input signal falls below a given amplitude for a given amount
+                    of time (becoming "silent"). A silence is detected if the absolute sample values of the input
+                    remain less than or equal to the `amp` threshold for a consecutive amount of time given by the
+                    `dur` argument.
+
+                    A value of `1` is output when this condition is met, and a value of `0` is output when the
+                    condition is not met (i.e. at least one sample occurs in the input whose absolute value is
+                    greater than `amp`). Besides, when the output changes from zero to one, the `doneAction` is
+                    executed (unless it is `doNothing`).
+
+                    A special case is the initial condition of the UGen: It will begin with an output value of `0`
+                    (no silence detected), even if the input signal is below the amplitude threshold. It is only
+                    after the first input sample rising above the threshold that the actual monitoring begins and
+                    a trigger of `1` or the firing of the done-action may occur.
+                </text>
+            </doc>
         </ugen>
 
         <ugen name="Hilbert">

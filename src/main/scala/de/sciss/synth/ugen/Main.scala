@@ -24,51 +24,50 @@
  */
 
 package de.sciss.synth
+package ugen
 
 import xml.XML
 import scopt.OptionParser
 import java.io.{IOException, File}
 
-object UGens {
-   val name          = "ScalaCollider-UGens"
-   val version       = 0.15
-   val copyright     = "(C)opyright 2008-2012 Hanns Holger Rutz"
-   val isSnapshot    = false
+object Main extends App {
+//   val name          = "ScalaCollider-UGens"
+//   val version       = 0.15
+//   val copyright     = "(C)opyright 2008-2012 Hanns Holger Rutz"
+//   val isSnapshot    = false
+//
+//   def versionString = {
+//      val s = (version + 0.001).toString.substring( 0, 4 )
+//      if( isSnapshot ) s + "-SNAPSHOT" else s
+//   }
 
-   def versionString = {
-      val s = (version + 0.001).toString.substring( 0, 4 )
-      if( isSnapshot ) s + "-SNAPSHOT" else s
-   }
-
-   def main( args: Array[ String ]) {
 //      var xmlPath    = ""
-      var inputs     = IndexedSeq.empty[ String ]
-      var docs       = true
-      var dirOption  = Option.empty[ String ]
-      val parser     = new OptionParser( name ) {
+    var inputs     = IndexedSeq.empty[ String ]
+    var docs       = true
+    var dirOption  = Option.empty[ String ]
+    val parser     = new OptionParser( "ScalaCollider-UGens" ) {
 //         opt( "v", "verbose", "Verbose output", verbose = true )
-         opt( "d", "dir", "<directory>", "Source output root directory", (s: String) => dirOption = Some( s ))
+       opt( "d", "dir", "<directory>", "Source output root directory", (s: String) => dirOption = Some( s ))
 //         doubleOpt( "in-start", "Punch in begin (secs)", (d: Double) => punchInStart  = Some( d ))
 //         intOpt( "num-per-file", "Maximum matches per single file (default 1)", numPerFile = _ )
 //         doubleOpt( "spacing", "Minimum spacing between matches within one file (default 0.5)", minSpacing = _ )
 //         arg( "input", "UGen description file (XML) to process", (i: String) => xmlPath = i )
-         arglistOpt( "inputs...", "List of UGen description files (XML) to process", inputs +:= _ )
-         opt( "no-docs", "Do not include scaladoc comments", docs = false )
-      }
+       arglistOpt( "inputs...", "List of UGen description files (XML) to process", inputs +:= _ )
+       opt( "no-docs", "Do not include scaladoc comments", docs = false )
+    }
 
-      if( !parser.parse( args )) sys.exit( 1 )
+    if( !parser.parse( args )) sys.exit( 1 )
 
-      val dir  = new File( new File( new File( new File( new File( new File( new File( dirOption.getOrElse( "out" ),
-         "src" ), "main" ), "scala" ), "de" ), "sciss" ), "synth" ), "ugen" )
-      if( !dir.isDirectory ) if( !dir.mkdirs() ) throw new IOException( "Could not create directory: " + dir.getPath )
+    val dir  = new File( new File( new File( new File( new File( new File( new File( dirOption.getOrElse( "out" ),
+       "src" ), "main" ), "scala" ), "de" ), "sciss" ), "synth" ), "ugen" )
+    if( !dir.isDirectory ) if( !dir.mkdirs() ) throw new IOException( "Could not create directory: " + dir.getPath )
 
 //      val xml  = XML.load( UGens.getClass.getResourceAsStream( "standard-ugens.xml" ))
-      val synth= new CodeSynthesizer4( docs )
+    val synth= new CodeSynthesizer( docs )
 //      synth.perform( xml, dir )
-      inputs.foreach { xmlPath =>
-         val xml = XML.loadFile( xmlPath )
-         synth.perform( xml, dir ) //, (f, u) => f == "TriggerUGens" || f == "FilterUGens" )
-      }
-      sys.exit( 0 )
-   }
+    inputs.foreach { xmlPath =>
+       val xml = XML.loadFile( xmlPath )
+       synth.perform( xml, dir ) //, (f, u) => f == "TriggerUGens" || f == "FilterUGens" )
+    }
+    sys.exit( 0 )
 }

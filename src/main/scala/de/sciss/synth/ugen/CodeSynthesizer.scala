@@ -1,5 +1,5 @@
 /*
- *  CodeSynthesizer4.scala
+ *  CodeSynthesizer.scala
  *  (ScalaCollider-UGens)
  *
  *  Copyright (c) 2008-2012 Hanns Holger Rutz. All rights reserved.
@@ -24,6 +24,7 @@
  */
 
 package de.sciss.synth
+package ugen
 
 import scala.tools.nsc.symtab.Flags
 import _root_.scala.tools.refactoring
@@ -42,7 +43,7 @@ import sys.{error => err}
 /**
  * Again with rate type removed
  */
-class CodeSynthesizer4( docs: Boolean ) extends Refactoring
+class CodeSynthesizer( docs: Boolean ) extends Refactoring
 with Tracing with CompilerProvider /* with MyNodePrinter */ with CompilerAccess with TreeFactory {
 //   val docs          = true
    val ugenClass     = false
@@ -96,7 +97,8 @@ with Tracing with CompilerProvider /* with MyNodePrinter */ with CompilerAccess 
 
          DocDef( DocComment(
 //            txt3.mkString( "\n" + ind + "/**\n" + ind + " * ", "\n" + ind + " * ", "\n" + ind + " */\n" ), NoPosition ),
-            txt3.mkString( "\n/**\n * ", "\n * ", "\n */\n" ), NoPosition ),
+//            txt3.mkString( "\n/**\n * ", "\n * ", "\n */\n" ), NoPosition ),
+            txt3.mkString( "/**\n * ", "\n * ", "\n */\n" ), NoPosition ),
             tree )
       } else tree
    }
@@ -142,7 +144,14 @@ with Tracing with CompilerProvider /* with MyNodePrinter */ with CompilerAccess 
       val strRateMethod    = "rate"
       val identRateArg     = ident( strRateArg )
 //      val identRateType    = ident( "Rate" )
-      val dateString       = new java.util.Date().toString
+//      val dateString       = new java.util.Date().toString
+      val versionString   = try {
+         val cl = Class.forName( "de.sciss.synth.ugen.BuildInfo" )
+         val m  = cl.getMethod( "version" )
+         m.invoke( null ).toString
+      } catch {
+         case e: Throwable => "???"
+      }
 
       (xml \ "file") foreach { node =>
          val name       = (node \ "@name").text
@@ -671,7 +680,7 @@ with Tracing with CompilerProvider /* with MyNodePrinter */ with CompilerAccess 
             if( ugenClass ) {
                val ugenCaseClassConstrArgs = {
                   val args0 = argsIn.filterNot( _.expandBin.isDefined ) map { uArgInfo =>
-                     (NoMods, uArgInfo.name + ": " + uArgInfo.deriveGE( true ), EmptyTree)
+                     (NoMods, uArgInfo.name + ": " + uArgInfo.deriveGE( geToSeq = true ), EmptyTree)
                   }
                   if( impliedRate.isDefined ) args0 else {
                      (NoMods, strRateArg + ": " + (/*if( rateTypes ) */ strRatePlaceholder /* else "Rate" */), EmptyTree) :: args0
@@ -751,7 +760,7 @@ with Tracing with CompilerProvider /* with MyNodePrinter */ with CompilerAccess 
  * (ScalaCollider-UGens)
  *
  * This is a synthetically generated file.
- * ScalaCollider-UGens version: """ + UGens.versionString + """
+ * ScalaCollider-UGens version: """ + versionString + """
  */
 
 """ )

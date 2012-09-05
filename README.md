@@ -8,7 +8,7 @@ Big thanks to Mirko Stocker for the [Scala-Refactoring Library](http://scala-ref
 
 ### compilation
 
-ScalaCollider-UGens builds with sbt v0.11.2 against Scala 2.9.2. To compile run `sbt compile`.
+ScalaCollider-UGens builds with sbt 0.12 against Scala 2.9.2. To compile run `sbt compile`.
 
 ### running
 
