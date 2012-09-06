@@ -750,7 +750,7 @@ with Tracing with CompilerProvider /* with MyNodePrinter */ with CompilerAccess 
                Import( ident( "Float" ), ImportSelector( "PositiveInfinity", -1, "inf", -1 ) :: Nil ) :: Nil
             } else Nil
             val imports1 = Import( Select( ident( "collection" ), "immutable" ), ImportSelector( "IndexedSeq", -1, identIIdxSeq.name, -1 ) :: Nil ) ::
-                  Import( Select( ident( "aux" ), "UGenHelper" ), ImportSelector( nme.WILDCARD, -1, nme.WILDCARD, -1 ) :: Nil ) :: imports0
+                  /* Import( Select( ident( "aux" ), "UGenHelper" ), ImportSelector( nme.WILDCARD, -1, nme.WILDCARD, -1 ) :: Nil ) :: */ imports0
             val packageDef = PackageDef( Select( Select( ident( "de" ), "sciss" ), "synth" ),
                PackageDef( Ident( "ugen" ), imports1 ::: ugens ) :: Nil )
             println( "Writing " + fileName )
