@@ -5166,10 +5166,39 @@
         <ugen name="XLine" sideeffect="true" doneflag="true">
             <rate name="audio"/>
             <rate name="control"/>
-            <arg name="start" default="1"/>
-            <arg name="end" default="2"/>
-            <arg name="dur" default="1"/>
-            <arg name="doneAction" default="doNothing"/>
+            <arg name="start" default="1">
+                <doc>
+                    Starting value. Note that this is read only once at initialization
+                </doc>
+            </arg>
+            <arg name="end" default="2">
+                <doc>
+                    Ending value. Note that this is read only once at initialization
+                </doc>
+            </arg>
+            <arg name="dur" default="1">
+                <doc>
+                    Duration in seconds. Note that this is read only once at initialization
+                </doc>
+            </arg>
+            <arg name="doneAction" default="doNothing">
+                <doc>
+                    A done-action that is evaluated when the Line has reached the end value after the
+                    given duration
+                </doc>
+            </arg>
+            <doc>
+                <text>
+                    A exponential curve generator UGen that moves from a start value to the end value in a given duration.
+
+                    At a given point in time `0 &lt;= t &lt;= dur`, the output value is `start * (stop/start).pow(t/dur)`.
+
+                    '''Warning''': It must be ensured that the both `start` is not zero and `start` and `end` have the
+                    same sign (e.g. a `start` of `-1` and an end of `-0.001` are valid),
+                    otherwise the UGen will output a `NaN`! While in the case of `end` being zero the UGen will also
+                    output zero, it is recommended to treat this case as pathological as well.
+                </text>
+            </doc>
         </ugen>
 
         <ugen name="Wrap">
