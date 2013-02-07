@@ -7,7 +7,11 @@ object Build extends sbt.Build {
   lazy val root: Project = Project(
     id = "scalacolliderugens",
     base = file("."),
-    aggregate = Seq(spec, api, gen, core)
+    aggregate = Seq(spec, api, gen, core),
+    settings = Project.defaultSettings ++ Seq(
+      publishLocal := {},
+      publish := {}
+    )
   )
 
   // taking inspiration from http://stackoverflow.com/questions/11509843/sbt-generate-code-using-project-defined-generator
@@ -23,7 +27,9 @@ object Build extends sbt.Build {
       description := "UGens XML specification files for ScalaCollider",
       autoScalaLibrary := false, // this is a pure xml containing jar
       crossPaths := false,
-      licenseURL("BSD", "spec")
+      licenseURL("BSD", "spec"),
+      publishArtifact in (Compile, packageDoc) := false, // there are no javadocs
+      publishArtifact in (Compile, packageSrc) := false  // there are no sources (only re-sources)
     )
   )
 
@@ -63,7 +69,9 @@ object Build extends sbt.Build {
       ),
       libraryDependencies <+= scalaVersion { sv =>
         "org.scala-lang" % "scala-compiler" % sv
-      }
+      },
+      publishLocal := {},
+      publish := {}
     )
   )
 
