@@ -367,7 +367,7 @@ with Tracing with CompilerProvider /* with MyNodePrinter */ with CompilerAccess 
                val def0 = rateInfo.methodNames.map { mName =>
                   val df = DefDef(
                      NoMods withPosition (Flags.METHOD, NoPosition),
-                     mName,
+                     stringToTermName(mName),
                      Nil, // if( expandBin.isDefined ) typExpandBinDf else Nil,        // tparams
                      objectMethodArgs,    // vparamss
                      if( mName != "apply" ) EmptyTree else TypeDef( NoMods, typeName( name ), Nil, EmptyTree ),
@@ -383,7 +383,7 @@ with Tracing with CompilerProvider /* with MyNodePrinter */ with CompilerAccess 
                   val methodBody = Apply( Ident( mName ), Nil )  // XXX how to get ar() with the parentheses?
                   DefDef(
                      NoMods withPosition (Flags.METHOD, NoPosition),
-                     mName,
+                    stringToTermName(mName),
                      Nil,        // tparams
                      Nil,        // vparams
                      TypeDef( NoMods, typeName( name ), {
@@ -504,7 +504,7 @@ with Tracing with CompilerProvider /* with MyNodePrinter */ with CompilerAccess 
 
                DefDef(
                   NoMods withPosition (Flags.PROTECTED, NoPosition) withPosition (Flags.METHOD, NoPosition),
-                  strMakeUGens,
+                 stringToTermName(strMakeUGens),
                   Nil, // tparams
                   Nil,        // vparamss
                   TypeDef( NoMods, typeName( outputs.resName ), Nil, EmptyTree ), // TypeTree( NoType ), // tpt -- empty for testing
@@ -521,13 +521,13 @@ with Tracing with CompilerProvider /* with MyNodePrinter */ with CompilerAccess 
                      val strResolvedRateArg = if( maybeRate.isDefined ) "_rate" else strRateArg
                      val args1 = if( indivUGenArgs ) {
                         val args0 = if( (sideEffect || indSideEffect) && (outputs != ZeroOutputs) ) {
-                           Literal( true ) :: Nil
+                           Literal( Constant(true) ) :: Nil
                         } else Nil
 
                         if( indiv || indIndiv ) {
-                           Literal( true ) :: args0
+                           Literal( Constant(true) ) :: args0
                         } else if( args0.nonEmpty ) {
-                           Literal( false ) :: args0
+                           Literal( Constant(false) ) :: args0
                         } else args0
                      } else Nil
 
@@ -605,7 +605,7 @@ with Tracing with CompilerProvider /* with MyNodePrinter */ with CompilerAccess 
 
                DefDef(
                   NoMods withPosition (Flags.PROTECTED, NoPosition) withPosition (Flags.METHOD, NoPosition),
-                  strMakeUGen,
+                 stringToTermName(strMakeUGen),
                   Nil, // tparams
                   methodArgs,        // vparamss
                   TypeDef( NoMods, typeName( outputs.resName ), Nil, EmptyTree ), // TypeTree( NoType ), // tpt -- empty for testing
@@ -746,10 +746,13 @@ with Tracing with CompilerProvider /* with MyNodePrinter */ with CompilerAccess 
          })( breakOut )
 
          if( ugens.nonEmpty ) {
-            val imports0 = if( importFloat ) {
-               Import( ident( "Float" ), ImportSelector( "PositiveInfinity", -1, "inf", -1 ) :: Nil ) :: Nil
-            } else Nil
-            val imports1 = Import( Select( ident( "collection" ), "immutable" ), ImportSelector( "IndexedSeq", -1, identIIdxSeq.name, -1 ) :: Nil ) ::
+            val imports0 =
+//III
+//              if( importFloat ) {
+//               Import( ident( "Float" ), ImportSelector( "PositiveInfinity", -1, "inf", -1 ) :: Nil ) :: Nil
+//              } else
+                Nil
+            val imports1 = Import( Select( ident( "collection" ), "immutable" ), ImportSelector( stringToTermName("IndexedSeq"), -1, identIIdxSeq.name, -1 ) :: Nil ) ::
                   /* Import( Select( ident( "aux" ), "UGenHelper" ), ImportSelector( nme.WILDCARD, -1, nme.WILDCARD, -1 ) :: Nil ) :: */ imports0
             val packageDef = PackageDef( Select( Select( ident( "de" ), "sciss" ), "synth" ),
                PackageDef( Ident( "ugen" ), imports1 ::: ugens ) :: Nil )

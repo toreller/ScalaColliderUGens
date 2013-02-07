@@ -35,19 +35,25 @@ object Build extends sbt.Build {
     base = file("api"),
 //    dependencies = Seq(xml),
     settings = Project.defaultSettings ++ Seq(
-      scalaVersion := "2.10.0"
+//      scalaVersion := "2.10.0"
     )
   )
+
+//  lazy val snapshots = ("snapshots" at "http://oss.sonatype.org/content/repositories/snapshots")
 
   lazy val gen = Project(
     id = "scalacolliderugens-gen",
     base = file("gen"),
     dependencies = Seq(spec),
     settings = Project.defaultSettings ++ Seq(
-      scalaVersion := "2.9.2",  // XXX TODO
+//      scalaVersion := "2.9.2",  // XXX TODO
+//      resolvers += snapshots,
       libraryDependencies ++= Seq(
         "com.github.scopt" %% "scopt" % "2.1.0",
-        "org.scala-refactoring" % "org.scala-refactoring_2.9.1" % "0.4.1"
+//        "org.scala-refactoring" % "org.scala-refactoring_2.9.1" % "0.4.1"
+        "org.scala-refactoring" % "org.scala-refactoring_2.10.0-SNAPSHOT" % "0.6.1-SNAPSHOT" from
+          "https://oss.sonatype.org/content/repositories/snapshots/org/scala-refactoring/org.scala-refactoring_2.10.0-SNAPSHOT/0.6.1-SNAPSHOT/org.scala-refactoring_2.10.0-SNAPSHOT-0.6.1-20130206.063903-60.jar"
+//        "org.scala-refactoring_2.10.0-SNAPSHOT-0.6.1-20130206.063903-60.jar" from snapshots
       ),
       libraryDependencies <+= scalaVersion { sv =>
         "org.scala-lang" % "scala-compiler" % sv
@@ -59,7 +65,7 @@ object Build extends sbt.Build {
     id = "scalacolliderugens-core",
     base = file("core"),
     settings = Project.defaultSettings ++ Seq(
-      scalaVersion := "2.10.0",
+//      scalaVersion := "2.10.0",
       sourceGenerators in Compile <+= (ugenGenerator in Compile),
       ugenGenerator in Compile <<=
         (scalaSource in Compile, dependencyClasspath in Runtime in gen) map {

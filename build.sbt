@@ -10,6 +10,8 @@ homepage in ThisBuild := Some(url("https://github.com/Sciss/ScalaColliderUGens")
 
 licenses in ThisBuild := Seq("GPL v2+" -> url("http://www.gnu.org/licenses/gpl-2.0.txt"))
 
+scalaVersion in ThisBuild := "2.10.0"
+
 retrieveManaged in ThisBuild := true
 
 scalacOptions in ThisBuild ++= Seq("-deprecation", "-unchecked")
