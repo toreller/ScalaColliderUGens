@@ -70,8 +70,7 @@ object GE {
     def expand: UGenInLike    = UGenInGroup(elems.map(_.expand))
     def rate                  = MaybeRate.reduce(elems.map(_.rate): _*)
 
-    override def displayName  = "GE.Seq"
-    override def toString     = displayName + elems.mkString("(", ",", ")")
+    override def toString     = "GE.Seq" + elems.mkString("(", ",", ")")
   }
 
   private final case class SeqImpl2(elems: IIdxSeq[UGenIn]) extends GE {
@@ -79,8 +78,7 @@ object GE {
     def expand: UGenInLike    = UGenInGroup(elems)
     def rate                  = MaybeRate.reduce(elems.map(_.rate): _*)
 
-    override def displayName  = "GE.Seq"
-    override def toString     = displayName + elems.mkString("(", ",", ")")
+    override def toString      = "GE.Seq" + elems.mkString("(", ",", ")")
   }
 
  /**
@@ -102,8 +100,8 @@ object GE {
  *
  * @see [[de.sciss.synth.SynthGraph]]
  */
-trait GE extends Any {
+trait GE {
   def rate: MaybeRate
   private[synth] def expand: UGenInLike
-  private[synth] def displayName: String
+//  private[synth] def productPrefix: String
 }

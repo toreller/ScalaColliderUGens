@@ -1,6 +1,6 @@
 /*
  *  UGenSource.scala
- *  (ScalaCollider)
+ *  (ScalaColliderUGens)
  *
  *  Copyright (c) 2008-2013 Hanns Holger Rutz. All rights reserved.
  *
@@ -53,7 +53,6 @@ sealed trait UGenSource[ U ] extends Lazy.Expander[ U ] {
    protected def makeUGen( args: IIdxSeq[ UGenIn ]) : U
 
    def name: String
-   def displayName: String = name
 
    final protected def unwrap( args: IIdxSeq[ UGenInLike ]) : U = {
       var uins    = IIdxSeq.empty[ UGenIn ]

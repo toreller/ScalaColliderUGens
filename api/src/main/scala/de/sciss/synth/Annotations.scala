@@ -1,6 +1,6 @@
 /*
  *  Annotations.scala
- *  (ScalaCollider)
+ *  (ScalaColliderUGens)
  *
  *  Copyright (c) 2008-2013 Hanns Holger Rutz. All rights reserved.
  *

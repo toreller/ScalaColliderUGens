@@ -1,6 +1,6 @@
 /*
  *  SynthGraph.scala
- *  (ScalaCollider)
+ *  (ScalaColliderUGens)
  *
  *  Copyright (c) 2008-2013 Hanns Holger Rutz. All rights reserved.
  *
@@ -114,8 +114,9 @@ object SynthGraph {
    }
 }
 
-@SerialVersionUID(3232544436683817667L) final case class SynthGraph( sources: IIdxSeq[ Lazy ], controlProxies: ISet[ ControlProxyLike[ _ ]]) {
-   def isEmpty    = sources.isEmpty && controlProxies.isEmpty
-   def nonEmpty   = !isEmpty
-   def expand     = UGenGraph.expand( this )
+@SerialVersionUID(3232544436683817667L)
+final case class SynthGraph(sources: IIdxSeq[Lazy], controlProxies: ISet[ControlProxyLike[_]]) {
+  def isEmpty   = sources.isEmpty && controlProxies.isEmpty
+  def nonEmpty  = !isEmpty
+  def expand    = UGenGraph.expand(this)
 }

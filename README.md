@@ -1,33 +1,47 @@
-## ScalaCollider-UGens
+# ScalaColliderUGens
 
-### statement
+## statement
 
-An extension project to ScalaCollider which aims at providing a language-neutral (XML based) UGen description database as well as a code synthesizer that generates class files for ScalaCollider. It is (C)opyright 2008-2012 by Hanns Holger Rutz. All rights reserved. ScalaCollider-UGens is released under the [GNU General Public License](http://github.com/Sciss/ScalaColliderUGens/blob/master/licenses/ScalaCollider-License.txt) and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
+Specification and base API of [ScalaCollider](https://github.com/Sciss/ScalaCollider) UGens, as well as a core library of generated UGen classes.
+
+This project is (C)opyright 2008-2013 by Hanns Holger Rutz. All rights reserved. All sub projects released under the GNU GPL v2+, except for the specification which is released under a BSD-style license. All code comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
 
 Big thanks to Mirko Stocker for the [Scala-Refactoring Library](http://scala-refactoring.org/) which provides the AST-to-source code converter.
 
-### compilation
+## sub projects
 
-ScalaCollider-UGens builds with sbt 0.12 against Scala 2.9.2. To compile run `sbt compile`.
+ - `spec` contains an XML specification of the standard SuperCollider UGens, suitable for synthesising ScalaCollider UGen classes or other meta data purposes
+ - `api` contains the base classes for ugens, graph elements, ugen and synth graphs.
+ - `gen` generates the source codes of the `core` project from the descriptions provided by the `spec` project
+ - `core` contains ScalaCollider classes for the standard UGens
 
-### running
+## linking
 
-The UGen descriptions reside in XML files. The project already comes with a file for the standard UGens included with a plain SuperCollider installation. You will need to create additional XML files if you wish to compile sources for third party UGens.
+All artifacts are published to Maven Central, and are available as follows:
+
+    "de.sciss" %  "scalacolliderugens-spec" % version
+    "de.sciss" %% "scalacolliderugens-api"  % version
+    "de.sciss" %% "scalacolliderugens-core" % version
+
+The current `version` is 1.1.0-SNAPSHOT.
+
+## building
+
+The project builds with sbt 0.12 against Scala 2.10. To compile, run `sbt compile`.
+
+### generating additional UGen class files
+
+The UGen descriptions reside in XML files. The `spec` sub project contains a file for the standard UGens included with a plain SuperCollider installation. You will need to create additional XML files if you wish to compile sources for third party UGens.
 
 To synthesize the source code for a given UGen description XML file, run as follows:
 
     $ sbt
+    $ project scalacolliderugens-gen
     > run -d path/to/scala/source/output path/to/descriptions.xml
 
-Thus if ScalaCollider-UGens and ScalaCollider reside in the same parent directory, to re-create the standard UGens' class files:
+The generated source files then need to be compiled against `scalacolliderugens-core`.
 
-    > run -d ../ScalaCollider/ descriptions/standard-ugens.xml
-
-(Note that currently sbt seems to exit with an `InterruptedException`&mdash;you can ignore this).
-
-The generated source files then need to be compiled against ScalaCollider. In the future, we might provide a minimum stub instead for the compilation.
-
-### format
+### format of ugen XML descriptions
 
 There is no DTD yet. But the structure of the XML file is as follows:
 
@@ -178,6 +192,3 @@ Please follow carefully the style of the descriptions used for the standard UGen
 
 Whenever the argument order has been significantly changed from the SCLang counterpart, the UGen's `doc` element should contain the attribute `warnpos="true"` which will create a special highlight in the Scaladocs to alert the reader of this change.
 
-#### TODO
-
-Move to Scala 2.10. See http://geometa.hsr.ch/hudson/view/Scala/job/Scala-Refactoring-2.10.0-SNAPSHOT/

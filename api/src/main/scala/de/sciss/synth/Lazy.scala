@@ -1,6 +1,6 @@
 /*
  *  Lazy.scala
- *  (ScalaCollider)
+ *  (ScalaColliderUGens)
  *
  *  Copyright (c) 2008-2013 Hanns Holger Rutz. All rights reserved.
  *
@@ -54,7 +54,7 @@ object Lazy {
        * the `expand` method. Therefore it is guaranteed, that the expansion to
        * ugens is performed no more than once in the graph expansion.
        */
-      final def force( b: UGenGraph.Builder ) { visit( b )}
+      final private[synth] def force( b: UGenGraph.Builder ) { visit( b )}
 
       /**
        * A final implementation of this method which looks up the current ugen graph
@@ -64,7 +64,7 @@ object Lazy {
        * @return  the expanded object (e.g. `Unit` for a ugen with no outputs,
        *          or a single ugen, or a group of ugens)
        */
-      final def expand: U = visit( UGenGraph.builder )
+      final private[synth] def expand: U = visit( UGenGraph.builder )
 
       private def visit( b: UGenGraph.Builder ): U = b.visit( ref, makeUGens )
 
@@ -101,5 +101,5 @@ trait Lazy extends Serializable {
     * @param b    the ugen graph builder to which expanded `UGen`s or control proxies
     *             may be added.
     */
-   def force( b: UGenGraph.Builder ) : Unit
+   private[synth] def force( b: UGenGraph.Builder ) : Unit
 }
