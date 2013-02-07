@@ -14,7 +14,7 @@ object Build extends sbt.Build {
   val ugenGenerator = TaskKey[Seq[File]]("ugen-generate", "Generate UGen class files")
 
   def licenseURL(licName: String, sub: String) =
-    licenses <<= name { n => Seq(licName -> url("https://raw.github.com/Sciss/" + n + "/master/" + sub + "/LICENSE")) }
+    licenses <<= (name in root) { n => Seq(licName -> url("https://raw.github.com/Sciss/" + n + "/master/" + sub + "/LICENSE")) }
 
   lazy val spec = Project(
     id = "scalacolliderugens-spec",
