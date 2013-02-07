@@ -29,6 +29,7 @@ import collection.immutable.{IndexedSeq => IIdxSeq}
 import annotation.switch
 import runtime.ScalaRunTime
 import ugen.ControlProxyLike
+import language.existentials  // yes I know, that stuff in ControlProxyLike should really disappear
 
 sealed trait UGen extends Product /* with MaybeIndividual */ {
    // ---- constructor ----

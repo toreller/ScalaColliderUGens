@@ -1,6 +1,6 @@
 name := "ScalaColliderUGens"
 
-version in ThisBuild := "1.0.1"
+version in ThisBuild := "1.1.0-SNAPSHOT"
 
 organization in ThisBuild := "de.sciss"
 
@@ -14,7 +14,7 @@ scalaVersion in ThisBuild := "2.10.0"
 
 retrieveManaged in ThisBuild := true
 
-scalacOptions in ThisBuild ++= Seq("-deprecation", "-unchecked")
+scalacOptions in ThisBuild ++= Seq("-deprecation", "-unchecked", "-feature")
 
 // ---- build info ----
 //  

@@ -29,34 +29,31 @@ package de.sciss.synth
  * Add-actions are used by the server to determine where to place a node with
  * respect to other nodes. They form an enumeration of integers which are
  * represented by case objects being subclasses of this abstract class.
- *
- * @see  [[de.sciss.synth.Synth]]
- * @see  [[de.sciss.synth.Group]]
  */
-sealed abstract class AddAction( final val id: Int )
+sealed abstract class AddAction(final val id: Int)
 
 /**
  * AddAction with id 0, indicating that a node should be add to the head of
  * of a target group.
  */
-case object addToHead   extends AddAction( 0 )
+case object addToHead extends AddAction(0)
 /**
  * AddAction with id 1, indicating that a node should be add to the tail of
  * of a target group.
  */
-case object addToTail   extends AddAction( 1 )
+case object addToTail extends AddAction(1)
 /**
  * AddAction with id 2, indicating that a node should be added to the same
  * group as the target node, right before it.
  */
-case object addBefore   extends AddAction( 2 )
+case object addBefore extends AddAction(2)
 /**
  * AddAction with id 3, indicating that a node should be added to the same
  * group as the target node, right after it.
  */
-case object addAfter    extends AddAction( 3 )
+case object addAfter extends AddAction(3)
 /**
  * AddAction with id 4, indicating that a node should replace an existing
  * node, that is take the target node's exact position in the tree.
  */
-case object addReplace  extends AddAction( 4 )
+case object addReplace extends AddAction(4)

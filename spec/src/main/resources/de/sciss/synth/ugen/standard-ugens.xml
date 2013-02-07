@@ -11,7 +11,7 @@
                 </text>
                 <see>ugen.CuspL</see>
             </doc>
-            <arg name="freq" default="SampleRate.ir * 0.5">
+            <arg name="freq" default="nyquist">
                 <doc>
                     Iteration frequency in Hertz
                 </doc>
@@ -43,7 +43,7 @@
                 </text>
                 <see>ugen.CuspN</see>
             </doc>
-            <arg name="freq" default="SampleRate.ir * 0.5">
+            <arg name="freq" default="nyquist">
                 <doc>
                     Iteration frequency in Hertz
                 </doc>
@@ -78,7 +78,7 @@
                 <see>ugen.FBSineL</see>
                 <see>ugen.FBSineC</see>
             </doc>
-            <arg name="freq" default="SampleRate.ir * 0.5">
+            <arg name="freq" default="nyquist">
                 <doc>
                     Iteration frequency in Hertz
                 </doc>
@@ -128,7 +128,7 @@
                 <see>ugen.FBSineN</see>
                 <see>ugen.FBSineC</see>
             </doc>
-            <arg name="freq" default="SampleRate.ir * 0.5">
+            <arg name="freq" default="nyquist">
                 <doc>
                     Iteration frequency in Hertz
                 </doc>
@@ -178,7 +178,7 @@
                 <see>ugen.FBSineN</see>
                 <see>ugen.FBSineL</see>
             </doc>
-            <arg name="freq" default="SampleRate.ir * 0.5">
+            <arg name="freq" default="nyquist">
                 <doc>
                     Iteration frequency in Hertz
                 </doc>
@@ -228,7 +228,7 @@
                 </text>
                 <see>ugen.GbmanL</see>
             </doc>
-            <arg name="freq" default="SampleRate.ir * 0.5">
+            <arg name="freq" default="nyquist">
             <doc>
                 Iteration frequency in Hertz
             </doc>
@@ -246,7 +246,7 @@
         </ugen>
         <ugen name="GbmanL">
             <rate name="audio"/>
-            <arg name="freq" default="SampleRate.ir * 0.5">
+            <arg name="freq" default="nyquist">
                 <doc>
                     Iteration frequency in Hertz
                 </doc>
@@ -276,7 +276,7 @@
         </ugen>
         <ugen name="HenonN">
             <rate name="audio"/>
-            <arg name="freq" default="SampleRate.ir * 0.5">
+            <arg name="freq" default="nyquist">
                 <doc>
                     Iteration frequency in Hertz
                 </doc>
@@ -315,7 +315,7 @@
         </ugen>
         <ugen name="HenonL">
             <rate name="audio"/>
-            <arg name="freq" default="SampleRate.ir * 0.5">
+            <arg name="freq" default="nyquist">
                 <doc>
                     Iteration frequency in Hertz
                 </doc>
@@ -354,7 +354,7 @@
         </ugen>
         <ugen name="HenonC">
             <rate name="audio"/>
-            <arg name="freq" default="SampleRate.ir * 0.5">
+            <arg name="freq" default="nyquist">
                 <doc>
                     Iteration frequency in Hertz
                 </doc>
@@ -393,7 +393,7 @@
         </ugen>
         <ugen name="LatoocarfianN">
             <rate name="audio"/>
-            <arg name="freq" default="SampleRate.ir * 0.5">
+            <arg name="freq" default="nyquist">
                 <doc>
                     Iteration frequency in Hertz.
                 </doc>
@@ -445,7 +445,7 @@
         </ugen>
         <ugen name="LatoocarfianL">
             <rate name="audio"/>
-            <arg name="freq" default="SampleRate.ir * 0.5">
+            <arg name="freq" default="nyquist">
                 <doc>
                     Iteration frequency in Hertz
                 </doc>
@@ -497,7 +497,7 @@
         </ugen>
         <ugen name="LatoocarfianC">
             <rate name="audio"/>
-            <arg name="freq" default="SampleRate.ir * 0.5">
+            <arg name="freq" default="nyquist">
                 <doc>
                     Iteration frequency in Hertz.
                 </doc>
@@ -560,7 +560,7 @@
                 <see>ugen.LinCongL</see>
                 <see>ugen.LinCongC</see>
             </doc>
-            <arg name="freq" default="SampleRate.ir * 0.5">
+            <arg name="freq" default="nyquist">
                 <doc>
                     Iteration frequency in Hertz
                 </doc>
@@ -599,7 +599,7 @@
                 <see>ugen.LinCongN</see>
                 <see>ugen.LinCongC</see>
             </doc>
-            <arg name="freq" default="SampleRate.ir * 0.5">
+            <arg name="freq" default="nyquist">
                 <doc>
                     Iteration frequency in Hertz
                 </doc>
@@ -638,7 +638,7 @@
                 <see>ugen.LinCongN</see>
                 <see>ugen.LinCongL</see>
             </doc>
-            <arg name="freq" default="SampleRate.ir * 0.5">
+            <arg name="freq" default="nyquist">
                 <doc>
                     Iteration frequency in Hertz
                 </doc>
@@ -679,7 +679,7 @@
                     increase the rate, but cause more instability. A safe choice is the default amount of 0.05.
                 </text>
             </doc>
-            <arg name="freq" default="SampleRate.ir * 0.5">
+            <arg name="freq" default="nyquist">
                 <doc>
                     Iteration frequency in Hertz
                 </doc>
@@ -732,7 +732,7 @@
                 <see>ugen.QuadL</see>
                 <see>ugen.QuadC</see>
             </doc>
-            <arg name="freq" default="SampleRate.ir * 0.5">
+            <arg name="freq" default="nyquist">
                 <doc>
                     Iteration frequency in Hertz
                 </doc>
@@ -770,7 +770,7 @@
                 <see>ugen.QuadN</see>
                 <see>ugen.QuadC</see>
             </doc>
-            <arg name="freq" default="SampleRate.ir * 0.5">
+            <arg name="freq" default="nyquist">
                 <doc>
                     Iteration frequency in Hertz
                 </doc>
@@ -808,7 +808,7 @@
                 <see>ugen.QuadN</see>
                 <see>ugen.QuadL</see>
             </doc>
-            <arg name="freq" default="SampleRate.ir * 0.5">
+            <arg name="freq" default="nyquist">
                 <doc>
                     Iteration frequency in Hertz
                 </doc>
@@ -848,7 +848,7 @@
                 </text>
                 <see>ugen.StandardL</see>
             </doc>
-            <arg name="freq" default="SampleRate.ir * 0.5">
+            <arg name="freq" default="nyquist">
                 <doc>
                     Iteration frequency in Hertz
                 </doc>
@@ -883,7 +883,7 @@
                 </text>
                 <see>ugen.StandardN</see>
             </doc>
-            <arg name="freq" default="SampleRate.ir * 0.5">
+            <arg name="freq" default="nyquist">
                 <doc>
                     Iteration frequency in Hertz
                 </doc>
@@ -5252,8 +5252,8 @@
             <rate name="scalar"/>
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="freq" default="60.midicps"/>
-            <arg name="root" default="60.midicps"/>
+            <arg name="freq" default="261.626"/>
+            <arg name="root" default="261.626"/>
             <arg name="expon" default="0.3333"/>
         </ugen>
         <ugen name="AmpCompA">

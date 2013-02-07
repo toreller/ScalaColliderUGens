@@ -37,6 +37,8 @@ import collection.immutable.{ IndexedSeq => IIdxSeq }
  *    multichannel expansion (UGenInSeq). 
  */
 object GE {
+  import language.implicitConversions
+
    // XXX don't we expect Multi[ GE[ R ]] ?
    implicit def fromSeq( xs: SSeq[ GE ]) : GE = xs match {
       case SSeq( x ) => x

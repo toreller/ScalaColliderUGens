@@ -26,7 +26,8 @@
 package de.sciss.synth
 
 object DoneAction {
-   implicit def toGE( x: DoneAction ) = Constant( x.id )
+  import language.implicitConversions
+   implicit def toGE( x: DoneAction ): Constant = new Constant( x.id )
 }
 sealed abstract class DoneAction( val id: Int )
 

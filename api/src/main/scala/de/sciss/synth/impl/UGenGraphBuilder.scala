@@ -237,7 +237,8 @@ trait UGenGraphBuilderLike extends UGenGraph.Builder {
    }
 
    private def buildControls( p: Iterable[ ControlProxyLike[ _ ]]): Map[ ControlProxyLike[ _ ], (UGen, Int) ] = {
-      p.groupBy( _.factory ).flatMap( tuple => {
+     import language.existentials // grmpfff...
+     p.groupBy( _.factory ).flatMap( tuple => {
          val (factory, proxies) = tuple
          factory.build( builder, proxies.toSeq.asInstanceOf[ Seq[ factory.Proxy /* XXX horrible */]]: _* )
 //            res.valuesIterator.foreach( tup => addUGen( tup._1 ))
