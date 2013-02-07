@@ -1,6 +1,6 @@
 /*
  *  GE.scala
- *  (ScalaCollider)
+ *  (ScalaColliderUGens)
  *
  *  Copyright (c) 2008-2013 Hanns Holger Rutz. All rights reserved.
  *
@@ -27,7 +27,7 @@ package de.sciss.synth
 
 import scala.{Seq => SSeq}
 import collection.breakOut
-import collection.immutable.{ IndexedSeq => IIdxSeq }
+import collection.immutable.{IndexedSeq => IIdxSeq}
 
 /**
  *    The UGen graph is constructed from interconnecting graph elements (GE).
@@ -39,48 +39,54 @@ import collection.immutable.{ IndexedSeq => IIdxSeq }
 object GE {
   import language.implicitConversions
 
+  implicit def const(f: Float ): Constant = new Constant(f)
+  implicit def const(d: Double): Constant = new Constant(d.toFloat)
+
    // XXX don't we expect Multi[ GE[ R ]] ?
-   implicit def fromSeq( xs: SSeq[ GE ]) : GE = xs match {
-      case SSeq( x ) => x
-      case _ => SeqImpl( xs.toIndexedSeq )
+   implicit def fromSeq(xs: SSeq[GE]): GE = xs match {
+     case SSeq(x) => x
+     case _       => SeqImpl(xs.toIndexedSeq)
    }
 
-   implicit def fromIntSeq( xs: SSeq[ Int ]) : GE = xs match {
-      case SSeq( single ) => Constant(single)
-      case _ => SeqImpl( xs.map( i => Constant( i.toFloat ))( breakOut ))
-   }
+  implicit def fromIntSeq(xs: SSeq[Int]): GE = xs match {
+    case SSeq(single) => Constant(single)
+    case _            => SeqImpl(xs.map(i => Constant(i.toFloat))(breakOut))
+  }
 
-   implicit def fromFloatSeq( xs: SSeq[ Float ]) : GE = xs match {
-      case SSeq( x ) => Constant(x)
-      case _ => SeqImpl( xs.map( f => Constant( f ))( breakOut ))
-   }
+  implicit def fromFloatSeq(xs: SSeq[Float]): GE = xs match {
+    case SSeq(x)  => Constant(x)
+    case _        => SeqImpl(xs.map(f => Constant(f))(breakOut))
+  }
 
-   implicit def fromDoubleSeq( xs: SSeq[ Double ]) : GE = xs match {
-      case SSeq( x ) => Constant(x.toFloat)
-      case _ => SeqImpl( xs.map( d => Constant( d.toFloat ))( breakOut ))
-   }
+  implicit def fromDoubleSeq(xs: SSeq[Double]): GE = xs match {
+    case SSeq(x)  => Constant(x.toFloat)
+    case _        => SeqImpl(xs.map(d => Constant(d.toFloat))(breakOut))
+  }
 
-   def fromUGenIns( xs: SSeq[ UGenIn ]) : GE = SeqImpl2( xs.toIndexedSeq )
+  def fromUGenIns(xs: SSeq[UGenIn]): GE = SeqImpl2(xs.toIndexedSeq)
 
-   @SerialVersionUID(-5589376755121907882L) private final case class SeqImpl( elems: IIdxSeq[ GE ]) extends GE {
-def numOutputs = elems.size
-      def expand : UGenInLike = UGenInGroup( elems.map( _.expand ))
-      def rate = MaybeRate.reduce( elems.map( _.rate ): _* )
-      override def displayName = "GE.Seq"
-      override def toString = displayName + elems.mkString( "(", ",", ")" )
-   }
-   private final case class SeqImpl2( elems: IIdxSeq[ UGenIn ]) extends GE {
-def numOutputs = elems.size
-      def expand : UGenInLike = UGenInGroup( elems )
-      def rate = MaybeRate.reduce( elems.map( _.rate ): _* )
-      override def displayName = "GE.Seq"
-      override def toString = displayName + elems.mkString( "(", ",", ")" )
-   }
+  @SerialVersionUID(-5589376755121907882L) private final case class SeqImpl(elems: IIdxSeq[GE]) extends GE {
+    def numOutputs            = elems.size
+    def expand: UGenInLike    = UGenInGroup(elems.map(_.expand))
+    def rate                  = MaybeRate.reduce(elems.map(_.rate): _*)
 
-   /**
-    * Simply a trait composed of `Lazy.Expander[UGenInLike]` and `GE`
-    */
-   trait Lazy extends Lazy.Expander[ UGenInLike ] with GE
+    override def displayName  = "GE.Seq"
+    override def toString     = displayName + elems.mkString("(", ",", ")")
+  }
+
+  private final case class SeqImpl2(elems: IIdxSeq[UGenIn]) extends GE {
+    def numOutputs            = elems.size
+    def expand: UGenInLike    = UGenInGroup(elems)
+    def rate                  = MaybeRate.reduce(elems.map(_.rate): _*)
+
+    override def displayName  = "GE.Seq"
+    override def toString     = displayName + elems.mkString("(", ",", ")")
+  }
+
+ /**
+   * Simply a trait composed of `Lazy.Expander[UGenInLike]` and `GE`
+   */
+  trait Lazy extends Lazy.Expander[UGenInLike] with GE
 }
 /**
  * The main trait used in synthesis graph, a graph element, abbreviated as `GE`.
@@ -97,7 +103,7 @@ def numOutputs = elems.size
  * @see [[de.sciss.synth.SynthGraph]]
  */
 trait GE {
-   def rate: MaybeRate
-   def expand: UGenInLike
-   def displayName: String
+  def rate: MaybeRate
+  def expand: UGenInLike
+  def displayName: String
 }
