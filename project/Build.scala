@@ -67,13 +67,11 @@ object Build extends sbt.Build {
     base = file("core"),
     dependencies = Seq(api, gen),
     settings = Project.defaultSettings ++ Seq(
-//      scalaVersion := "2.10.0",
-
-//      sourceGenerators in Compile <+= (ugenGenerator in Compile),
-//      ugenGenerator in Compile <<=
-//        (sourceManaged in Compile, dependencyClasspath in Runtime in gen) map {
-//          (src, cp) => runUGenGenerator(src, cp.files)
-//        }
+      sourceGenerators in Compile <+= (ugenGenerator in Compile),
+      ugenGenerator in Compile <<=
+        (sourceManaged in Compile, dependencyClasspath in Runtime in gen) map {
+          (src, cp) => runUGenGenerator(src, cp.files)
+        }
       )
     ) // .dependsOn(gen)
 
