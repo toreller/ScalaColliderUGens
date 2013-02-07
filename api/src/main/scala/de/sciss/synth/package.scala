@@ -23,15 +23,17 @@
  *  contact@sciss.de
  */
 
-package de.sciss.synth
+package de.sciss // .synth
 
 import collection.immutable.{IndexedSeq => IIdxSeq}
 import annotation.switch
 import runtime.ScalaRunTime
-import ugen.ControlProxyLike
 import language.existentials  // yes I know, that stuff in ControlProxyLike should really disappear
 
+package object synth {
+  import ugen.ControlProxyLike
 sealed trait UGen extends Product /* with MaybeIndividual */ {
+  //_: de.sciss.synth.UGen =>
    // ---- constructor ----
    UGenGraph.builder.addUGen( this )
 
@@ -163,7 +165,7 @@ final def numOutputs = 1
    }
 }
 
-sealed trait UGenInLike extends GE {
+sealed trait UGenInLike extends Any with GE {
 //   def ungroup : IIdxSeq[ UGenInLike ]
 //   def numOutputs : Int
    private[synth] def outputs : IIdxSeq[ UGenInLike ]
@@ -189,7 +191,7 @@ sealed trait UGenInLike extends GE {
  *    This is after multi-channel-expansion, hence implementing
  *    classes are SingleOutUGen, UGenOutProxy, ControlOutProxy, and Constant.
  */
-sealed trait UGenIn extends UGenInLike { // [ R <: Rate ] extends /* RatedGE */ GE[ R, UGenIn[ R ]] {
+sealed trait UGenIn extends Any with UGenInLike { // [ R <: Rate ] extends /* RatedGE */ GE[ R, UGenIn[ R ]] {
    def rate : Rate
 //   private[synth] final def numOutputs: Int = 1
    private[synth] def outputs : IIdxSeq[ UGenIn ] = IIdxSeq( this )
@@ -231,12 +233,17 @@ sealed trait UGenProxy extends UGenIn {
    def outputIndex : Int
 }
 
+object Constant {
+//  def apply(value: Float): Constant = new Constant(value)
+  def unapply(c: Constant): Option[Float] = Some(c.value)
+}
 /**
  *    A scalar constant used as an input to a UGen.
  *    These constants are stored in a separate table of
  *    the synth graph.
  */
-@SerialVersionUID(3402358769036617020L) final case class Constant( value: Float ) extends /* GE with */ UGenIn {
+@SerialVersionUID(3402358769036617020L)
+implicit final /* case */ class Constant(val value: Float) extends AnyVal with UGenIn {
    override def toString = value.toString
    def displayName = value.toString
    def rate: Rate = scalar
@@ -257,4 +264,5 @@ extends UGenIn { // UGenIn[ R ] {
    override def toString = source.toString + ".\\(" + outputIndex + ")"
    def displayName = source.displayName + " \\ " + outputIndex
 //   private[synth] def ref: AnyRef = this
+}
 }

@@ -102,8 +102,8 @@ object GE {
  *
  * @see [[de.sciss.synth.SynthGraph]]
  */
-trait GE {
+trait GE extends Any {
   def rate: MaybeRate
-  def expand: UGenInLike
-  def displayName: String
+  private[synth] def expand: UGenInLike
+  private[synth] def displayName: String
 }
