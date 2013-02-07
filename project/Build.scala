@@ -1,6 +1,7 @@
 import sbt._
 import Keys._
-import sbtbuildinfo.Plugin._
+import sbt.File
+// import sbtbuildinfo.Plugin._
 
 object Build extends sbt.Build {
   lazy val root: Project = Project(
@@ -15,7 +16,7 @@ object Build extends sbt.Build {
   lazy val spec = Project(
     id = "scalacolliderugens-spec",
     base = file("spec"),
-    settings = Project.defaultSettings ++ buildInfoSettings ++ Seq(
+    settings = Project.defaultSettings /* ++ buildInfoSettings */ ++ Seq(
       // buildInfoSettings
 //      sourceGenerators in Compile <+= buildInfo,
 //      buildInfoKeys := Seq(name, organization, version, scalaVersion, description,
@@ -68,14 +69,40 @@ object Build extends sbt.Build {
 //      scalaVersion := "2.10.0",
       sourceGenerators in Compile <+= (ugenGenerator in Compile),
       ugenGenerator in Compile <<=
-        (scalaSource in Compile, dependencyClasspath in Runtime in gen) map {
+        (sourceManaged in Compile, dependencyClasspath in Runtime in gen) map {
           (src, cp) => runUGenGenerator(src, cp.files)
         }
       )
     ).dependsOn(gen)
 
-  def runUGenGenerator(source: File, cp: Seq[File]): Seq[File] = {
-    println("AQUI " + source)
-    Nil
+  def runUGenGenerator(outputDir: File, cp: Seq[File]): Seq[File] = {
+    val scalaOutput = outputDir / "scala"
+
+    val mainClass = "de.sciss.synth.ugen.Gen"
+    val tmp       = java.io.File.createTempFile("sources", ".txt")
+    val os        = new java.io.FileOutputStream(tmp)
+
+    try {
+      // NO:
+      // def fork(javaHome: Option[File], options: Seq[String], workingDirectory: Option[File],
+      //          env: Map[String, String], connectInput: Boolean, outputStrategy: sbt.OutputStrategy): sbt.Process
+      // YES:
+      // def fork(javaHome: Option[File], jvmOptions: Seq[String], scalaJars: Iterable[File], arguments: Seq[String],
+      //          workingDirectory: Option[File], connectInput: Boolean, outputStrategy: sbt.OutputStrategy): sbt.Process
+      val outs  = CustomOutput(os)
+      val p     = new Fork.ForkScala(mainClass).fork(javaHome = None, jvmOptions = Nil, scalaJars = cp,
+        arguments = "-r" :: "-d" :: scalaOutput.getAbsolutePath :: Nil, workingDirectory = None,
+        connectInput = false, outputStrategy = outs)
+      val res = p.exitValue()
+
+      if (res != 0) {
+        sys.error("UGen class file generator failed with exit code " + res)
+      }
+    } finally {
+      os.close()
+    }
+    val sources = io.Source.fromFile(tmp).getLines().map(file(_)).toList
+    tmp.delete()
+    sources
   }
 }

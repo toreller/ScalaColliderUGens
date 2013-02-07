@@ -756,8 +756,11 @@ with Tracing with CompilerProvider /* with MyNodePrinter */ with CompilerAccess 
                   /* Import( Select( ident( "aux" ), "UGenHelper" ), ImportSelector( nme.WILDCARD, -1, nme.WILDCARD, -1 ) :: Nil ) :: */ imports0
             val packageDef = PackageDef( Select( Select( ident( "de" ), "sciss" ), "synth" ),
                PackageDef( Ident( "ugen" ), imports1 ::: ugens ) :: Nil )
-            println( "Writing " + fileName )
-            val osw = new OutputStreamWriter( new FileOutputStream( new File( dir, fileName )), "UTF-8" )
+//           println( "Writing generated source " + fileName )
+           val fullPath = new File(dir, fileName)
+//           println( "Writing generated source " + fileName )
+            println(fullPath.getAbsolutePath)
+            val osw = new OutputStreamWriter(new FileOutputStream(fullPath), "UTF-8")
             osw.write( """/*
  * """ + fileName + """
  * (ScalaCollider-UGens)
@@ -771,7 +774,7 @@ with Tracing with CompilerProvider /* with MyNodePrinter */ with CompilerAccess 
             osw.close()
          }
       }
-      println( "Done.")
+//      println( "Done.")
    }
 
    private def getBoolAttr( n: Node, name: String, default: Boolean = false ) =
