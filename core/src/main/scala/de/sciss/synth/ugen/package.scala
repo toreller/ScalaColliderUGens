@@ -14,7 +14,7 @@ package object ugen {
 
   //  private[ugen] implicit def mkConst(f: Float): Constant = new Constant(f)
 
-  private[ugen] final val inf = Float.PositiveInfinity
+  /* private[ugen] */ final val inf = Float.PositiveInfinity
   private[ugen] def nyquist: GE = BinaryOp.Times.make(SampleRate.ir, 0.5f)
 
   private[ugen] def replaceZeroesWithSilence(ins: IIdxSeq[UGenIn]): IIdxSeq[UGenIn] = {
