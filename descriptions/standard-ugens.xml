@@ -5072,8 +5072,28 @@
         <ugen name="LFTri">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="freq" default="440"/>
-            <arg name="iphase" default="0"/>
+            <arg name="freq" default="440">
+                <doc>
+                    Frequency in Hertz
+                </doc>
+            </arg>
+            <arg name="iphase" default="0">
+                <doc>
+                    Initial phase of the oscillator. A full phase (2 Pi or 360 degrees) is represented by
+                    an `iphase` value of 4. The initial phase cannot be modulated.
+                </doc>
+            </arg>
+            <doc>
+                <text>
+                    A triangle oscillator designed for low frequency control signals (being non-band-limited).
+                    The output varies from -1 to 1.
+
+                    With an initial phase of zero, the oscillator begins at 0, rises to 1, then falls to -1 and goes
+                    back to zero after one complete phase. With an initial phase of 1 (corresponding to 90 degrees),
+                    the oscillator begins at 1 and then falls to -1. With an initial phase of 3 (or 270 degrees),
+                    the oscillator begins at -1 and then rises to 1.
+                </text>
+            </doc>
         </ugen>
         <ugen name="LFGauss">
             <rate name="control"/>
@@ -6065,7 +6085,8 @@
             <doc>
                 <text>
                     A Sinusoidal (sine tone) oscillator UGen.
-                    This is the same as `Osc` except that it uses a built-in interpolating sine table of 8192 entries.
+                    This is the same as `Osc` except that it uses a built-in interpolating sine table of 8192 entries,
+                    making it less accurate but cheaper in terms of CPU usage.
                 </text>
                 <see>ugen.Osc</see>
                 <see>ugen.FSinOsc</see>
