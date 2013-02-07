@@ -4,8 +4,6 @@ version in ThisBuild := "1.0.1"
 
 organization in ThisBuild := "de.sciss"
 
-scalaVersion in ThisBuild := "2.9.2"
-
 description in ThisBuild := "Generates UGen source code files for ScalaCollider"
 
 homepage in ThisBuild := Some(url("https://github.com/Sciss/ScalaColliderUGens"))

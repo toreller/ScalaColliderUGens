@@ -35,8 +35,7 @@ object Build extends sbt.Build {
     base = file("api"),
 //    dependencies = Seq(xml),
     settings = Project.defaultSettings ++ Seq(
-//      resolvers += "Oracle Repository" at "http://download.oracle.com/maven", // required for sleepycat
-//      libraryDependencies += "com.sleepycat" % "je" % "5.0.58" // = Berkeley DB Java Edition
+      scalaVersion := "2.10.0"
     )
   )
 
@@ -45,7 +44,7 @@ object Build extends sbt.Build {
     base = file("gen"),
     dependencies = Seq(spec),
     settings = Project.defaultSettings ++ Seq(
-//      resolvers += "Oracle Repository" at "http://download.oracle.com/maven", // required for sleepycat
+      scalaVersion := "2.9.2",  // XXX TODO
       libraryDependencies ++= Seq(
         "com.github.scopt" %% "scopt" % "2.1.0",
         "org.scala-refactoring" % "org.scala-refactoring_2.9.1" % "0.4.1"
@@ -60,6 +59,7 @@ object Build extends sbt.Build {
     id = "scalacolliderugens-core",
     base = file("core"),
     settings = Project.defaultSettings ++ Seq(
+      scalaVersion := "2.10.0",
       sourceGenerators in Compile <+= (ugenGenerator in Compile),
       ugenGenerator in Compile <<=
         (scalaSource in Compile, dependencyClasspath in Runtime in gen) map {

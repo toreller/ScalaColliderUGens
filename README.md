@@ -177,3 +177,7 @@ The description text for arguments is the text inside the argument's `<doc></doc
 Please follow carefully the style of the descriptions used for the standard UGens. They adhere mostly to [Javadoc style practice](http://www.oracle.com/technetwork/java/javase/documentation/index-137868.html#styleguide), and not so much to the more colloquial style of SCLang docs. The purpose here is not to include lengthy examples, but to be technically precise in the meanings of the argument values and the exact functioning of the UGen, if possible covering corner cases, providing details about underlying formulas, phase behavior of oscillators, typical ranges and scale.
 
 Whenever the argument order has been significantly changed from the SCLang counterpart, the UGen's `doc` element should contain the attribute `warnpos="true"` which will create a special highlight in the Scaladocs to alert the reader of this change.
+
+#### TODO
+
+Move to Scala 2.10. See http://geometa.hsr.ch/hudson/view/Scala/job/Scala-Refactoring-2.10.0-SNAPSHOT/
