@@ -1,0 +1,27 @@
+type="trig"
+type="switch"
+type="doneAction"
+type="buf"  // disallows default value
+type="gint"
+type="gate"
+
+implied by the following defaults:
+
+default="low" | "high"
+default="true" | "false"
+default="open" | "closed"
+
+<outputs type="fftbuf"/>
+:::::::::::::
+
+todo -- type "Int" --> "int"
+
+init="true"
+
+remove: can be modulated ?
+
+<output name="real"/>
+
+----
+continue at LFGauss -- inits
+

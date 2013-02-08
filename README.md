@@ -87,7 +87,7 @@ UGen Attributes (`ugenAttr`) are boolean flags (all false by default) which can 
 |`random`      |UGen depends on random seeding   |`WhiteNoise`|
 |`indiv`       |Each UGen is otherwise individual, even with identical inputs|Demand UGens advance their inputs|
 
-Part of this information is used by ScalaCollider when building the UGen graph. For example, subtrees which do not have any side effects are automatically removed. UGens which have side effects are those for which either of the following flags is set: `writesbus` | `writesbuf` | `writesfft` | `sideeffect`. Furthermore, multiple occurrences of UGens which are functionally equivalent are collapsed. UGens are _functionally not equivalent_ if either of the following flags is set: _any of the side effects_ | `random` | `indiv`. That is to say, if there are two `WhiteNoise` UGens, they are functionally distinct by definition and will thus not be collapsed. The same is true for two `Out` UGens, even if their inputs are the same, as they have accumulative side effects on the bus to which they write. On the other hand, two `SinOsc` UGens with the same frequency and rate inputs are functionally equivalent and thus one can be replaced for the other.
+Part of this information is used by ScalaCollider when building the UGen graph. For example, subtrees which do not have any side effects are automatically removed. UGens which have side effects are those for which either of the following flags is set: `writesbus` | `writesbuf` | `writesfft` | `sideeffect`. Furthermore, multiple occurrences of UGens which are functionally equivalent are collapsed. UGens are _functionally not equivalent_ if either of the following flags is set: _any of the side effects_ | _any of the resource readers_ | `random` | `indiv`. That is to say, if there are two `WhiteNoise` UGens, they are functionally distinct by definition and will thus not be collapsed. The same is true for two `Out` UGens, even if their inputs are the same, as they have accumulative side effects on the bus to which they write. On the other hand, two `SinOsc` UGens with the same frequency and rate inputs are functionally equivalent and thus one can be replaced for the other.
 
 More flags and meta data are planned in future version, e.g. oscillator signal ranges, filter coefficients.
 
@@ -105,11 +105,13 @@ The second attribute, `method`, builds up `implied` and requires tha `implied` h
 
 |Attribute Name|Value                            |Example   |
 |--------------|---------------------------------|----------|
-|`default`     |Default expression for the argument. This can be either a number literal or a code fragment such as `"SampleRate.ir * 0.5"`, `"60.midicps"` or `"doNothing"` (useful for `doneAction` arguments) |`440`, `1.0`, `inf` |
+|`default`     |Default expression for the argument. This can be either a number literal or a special string such `"nyquist"` or `"doNothing"` (see below) |`440`, `1.0`, `inf` |
 |`type`        |Argument type when it is not `GE`. Note that `"String"` (e.g. in `Poll`) is properly converted to a sequence of constant value inputs. Other types such as `Int` are treated as _auxiliary_ for the construction of the UGen (e.g. to determine its number of inputs or outputs) and _do not appear_ as actual UGen inputs. (See below for attribute `ugenin` which makes an exception) |`PanAz`, `Poll` |
 |`rate`|Constrains the supported rate for this argument. The only value presently recognized is `"ugen"` which means the argument is required to run at the _same rate as the UGen_. Please see also the section below about rate specific argument settings. | `DiskOut` (`in`) |
 
-The following three argument attributes have boolean values, and are false by default:
+The allowed string literals for the default value are any of the `DoneAction`s (e.g. `"freeSelf"`) and `"nyquist"` which is understood as `SampleRate.ir/2`. Note that expressions such as `"60.midicps"` have been currently disallowed for simplicity and language neutrality.
+
+The following three argument attributes have boolean values, and are `"false"` by default:
 
 |Attribute Name|Meaning when value is `"true"`   |Example   |
 |--------------|---------------------------------|----------|
