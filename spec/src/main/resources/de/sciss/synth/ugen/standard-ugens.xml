@@ -5151,28 +5151,28 @@
             <rate name="audio"/>
             <arg name="dur" default="1.0"/>
             <arg name="width" default="0.1"/>
-            <arg name="iphase" default="0"/>
+            <arg name="phase" default="0.0"/>   <!-- in the current implementation can be modulated! -->
             <arg name="loop" default="true"/>
             <arg name="doneAction" default="doNothing"/>
         </ugen>
         <ugen name="Impulse">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="freq" default="440"/>
-            <arg name="phase" default="0"/>
+            <arg name="freq" default="440.0"/>
+            <arg name="phase" default="0.0"/>
         </ugen>
         <ugen name="VarSaw">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="freq" default="440"/>
-            <arg name="iphase" default="0"/>
+            <arg name="freq" default="440.0"/>
+            <arg name="iphase" default="0.0"/>
             <arg name="width" default="0.5"/>
         </ugen>
         <ugen name="SyncSaw">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="syncFreq" default="440"/>
-            <arg name="sawFreq" default="440"/>
+            <arg name="syncFreq" default="440.0"/>
+            <arg name="sawFreq" default="440.0"/>
         </ugen>
         <ugen name="K2A">
             <rate name="audio" implied="true"/>
@@ -5204,19 +5204,19 @@
         <ugen name="Line" sideeffect="true" doneflag="true">
             <rate name="audio"/>
             <rate name="control"/>
-            <arg name="start" default="0">
+            <arg name="start" default="0.0" init="true">
                 <doc>
-                    Starting value. Note that this is read only once at initialization
+                    Starting value
                 </doc>
             </arg>
-            <arg name="end" default="1">
+            <arg name="end" default="1.0" init="true">
                 <doc>
-                    Ending value. Note that this is read only once at initialization
+                    Ending value
                 </doc>
             </arg>
-            <arg name="dur" default="1">
+            <arg name="dur" default="1.0" init="true">
                 <doc>
-                    Duration in seconds. Note that this is read only once at initialization
+                    Duration in seconds
                 </doc>
             </arg>
             <arg name="doneAction" default="doNothing">
@@ -5237,19 +5237,19 @@
         <ugen name="XLine" sideeffect="true" doneflag="true">
             <rate name="audio"/>
             <rate name="control"/>
-            <arg name="start" default="1">
+            <arg name="start" default="1.0" init="true">
                 <doc>
-                    Starting value. Note that this is read only once at initialization
+                    Starting value
                 </doc>
             </arg>
-            <arg name="end" default="2">
+            <arg name="end" default="2.0" init="true">
                 <doc>
-                    Ending value. Note that this is read only once at initialization
+                    Ending value
                 </doc>
             </arg>
-            <arg name="dur" default="1">
+            <arg name="dur" default="1.0" init="true">
                 <doc>
-                    Duration in seconds. Note that this is read only once at initialization
+                    Duration in seconds
                 </doc>
             </arg>
             <arg name="doneAction" default="doNothing">
@@ -5277,24 +5277,24 @@
             <rate name="control"/>
             <rate name="audio"/>
             <arg name="in"/>
-            <arg name="lo" default="0"/>
-            <arg name="hi" default="1"/>
+            <arg name="lo" default="0.0"/>
+            <arg name="hi" default="1.0"/>
         </ugen>
         <ugen name="Fold">
             <rate name="scalar"/>
             <rate name="control"/>
             <rate name="audio"/>
             <arg name="in"/>
-            <arg name="lo" default="0"/>
-            <arg name="hi" default="1"/>
+            <arg name="lo" default="0.0"/>
+            <arg name="hi" default="1.0"/>
         </ugen>
         <ugen name="Clip">
             <rate name="scalar"/>
             <rate name="control"/>
             <rate name="audio"/>
             <arg name="in"/>
-            <arg name="lo" default="0"/>
-            <arg name="hi" default="1"/>
+            <arg name="lo" default="0.0"/>
+            <arg name="hi" default="1.0"/>
         </ugen>
         <!-- this should exist according to plugin sources...
         <ugen name="Unwrap"/>
@@ -5311,18 +5311,18 @@
             <rate name="scalar"/>
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="freq" default="1000"/>
-            <arg name="root" default="0"/>
+            <arg name="freq" default="1000.0"/>
+            <arg name="root" default="0.0"/>
             <arg name="minAmp" default="0.32"/>
-            <arg name="rootAmp" default="1"/>
+            <arg name="rootAmp" default="1.0"/>
         </ugen>
         <ugen name="InRange">
             <rate name="scalar"/>
             <rate name="control"/>
             <rate name="audio"/>
             <arg name="in"/>
-            <arg name="lo" default="0"/>
-            <arg name="hi" default="1"/>
+            <arg name="lo" default="0.0"/>
+            <arg name="hi" default="1.0"/>
         </ugen>
         <ugen name="InRect">
             <rate name="scalar"/>
@@ -5330,28 +5330,28 @@
             <rate name="audio"/>
             <arg name="x"/>
             <arg name="y"/>
-            <arg name="left" default="0"/>
-            <arg name="top" default="0"/>
-            <arg name="right" default="1"/>
-            <arg name="bottom" default="1"/>
+            <arg name="left" default="0.0"/>
+            <arg name="top" default="0.0"/>
+            <arg name="right" default="1.0"/>
+            <arg name="bottom" default="1.0"/>
         </ugen>
-        <ugen name="LinExp">
+        <ugen name="LinExp"> <!-- TODO: first arg rate has to be rate ? -->
             <rate name="scalar"/>
             <rate name="control"/>
             <rate name="audio"/>
             <arg name="in" rate="ugen">
                 The input signal to convert.
             </arg>
-            <arg name="srcLo" default="0">
+            <arg name="srcLo" default="0.0">
                 The lower limit of input range.
             </arg>
-            <arg name="srcHi" default="1">
+            <arg name="srcHi" default="1.0">
                 The upper limit of input range.
             </arg>
-            <arg name="dstLo" default="1">
+            <arg name="dstLo" default="1.0">
                 The lower limit of output range.
             </arg>
-            <arg name="dstHi" default="2">
+            <arg name="dstHi" default="2.0">
                 The upper limit of output range.
             </arg>
             <doc>
@@ -5409,26 +5409,26 @@
         <ugen name="EnvGen" sideeffect="true" doneflag="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="gate" default="1" pos="1"/>
-            <arg name="levelScale" default="1" pos="2"/>
-            <arg name="levelBias" default="0" pos="3"/>
-            <arg name="timeScale" default="1" pos="4"/>
+            <arg name="gate" default="open" pos="1"/>       <!-- negative values have special meaning, though... -->
+            <arg name="levelScale" default="1.0" pos="2"/>  <!-- like init="true" but can be re-triggered... -->
+            <arg name="levelBias" default="0.0" pos="3"/>
+            <arg name="timeScale" default="1.0" pos="4"/>
             <arg name="doneAction" default="doNothing" pos="5"/>
             <arg name="envelope" multi="true" pos="0"/>
         </ugen>
         <ugen name="Linen" sideeffect="true" doneflag="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="gate" default="1"/>
+            <arg name="gate" default="open"/>
             <arg name="attack" default="0.01"/>
-            <arg name="sustain" default="1"/>
-            <arg name="release" default="1"/>
+            <arg name="sustain" default="1.0"/>
+            <arg name="release" default="1.0"/>
             <arg name="doneAction" default="doNothing"/>
         </ugen>
         <ugen name="IEnvGen">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="index" default="1" pos="1"/>
+            <arg name="index" pos="1"/>  <!-- default="1.0" -->
             <arg name="envelope" multi="true" pos="0"/>
         </ugen>
     </file>
@@ -5436,14 +5436,14 @@
     <file name="MachineListening">
         <ugen name="BeatTrack" readsfft="true">
             <rate name="control" implied="true"/>
-            <arg name="chain">
+            <arg name="chain" type="fftbuf">
                 <doc>
                     the output (buffer) of an FFT UGen which transforms the audio input to track.
                     The expected size of FFT is 1024 for 44100 and 48000 sampling rate, and 2048 for double those.
                     No other sampling rates are supported.
                 </doc>
             </arg>
-            <arg name="lock" default="0">
+            <arg name="lock" default="0.0">
                 <doc>
                     If this argument is greater than 0.5, the tracker will lock at its current
                     periodicity and continue from the current phase. Whilst it updates the model's phase and period,
@@ -5474,7 +5474,7 @@
         </ugen>
         <ugen name="Loudness" readsfft="true">
             <rate name="control" implied="true"/>
-            <arg name="chain">
+            <arg name="chain" type="fftbuf">
                 <doc>
                     the output (buffer) of an FFT UGen which transforms the audio input to track.
                     The FFT size should be 1024 for 44.1 and 48 kHz sampling rate, and 2048 for 88.2 and 96 kHz sampling rate.
@@ -5486,7 +5486,7 @@
                     falloff (leaky integration multiplier) of smask per bin. Can be control-rate modulated.
                 </doc>
             </arg>
-            <arg name="tmask" default="1">
+            <arg name="tmask" default="1.0">
                 <doc>
                     Temporal masking parameter: the phon level let through in an ERB band is the maximum of
                     the new measurement, and the previous minus tmask phons. Can be control-rate modulated.
@@ -5508,14 +5508,14 @@
         </ugen>
         <ugen name="KeyTrack" readsfft="true">
             <rate name="control" implied="true"/>
-            <arg name="chain">
+            <arg name="chain" type="fftbuf">
                 <doc>
                     the output (buffer) of an FFT UGen which transforms the audio input to track.
                     For the FFT chain, with a standard hop of half FFT size, the FFT size should be
                     4096 at 44.1 or 48 kHz and 8192 at 88.2 or 96 kHz sampling rate.
                 </doc>
             </arg>
-            <arg name="keyDecay" default="2">
+            <arg name="keyDecay" default="2.0">
                 <doc>
                     Number of seconds for the influence of a window on the final key decision to decay by
                     40dB (to 0.01 its original value). Can be control-rate modulated.
@@ -5539,7 +5539,7 @@
         <ugen name="MFCC" readsfft="true">
             <rate name="control" implied="true"/>
             <outputs num="numCoeffs"/>
-            <arg name="chain">
+            <arg name="chain" type="fftbuf">
                 <doc>
                     the output (buffer) of an FFT UGen which transforms the audio input to track.
                     For the FFT chain, with a standard hop of half FFT size, the FFT size should be
@@ -5574,7 +5574,7 @@
         </ugen>
         <ugen name="Onsets" readsfft="true">
             <rate name="control" implied="true"/>
-            <arg name="chain">
+            <arg name="chain" type="fftbuf">
                 <doc>
                     the output (buffer) of an FFT UGen which transforms the audio input to track.
                     For the FFT chain, you should typically use a frame size of 512 or 1024 (at 44.1 kHz sampling rate)
@@ -5594,7 +5594,7 @@
                     values (usually can be left to default).
                 </doc>
             </arg>
-            <arg name="decay" default="1">
+            <arg name="decay" default="1.0">
                 <doc>
                     (advanced setting) Specifies the time (in seconds) for the normalisation to "forget"
                     about a recent onset. If you find too much re-triggering (e.g. as a note dies away unevenly) then
@@ -5626,7 +5626,7 @@
                     (advanced setting) ?
                 </doc>
             </arg>
-            <arg name="raw" default="0">
+            <arg name="raw" default="false" init="true">
                 <doc>
                     (advanced setting) ?
                 </doc>
@@ -5662,7 +5662,7 @@
         <ugen name="BeatTrack2" readsfft="true">
             <rate name="control" implied="true"/>
             <outputs num="6"/>
-            <arg name="bus">
+            <arg name="bus" type="bus">
                 <doc>
                     index of a control bus to read from. the number of channels of that bus are expected
                     to match the `numChannels` argument. To track a particular audio signal, analyse it first
@@ -5670,7 +5670,7 @@
                     trigger-output to this control bus.
                 </doc>
             </arg>
-            <arg name="numChannels"> <!-- Int? -->
+            <arg name="numChannels" type="gint" init="true">
                 <doc>
                     (scalar) How many features (ie how many control bus channels) are provided
                 </doc>
@@ -5688,7 +5688,7 @@
                     Larger phaseSpacing means more tests and more CPU cost.
                 </doc>
             </arg>
-            <arg name="lock" default="0">
+            <arg name="lock" default="false">
                 <doc>
                     If this argument is greater than 0.5, the tracker will lock at its current periodicity
                     and continue from the current phase. Whilst it updates the model's phase and period, this is not reflected
@@ -5730,7 +5730,7 @@
 
         <ugen name="SpecFlatness" readsfft="true">
             <rate name="control" implied="true"/>
-            <arg name="chain">
+            <arg name="chain" type="fftbuf">
                 <doc>
                     the fft signal (buffer) to analyze
                 </doc>
@@ -5755,7 +5755,7 @@
         </ugen>
         <ugen name="SpecPcile" readsfft="true">
             <rate name="control" implied="true"/>
-            <arg name="chain">
+            <arg name="chain" type="fftbuf">
                 <doc>
                     the fft signal (buffer) to analyze
                 </doc>
@@ -5765,7 +5765,7 @@
                     the percentage between 0.0 (0%) and 1.0 (100%)
                 </doc>
             </arg>
-            <arg name="interp" default="0">
+            <arg name="interp" default="false">
                 <doc>
                     specifies whether interpolation should be used to try and make the percentile
                     frequency estimate more accurate, at the cost of a little higher CPU usage. Set it to 1 to enable this.
@@ -5788,7 +5788,7 @@
         </ugen>
         <ugen name="SpecCentroid" readsfft="true">
             <rate name="control" implied="true"/>
-            <arg name="chain">
+            <arg name="chain" fftbuf="true">
                 <doc>
                     the fft signal (buffer) to analyze
                 </doc>
@@ -5816,22 +5816,22 @@
     <file name="MouseUGens">
         <ugen name="MouseX">
             <rate name="control" implied="true"/>
-            <arg name="lo" default="0"/>
-            <arg name="hi" default="1"/>
-            <arg name="warp" default="0"/>
+            <arg name="lo" default="0.0"/>
+            <arg name="hi" default="1.0"/>
+            <arg name="warp" default="0.0"/>
             <arg name="lag" default="0.2"/>
         </ugen>
         <ugen name="MouseY">
             <rate name="control" implied="true"/>
-            <arg name="lo" default="0"/>
-            <arg name="hi" default="1"/>
-            <arg name="warp" default="0"/>
+            <arg name="lo" default="0.0"/>
+            <arg name="hi" default="1.0"/>
+            <arg name="warp" default="0.0"/>
             <arg name="lag" default="0.2"/>
         </ugen>
         <ugen name="MouseButton">
             <rate name="control" implied="true"/>
-            <arg name="lo" default="0"/>
-            <arg name="hi" default="1"/>
+            <arg name="lo" default="0.0"/>
+            <arg name="hi" default="1.0"/>
             <arg name="lag" default="0.2"/>
         </ugen>
     </file>
@@ -5840,32 +5840,32 @@
         <ugen name="WhiteNoise" random="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="mul" default="1" expandbin="*"/>
+            <arg name="mul" default="1.0" expandbin="*"/>
         </ugen>
         <ugen name="GrayNoise" random="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="mul" default="1" expandbin="*"/>
+            <arg name="mul" default="1.0" expandbin="*"/>
         </ugen>
         <ugen name="ClipNoise" random="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="mul" default="1" expandbin="*"/>
+            <arg name="mul" default="1.0" expandbin="*"/>
         </ugen>
         <ugen name="PinkNoise" random="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="mul" default="1" expandbin="*"/>
+            <arg name="mul" default="1.0" expandbin="*"/>
         </ugen>
         <ugen name="BrownNoise" random="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="mul" default="1" expandbin="*"/>
+            <arg name="mul" default="1.0" expandbin="*"/>
         </ugen>
         <ugen name="Dust" random="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="density" default="1">
+            <arg name="density" default="1.0">
                 <doc>
                     the average number of impulses per second
                 </doc>
@@ -5883,7 +5883,7 @@
         <ugen name="Dust2" random="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="density" default="1">
+            <arg name="density" default="1.0">
                 <doc>
                     the average number of impulses per second
                 </doc>
@@ -5906,8 +5906,8 @@
         <ugen name="Logistic">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="chaos" default="3"/>
-            <arg name="freq" default="1000"/>
+            <arg name="chaos" default="3.0"/>
+            <arg name="freq" default="1000.0"/>
             <arg name="init" default="0.5"/>
         </ugen>
         <ugen name="Hasher">
@@ -5924,27 +5924,27 @@
         <ugen name="LFClipNoise" random="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="freq" default="500"/>
+            <arg name="freq" default="500.0"/>
         </ugen>
         <ugen name="LFNoise0" random="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="freq" default="500"/>
+            <arg name="freq" default="500.0"/>
         </ugen>
         <ugen name="LFNoise1" random="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="freq" default="500"/>
+            <arg name="freq" default="500.0"/>
         </ugen>
         <ugen name="LFNoise2" random="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="freq" default="500"/>
+            <arg name="freq" default="500.0"/>
         </ugen>
         <ugen name="Rand" random="true">
             <rate name="scalar" implied="true" method="apply"/>
-            <arg name="lo" default="0"/>
-            <arg name="hi" default="1"/>
+            <arg name="lo" default="0.0"/>
+            <arg name="hi" default="1.0"/>
         </ugen>
         <ugen name="IRand" random="true">
             <rate name="scalar" implied="true" method="apply"/>
@@ -5954,34 +5954,34 @@
         <ugen name="TRand" random="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="lo" default="0"/>
-            <arg name="hi" default="1"/>
-            <arg name="trig"/>
+            <arg name="lo" default="0.0"/>
+            <arg name="hi" default="1.0"/>
+            <arg name="trig" type="trig"/>
         </ugen>
         <ugen name="TExpRand" random="true">
             <rate name="control"/>
             <rate name="audio"/>
             <arg name="lo" default="0.01"/>
             <arg name="hi" default="1.0"/>
-            <arg name="trig"/>
+            <arg name="trig" type="trig"/>
         </ugen>
         <ugen name="TIRand" random="true">
             <rate name="control"/>
             <rate name="audio"/>
             <arg name="lo" default="0"/>
             <arg name="hi" default="127"/>
-            <arg name="trig"/>
+            <arg name="trig" type="trig"/>
         </ugen>
         <ugen name="NRand" random="true">
             <rate name="scalar" implied="true" method="apply"/>
-            <arg name="lo" default="0"/>
-            <arg name="hi" default="127"/>
+            <arg name="lo" default="0.0"/>
+            <arg name="hi" default="1.0"/>
             <arg name="n" default="0"/>
         </ugen>
         <ugen name="LinRand" random="true">
             <rate name="scalar" implied="true" method="apply"/>
-            <arg name="lo" default="0"/>
-            <arg name="hi" default="127"/>
+            <arg name="lo" default="0.0"/>
+            <arg name="hi" default="1.0"/>
             <arg name="minMax" default="0"/>
         </ugen>
         <ugen name="ExpRand" random="true">
@@ -5993,13 +5993,13 @@
             <rate name="control"/>
             <rate name="audio"/>
             <arg name="prob" default="0.5" pos="1"/>
-            <arg name="in" pos="0"/>
+            <arg name="in" type="trig" pos="0"/>
             <doc warnpos="true"/>
         </ugen>
         <ugen name="RandSeed" sideeffect="true">
             <rate name="scalar"/>
             <rate name="control"/>
-            <arg name="trig" default="1"/>
+            <arg name="trig" default="high"/>
             <arg name="seed" default="56789"/>
         </ugen>
         <ugen name="RandID" sideeffect="true">
@@ -6013,14 +6013,14 @@
         <ugen name="DegreeToKey" readsbuf="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="buf"/>
-            <arg name="in"/>
+            <arg name="buf" type="buf"/>
+            <arg name="in" type="gint"/>
             <arg name="octave" default="12"/>
         </ugen>
         <ugen name="Select">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="index">
+            <arg name="index" type="gint">
                 <doc>
                     an index signal into the channels of the `multi` argument. The index
                     is automatically clipped to lie between `0` and `multi.numOutputs - 1`. The index
@@ -6045,7 +6045,7 @@
         <ugen name="TWindex">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="trig">
+            <arg name="trig" type="trig">
                 <doc>
                     the trigger used to calculate a new index. a trigger occurs when passing
                     from non-positive to positive
@@ -6057,7 +6057,7 @@
                     to the probabilites of their respective indices being chosen.
                 </doc>
             </arg>
-            <arg name="normalize" default="0">
+            <arg name="normalize" default="false">
                 <doc>
                     `0` if the seq argument already sums up to 1.0 and thus doesn't need
                     normalization, `1` if the sum is not guaranteed to be 1.0 and thus the ugen is asked
@@ -6081,7 +6081,7 @@
         <ugen name="Index" readsbuf="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="buf"/>
+            <arg name="buf" type="buf"/>
             <arg name="in" default="0"/>
         </ugen>
         <!-- this should exist according to plugin sources...
@@ -6090,26 +6090,26 @@
         <ugen name="WrapIndex" readsbuf="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="buf"/>
+            <arg name="buf" type="buf"/>
             <arg name="in" default="0"/>
         </ugen>
         <ugen name="IndexInBetween" readsbuf="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="buf"/>
-            <arg name="in" default="0"/>
+            <arg name="buf" type="buf"/>
+            <arg name="in"/>
         </ugen>
         <ugen name="DetectIndex" readsbuf="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="buf"/>
-            <arg name="in" default="0"/>
+            <arg name="buf" type="buf"/>
+            <arg name="in"/>
         </ugen>
         <ugen name="Shaper" readsbuf="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="buf"/>
-            <arg name="in" default="0"/>
+            <arg name="buf" type="buf"/>
+            <arg name="in"/>
         </ugen>
         <!-- this should exist according to plugin sources...
         <ugen name="SigOsc"/>
@@ -6117,18 +6117,18 @@
         <ugen name="FSinOsc">
             <rate name="audio"/>
             <rate name="control"/>
-            <arg name="freq" default="440"/>
-            <arg name="iphase" default="0"/>
+            <arg name="freq" default="440.0"/>
+            <arg name="iphase" default="0.0" init="true"/>
         </ugen>
         <ugen name="SinOsc">
             <rate name="audio"/>
             <rate name="control"/>
-            <arg name="freq" default="440">
+            <arg name="freq" default="440.0">
                 <doc>
                     frequency in Hertz
                 </doc>
             </arg>
-            <arg name="phase" default="0">
+            <arg name="phase" default="0.0">
                 <doc>
                     phase offset or modulator in radians
                 </doc>
@@ -6146,82 +6146,82 @@
         <ugen name="SinOscFB">
             <rate name="audio"/>
             <rate name="control"/>
-            <arg name="freq" default="440"/>
-            <arg name="feedback" default="0"/>
+            <arg name="freq" default="440.0"/>
+            <arg name="feedback" default="0.0"/>
         </ugen>
         <ugen name="VOsc" readsbuf="true">
             <rate name="audio"/>
             <rate name="control"/>
-            <arg name="bufPos"/>
-            <arg name="freq" default="440"/>
-            <arg name="phase" default="0"/>
+            <arg name="bufPos"/> <!-- type="buf" ? -->
+            <arg name="freq" default="440.0"/>
+            <arg name="phase" default="0.0"/>
         </ugen>
         <ugen name="VOsc3" readsbuf="true">
             <rate name="audio"/>
             <rate name="control"/>
-            <arg name="bufPos"/>
-            <arg name="freq1" default="110"/>
-            <arg name="freq2" default="220"/>
-            <arg name="freq3" default="440"/>
+            <arg name="bufPos"/> <!-- type="buf" ? -->
+            <arg name="freq1" default="110.0"/>
+            <arg name="freq2" default="220.0"/>
+            <arg name="freq3" default="440.0"/>
         </ugen>
         <ugen name="Osc" readsbuf="true">
             <rate name="audio"/>
             <rate name="control"/>
-            <arg name="buf"/>
-            <arg name="freq" default="440"/>
-            <arg name="phase" default="0"/>
+            <arg name="buf" type="buf"/>
+            <arg name="freq" default="440.0"/>
+            <arg name="phase" default="0.0"/>
         </ugen>
         <ugen name="OscN" readsbuf="true">
             <rate name="audio"/>
             <rate name="control"/>
-            <arg name="buf"/>
-            <arg name="freq" default="440"/>
-            <arg name="phase" default="0"/>
+            <arg name="buf" type="buf"/>
+            <arg name="freq" default="440.0"/>
+            <arg name="phase" default="0.0"/>
         </ugen>
         <ugen name="COsc" readsbuf="true">
             <rate name="audio"/>
-            <arg name="buf"/>
-            <arg name="freq" default="440"/>
+            <arg name="buf" type="buf"/>
+            <arg name="freq" default="440.0"/>
             <arg name="beats" default="0.5"/>
         </ugen>
         <ugen name="Formant">
             <rate name="audio"/>
             <rate name="control"/>
-            <arg name="fundFreq" default="440"/>
-            <arg name="formFreq" default="1760"/>
-            <arg name="bw" default="880"/>
+            <arg name="fundFreq" default="440.0"/>
+            <arg name="formFreq" default="1760.0"/>
+            <arg name="bw" default="880.0"/>
         </ugen>
         <ugen name="Blip">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="freq" default="440"/>
+            <arg name="freq" default="440.0"/>
             <arg name="numHarm" default="200"/>
         </ugen>
         <ugen name="Saw">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="freq" default="440"/>
+            <arg name="freq" default="440.0"/>
         </ugen>
         <ugen name="Pulse">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="freq" default="440"/>
+            <arg name="freq" default="440.0"/>
             <arg name="width" default="0.5"/>
         </ugen>
 
         <ugen name="Klang">
             <rate name="audio" implied="true"/>
-            <arg name="freqScale" default="1" pos="1"/>
-            <arg name="freqOffset" default="0" pos="2"/>
-            <arg name="specs" multi="true" pos="0"/>
+            <arg name="freqScale" default="1.0" init="true" pos="1"/>
+            <arg name="freqOffset" default="0.0" init="true" pos="2"/>
+            <arg name="specs" multi="true" init="true" pos="0"/>
         </ugen>
         <ugen name="Klank">
             <rate name="audio" implied="true"/>
             <arg name="in" pos="1"/>
-            <arg name="freqScale" default="1" pos="2"/>
-            <arg name="freqOffset" default="0" pos="3"/>
-            <arg name="decayScale" default="1" pos="4"/>
-            <arg name="specs" multi="true" pos="0"/>
+            <arg name="freqScale" default="1.0" init="true" pos="2"/>
+            <arg name="freqOffset" default="0.0" init="true" pos="3"/>
+            <arg name="decayScale" default="1.0" init="true" pos="4"/>
+            <arg name="specs" multi="true" init="true" pos="0"/>
         </ugen>
     </file>
 
@@ -6233,8 +6233,8 @@
             </rate>
             <outputs num="2"/>
             <arg name="in"/>
-            <arg name="pos" default="0"/>
-            <arg name="level" default="1"/>
+            <arg name="pos" default="0.0"/>
+            <arg name="level" default="1.0"/>
         </ugen>
         <ugen name="Pan4">
             <rate name="control"/>
@@ -6243,9 +6243,9 @@
             </rate>
             <outputs num="4"/>
             <arg name="in"/>
-            <arg name="xpos" default="0"/>
-            <arg name="ypos" default="0"/>
-            <arg name="level" default="1"/>
+            <arg name="xpos" default="0.0"/>
+            <arg name="ypos" default="0.0"/>
+            <arg name="level" default="1.0"/>
         </ugen>
         <ugen name="LinPan2">
             <rate name="control"/>
@@ -6254,8 +6254,8 @@
             </rate>
             <outputs num="2"/>
             <arg name="in"/>
-            <arg name="pos" default="0"/>
-            <arg name="level" default="1"/>
+            <arg name="pos" default="0.0"/>
+            <arg name="level" default="1.0"/>
         </ugen>
         <ugen name="Balance2">
             <rate name="control"/>
@@ -6266,8 +6266,8 @@
             <outputs num="2"/>
             <arg name="left"/>
             <arg name="right"/>
-            <arg name="pos" default="0"/>
-            <arg name="level" default="1"/>
+            <arg name="pos" default="0.0"/>
+            <arg name="level" default="1.0"/>
         </ugen>
         <ugen name="Rotate2">
             <rate name="control"/>
@@ -6278,36 +6278,36 @@
             <outputs num="2"/>
             <arg name="x"/>
             <arg name="y"/>
-            <arg name="pos" default="0"/>
+            <arg name="pos" default="0.0"/>
         </ugen>
         <ugen name="XFade2">
             <rate name="control">
-                <arg name="inB" default="0"/>
+                <arg name="inB"/>
             </rate>
             <rate name="audio">
                 <arg name="inA" rate="ugen"/>
                 <!-- DC.ar(0) and K2A.ar(0) take about the same amount of CPU,
                   where the latter is favorable as it is a singleout ugen.
                   In contrast, Silent.ar takes about 20% more CPU (measured 07-jan-10) -->
-                <arg name="inB" rate="ugen" default="K2A.ar(0)"/>
+                <arg name="inB" rate="ugen"/>  <!-- default="K2A.ar(0)" -->
             </rate>
             <arg name="inA">
                 <doc>
                     The first input signal
                 </doc>
             </arg>
-            <arg name="inB">
+            <arg name="inB" default="0.0">
                 <doc>
                     The second input signal
                 </doc>
             </arg>
-            <arg name="pan" default="0">
+            <arg name="pan" default="0.0">
                 <doc>
                     the xfade position from `-1` (only input A audible) to
                     `+1` (only input B audible)
                 </doc>
             </arg>
-            <arg name="level" default="1">
+            <arg name="level" default="1.0">
                 <doc>
                     An overall amplitude multiplier that is applied to the output signal
                 </doc>
@@ -6321,32 +6321,32 @@
         </ugen>
         <ugen name="LinXFade2">
             <rate name="control">
-                <arg name="inB" default="0"/>
+                <arg name="inB"/>
             </rate>
             <rate name="audio">
                 <arg name="inA" rate="ugen"/>
                 <!-- DC.ar(0) and K2A.ar(0) take about the same amount of CPU,
                   where the latter is favorable as it is a singleout ugen.
                   In contrast, Silent.ar takes about 20% more CPU (measured 07-jan-10) -->
-                <arg name="inB" rate="ugen" default="K2A.ar(0)"/>
+                <arg name="inB" rate="ugen"/>
             </rate>
             <arg name="inA">
                 <doc>
                     The first input signal
                 </doc>
             </arg>
-            <arg name="inB">
+            <arg name="inB" default="0.0">
                 <doc>
                     The second input signal
                 </doc>
             </arg>
-            <arg name="pan" default="0">
+            <arg name="pan" default="0.0">
                 <doc>
                     the xfade position from `-1` (only input A audible) to
                     `+1` (only input B audible)
                 </doc>
             </arg>
-            <arg name="level" default="1">
+            <arg name="level" default="1.0">
                 <doc>
                     An overall amplitude multiplier that is applied to the output signal
                 </doc>
@@ -6365,9 +6365,9 @@
             </rate>
             <outputs num="4"/>
             <arg name="in"/>
-            <arg name="azimuth" default="0"/>
-            <arg name="elevation" default="0"/>
-            <arg name="level" default="1"/>
+            <arg name="azimuth" default="0.0"/>
+            <arg name="elevation" default="0.0"/>
+            <arg name="level" default="1.0"/>
         </ugen>
         <ugen name="PanB2">
             <rate name="control"/>
@@ -6376,8 +6376,8 @@
             </rate>
             <outputs num="3"/>
             <arg name="in"/>
-            <arg name="azimuth" default="0"/>
-            <arg name="level" default="1"/>
+            <arg name="azimuth" default="0.0"/>
+            <arg name="level" default="1.0"/>
         </ugen>
         <ugen name="BiPanB2">
             <rate name="control"/>
@@ -6388,8 +6388,8 @@
             <outputs num="3"/>
             <arg name="inA"/>
             <arg name="inB"/>
-            <arg name="azimuth" default="0"/>
-            <arg name="level" default="1"/>
+            <arg name="azimuth" default="0.0"/>
+            <arg name="level" default="1.0"/>
         </ugen>
         <ugen name="PanAz">
             <rate name="control"/>
@@ -6407,7 +6407,7 @@
                     the input signal
                 </doc>
             </arg>
-            <arg name="pos" default="0">
+            <arg name="pos" default="0.0">
                 <doc>
                     the pan position. Channels are evenly spaced over a cyclic period of 2.0.
                     the output channel position is `pos / 2 * numChannels + orient`. Thus, assuming an `orient`
@@ -6419,19 +6419,19 @@
                     cyclically panned through.
                 </doc>
             </arg>
-            <arg name="level" default="1">
+            <arg name="level" default="1.0">
                 <doc>
                     a control rate level input (linear multiplier).
                 </doc>
             </arg>
-            <arg name="width" default="2">
+            <arg name="width" default="2.0">
                 <doc>
                     the width of the panning envelope. The default of 2.0 pans between pairs
                     of adjacent speakers. Width values greater than two will spread the pan over greater numbers
                     of speakers. Width values less than one will leave silent gaps between speakers.
                 </doc>
             </arg>
-            <arg name="orient" default="0">
+            <arg name="orient" default="0.0">
                 <doc>
                     the offset in the output channels regarding a pan position of zero.
                     Note that ScalaCollider uses a default of zero which means that a pan pos of zero outputs
@@ -6479,23 +6479,23 @@
             <rate name="control"/>
             <rate name="audio"/>
             <arg name="in"/>
-            <arg name="spring" default="1"/>
-            <arg name="damp" default="0"/>
+            <arg name="spring" default="1.0"/>
+            <arg name="damp" default="0.0"/>
         </ugen>
         <ugen name="Ball">
             <rate name="control"/>
             <rate name="audio"/>
             <arg name="in"/>
-            <arg name="g" default="1"/>
-            <arg name="damp" default="0"/>
+            <arg name="g" default="1.0"/>
+            <arg name="damp" default="0.0"/>
             <arg name="friction" default="0.01"/>
         </ugen>
         <ugen name="TBall">
             <rate name="control"/>
             <rate name="audio"/>
             <arg name="in"/>
-            <arg name="g" default="10"/>
-            <arg name="damp" default="0"/>
+            <arg name="g" default="10.0"/>
+            <arg name="damp" default="0.0"/>
             <arg name="friction" default="0.01"/>
         </ugen>
     </file>
@@ -6521,15 +6521,15 @@
             <rate name="audio" implied="true"/>
             <outputs num="2"/>
             <arg name="in" rate="ugen"/>
-            <arg name="roomSize" default="10"/>
-            <arg name="revTime" default="3"/>
+            <arg name="roomSize" default="10.0"/>
+            <arg name="revTime" default="3.0"/>
             <arg name="damping" default="0.5"/>
             <arg name="inputBW" default="0.5"/>
-            <arg name="spread" default="15"/>
-            <arg name="dryLevel" default="1"/>
+            <arg name="spread" default="15.0"/>
+            <arg name="dryLevel" default="1.0"/>
             <arg name="earlyRefLevel" default="0.7"/>
             <arg name="tailLevel" default="0.5"/>
-            <arg name="maxRoomSize" default="300"/>
+            <arg name="maxRoomSize" default="300.0" init="true"/>
         </ugen>
     </file>
 
@@ -6569,7 +6569,7 @@
         <ugen name="Trig1">
             <rate name="audio"/>
             <rate name="control"/>
-            <arg name="in">
+            <arg name="in" type="trig">
                 <doc>
                     the trigger. This can be any signal. A trigger happens when the signal changes
                     from non-positive to positive.
@@ -6594,7 +6594,7 @@
         <ugen name="Trig">
             <rate name="audio"/>
             <rate name="control"/>
-            <arg name="in">
+            <arg name="in" type="trig">
                 <doc>
                     the trigger. This can be any signal. A trigger happens when the signal changes
                     from non-positive to positive.
@@ -6609,7 +6609,7 @@
         <ugen name="SendTrig" sideeffect="true">
             <rate name="audio"/>
             <rate name="control"/>
-            <arg name="trig" pos="0" rate="ugen">
+            <arg name="trig" type="trig" pos="0" rate="ugen">
                 <doc>
                     the trigger signal causing the value to be read and sent. A trigger occurs
                     when passing from non-positive to positive.
@@ -6621,7 +6621,7 @@
                     This is useful to distinguish between several SendTrig instances per SynthDef.
                 </doc>
             </arg>
-            <arg name="value" default="0" pos="1">
+            <arg name="value" default="0.0" pos="1">
                 <doc>
                     a changing signal or constant that will be polled at the time of trigger,
                     and its value passed with the trigger message
@@ -6641,7 +6641,7 @@
         <ugen name="SendReply" sideeffect="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="trig" pos="0" rate="ugen">
+            <arg name="trig" type="trig" pos="0" rate="ugen">
                 <doc>
                     a non-positive to positive transition triggers a message
                 </doc>
@@ -6654,7 +6654,7 @@
                     different ids (similar to `SendTrig`).
                 </doc>
             </arg>
-            <arg name="msgName" type="String" default="/reply" pos="2">
+            <arg name="msgName" type="gstring" default="/reply" pos="2">
                 <doc>
                     a string specifying the OSCMessage's name. by convention, this should
                     start with a forward slash and contain only 7-bit ascii characters.
@@ -6679,7 +6679,7 @@
         <ugen name="Poll" sideeffect="true">
             <rate name="audio"/>
             <rate name="control"/>
-            <arg name="trig" pos="0" rate="ugen">
+            <arg name="trig" type="trig" pos="0" rate="ugen">
                 <doc>
                     a non-positive to positive transition telling Poll to return a value
                 </doc>
@@ -6695,7 +6695,7 @@
                     (similar to `SendTrig`)
                 </doc>
             </arg>
-            <arg name="label" type="String" default="poll" pos="2">
+            <arg name="label" type="gstring" default="poll" pos="2">
                 <doc>
                     a string or symbol to be printed with the polled value
                 </doc>
@@ -6711,7 +6711,7 @@
         <ugen name="ToggleFF">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="trig">
+            <arg name="trig" type="trig">
                 <doc>
                     a signal to trigger the flip-flop. a trigger occurs when the signal
                     changes from non-positive to positive.
@@ -6728,8 +6728,8 @@
         <ugen name="SetResetFF">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="trig"/>
-            <arg name="reset"/>
+            <arg name="trig" type="trig"/>
+            <arg name="reset" type="trig"/>
         </ugen>
         <ugen name="Latch">
             <rate name="control"/>
@@ -6739,7 +6739,7 @@
                     the input signal
                 </doc>
             </arg>
-            <arg name="trig">
+            <arg name="trig" type="trig" default="high">
                 <doc>
                     the trigger. The can be any signal. A trigger happens when the signal changes from
                     non-positive to positive.
@@ -6762,7 +6762,7 @@
                     the input signal to gate
                 </doc>
             </arg>
-            <arg name="gate">
+            <arg name="gate" type="gate">
                 <doc>
                     the signal specifying whether to pass the input signal (when greater than zero) or
                     whether to close the gate and hold the last value (when less than or equal to zero)
@@ -6783,12 +6783,12 @@
             <arg name="in">
                 The input signal to be analyzed.
             </arg>
-            <arg name="lo" default="0">
+            <arg name="lo" default="0.0">
                 <doc>
                     The low threshold.
                 </doc>
             </arg>
-            <arg name="hi" default="1">
+            <arg name="hi" default="1.0">
                 <doc>
                     The high threshold.
                 </doc>
@@ -6805,20 +6805,20 @@
         <ugen name="PulseDivider">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="trig"/>
+            <arg name="trig" type="trig"/>
             <arg name="div" default="2"/>
             <arg name="start" default="0"/>
         </ugen>
         <ugen name="PulseCount">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="trig"/>
-            <arg name="reset" default="0"/>
+            <arg name="trig" type="trig"/>
+            <arg name="reset" type="trig" default="0"/>
         </ugen>
         <ugen name="Stepper">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="trig">
+            <arg name="trig" type="trig">
                 <doc>
                     The trigger signal which increments the counter. A trigger happens when the signal
                     changes from non-positive to positive. Note that if the UGen is created with the
@@ -6829,7 +6829,7 @@
                     the sequence 0, 1, 2, 4, 0, ...
                 </doc>
             </arg>
-            <arg name="reset" default="0">
+            <arg name="reset" type="trig" default="0">
                 <doc>
                     A trigger which resets the counter to `resetVal` immediately.
                 </doc>
@@ -6874,7 +6874,7 @@
         <ugen name="TDelay">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="trig">
+            <arg name="trig" type="trig">
                 <doc>
                     The input trigger. A trigger is recognized when the signal passes from
                     non-positive to positive. Note that, no matter what the amplitude of
@@ -6903,7 +6903,7 @@
         <ugen name="Timer">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="trig">
+            <arg name="trig" type="trig">
                 <doc>
                     the trigger to update the output signal.
                     A trigger occurs when trig signal crosses from non-positive to positive.
@@ -6922,7 +6922,7 @@
         <ugen name="Sweep">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="trig">
+            <arg name="trig" type="trig">
                 <doc>
                     the trigger that restarts the ramp, when passing from
                     non-positive to positive
@@ -6948,34 +6948,34 @@
         <ugen name="Phasor">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="trig">
+            <arg name="trig" type="trig" default="low">
                 <doc>
                     Warning: SC 3.4 has a bug where an initial trig value of 1 will
                     be ignored (you need to feed it zero first)
                 </doc>
             </arg>
-            <arg name="speed" default="1"/>
-            <arg name="lo" default="0"/>
-            <arg name="hi" default="1"/>
-            <arg name="resetVal" default="0"/>
+            <arg name="speed" default="1.0"/>
+            <arg name="lo" default="0.0"/>
+            <arg name="hi" default="1.0"/>
+            <arg name="resetVal" default="0.0"/>
         </ugen>
         <ugen name="Peak">
             <rate name="control"/>
             <rate name="audio"/>
             <arg name="in"/>
-            <arg name="trig"/>
+            <arg name="trig" type="trig"/>
         </ugen>
         <ugen name="RunningMin">
             <rate name="control"/>
             <rate name="audio"/>
             <arg name="in"/>
-            <arg name="trig"/>
+            <arg name="trig" type="trig"/>
         </ugen>
         <ugen name="RunningMax">
             <rate name="control"/>
             <rate name="audio"/>
             <arg name="in"/>
-            <arg name="trig"/>
+            <arg name="trig" type="trig"/>
         </ugen>
         <ugen name="PeakFollower">
             <rate name="control"/>
@@ -7023,12 +7023,12 @@
         </ugen>
         <ugen name="Pause" sideeffect="true">
             <rate name="control" implied="true"/>
-            <arg name="gate">
+            <arg name="gate" type="gate"> <!-- actually checks for _ == 0f -->
                 <doc>
                     when 0, node is paused, when 1, node is resumed
                 </doc>
             </arg>
-            <arg name="node">
+            <arg name="node" type="gint">
                 <doc>
                     the id of the node to be paused or resumed
                 </doc>
@@ -7050,7 +7050,7 @@
         </ugen>
         <ugen name="FreeSelf" sideeffect="true">
             <rate name="control" implied="true"/>
-            <arg name="trig">
+            <arg name="trig" type="trig">
                 <doc>
                     the input signal which will trigger the action.
                 </doc>
@@ -7068,7 +7068,7 @@
         </ugen>
         <ugen name="PauseSelf" sideeffect="true">
             <rate name="control" implied="true"/>
-            <arg name="trig">
+            <arg name="trig" type="trig">
                 <doc>
                     the input signal which will trigger the action.
                 </doc>
@@ -7086,12 +7086,12 @@
         </ugen>
         <ugen name="Free" sideeffect="true">
             <rate name="control" implied="true"/>
-            <arg name="trig">
+            <arg name="trig" type="trig">
                 <doc>
                     the trigger to cause the action
                 </doc>
             </arg>
-            <arg name="node">
+            <arg name="node" type="gint">
                 <doc>
                     the id of the target node to free upon receiving the trigger
                 </doc>
@@ -7155,9 +7155,9 @@
     <file name="UnpackFFTUGens">
         <ugen name="Unpack1FFT" readsfft="true">
             <rate name="demand" implied="true" method="apply"/>
-            <arg name="chain"/>
-            <arg name="fftSize"/>
-            <arg name="bin"/>
+            <arg name="chain" type="fftbuf"/>
+            <arg name="fftSize" type="gint"/>
+            <arg name="bin" type="gint"/>
             <arg name="which" default="0"/>
         </ugen>
 
