@@ -177,7 +177,7 @@ with Tracing with CompilerProvider /* with MyNodePrinter */ with CompilerAccess 
             val doneFlag      = getBoolAttr( node, "doneflag" )
             val random        = getBoolAttr( node, "random" )
             val indiv         = getBoolAttr( node, "indiv" ) // || random
-            val indIndiv      = indSideEffect || random
+            val indIndiv      = indSideEffect || readsBus || readsBuffer || readsFFT || random
             val rates0: List[ RateInfo ] = (node \ "rate").map( n => {
                val name       = (n \ "@name").text
                val mName0     = (n \ "@method").text

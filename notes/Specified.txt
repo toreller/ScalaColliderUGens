@@ -1,0 +1,26 @@
+object SinOsc extends ugen.Specified /* [SinOsc] */ {
+  def spec: ugen.Spec /* [SinOsc] */
+
+  def ar(...): SinOsc
+  def kr(...): SinOsc
+}
+final case class SinOsc(...) extends ... {
+//  def companion: ugen.Specified // [SinOsc]
+  def spec: ugen.Spec = SinOsc.spec
+}
+
+or perhaps just keep the spec independent and linked just through the name and a map
+
+:::::::::::::
+
+again: write buf/bus implies individuality? _YES_ because imagine
+
+   ReplaceOut.ar(x, y)
+   val i = In.ar(x)
+   ...
+   ReplaceOut.ar(x, z)
+   val j = In.ar(x)
+   ...
+   ReplaceOut.ar(x, y)
+
+! das bedeutet allerdings auch, dass ReadsBus, ReadsBuffer, ReadsFFT individuell sind !
