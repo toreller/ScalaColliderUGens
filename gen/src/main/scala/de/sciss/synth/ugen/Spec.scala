@@ -1,5 +1,7 @@
 package de.sciss.synth.ugen
 
+import collection.immutable.{IndexedSeq => IIdxSeq}
+
 object Spec {
   object Attribute {
     sealed trait ImpliesSideEffect extends Attribute
@@ -18,5 +20,7 @@ object Spec {
   case object HasSideEffect extends Attribute.ImpliesSideEffect
 
   case object HasDoneFlag   extends Attribute
+
+  final case class Argument(name: String)
 }
-final case class Spec(name: String, attr: Set[Spec.Attribute])
+final case class Spec(name: String, attr: Set[Spec.Attribute], args: IIdxSeq[Spec.Argument])
