@@ -197,9 +197,10 @@ object UGenSpec {
 //  }
 //  sealed trait Outputs
 
-  final case class Output(name: Option[String], shape: SignalShape, variadic: Option[String], doc: Option[String])
+  final case class Output(name: Option[String], shape: SignalShape, variadic: Option[String])
 
-  final case class Doc(body: List[String], args: Map[String, List[String]], links: List[String], warnPos: Boolean)
+  final case class Doc(body: List[String], args: Map[String, List[String]], outputs: Map[String, List[String]],
+                       links: List[String], warnPos: Boolean)
 }
 final case class UGenSpec(name: String, attr: Set[UGenSpec.Attribute], rates: UGenSpec.Rates,
                           args:    IIdxSeq[UGenSpec.Argument],

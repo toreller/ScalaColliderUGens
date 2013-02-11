@@ -17,15 +17,23 @@ private[synth] object UGenSpecParser {
   }
 
   private val nodeAttrKeys = Set(
-    "name",
+    "name", // required
     "readsbus",  "readsbuf",  "readsfft", "random", "indiv",
     "writesbus", "writesbuf", "writesfft", "sideeffect",
     "doneflag"
   )
 
+  private val nodeChildKeys = Set(
+    "rate", "no-outputs", "output", "arg", "doc"
+  )
+
   private val argAttrKeys = Set(
-    "name",
+    "name", // required
     "type", "init", "default", "rate", "ugenin", "pos", "variadic"
+  )
+
+  private val outputAttrKeys = Set(
+    "name", "type", "variadic"
   )
 
   private implicit final class RichAttrMap(val map: Map[String, String]) extends AnyVal {
@@ -242,6 +250,9 @@ private[synth] object UGenSpecParser {
     }
   }
 
+  private val DEFAULT_OUTPUTS =
+    Vector(UGenSpec.Output(name = None, shape = UGenSpec.SignalShape.Generic, variadic = None))
+
   private def trimDoc(docText: String): List[String] = {
     val trim0 = docText.lines.map(_.trim).toIndexedSeq
     val trim1 = trim0.dropWhile(_.isEmpty)
@@ -266,17 +277,18 @@ private[synth] object UGenSpecParser {
     b.result()
   }
 
-  private def mkDoc(node: xml.Node, argDocs: Map[String, List[String]]): Option[UGenSpec.Doc] = {
+  private def mkDoc(node: xml.Node, argDocs: Map[String, List[String]],
+                    outputDocs: Map[String, List[String]]): Option[UGenSpec.Doc] = {
     val docOpt = (node \ "doc").headOption
     docOpt.flatMap { dNode =>
       val dSees: List[String] = (dNode \ "see").map(_.text)(breakOut)
       val dAttr     = dNode.attributes.asAttrMap
       val dWarnPos  = dAttr.boolean("warnpos")
       val dText     = (dNode \ "text").text
-      val hasAny    = !dText.isEmpty || dSees.nonEmpty || dWarnPos || argDocs.nonEmpty
+      val hasAny    = !dText.isEmpty || dSees.nonEmpty || dWarnPos || argDocs.nonEmpty || outputDocs.nonEmpty
       if (hasAny) {
         val dTextT  = trimDoc(dText)
-        val doc     = UGenSpec.Doc(body = dTextT, args = argDocs, links = dSees, warnPos = dWarnPos)
+        val doc     = UGenSpec.Doc(body = dTextT, args = argDocs, outputs = Map.empty, links = dSees, warnPos = dWarnPos)
         Some(doc)
       } else {
         None
@@ -290,12 +302,16 @@ private[synth] object UGenSpecParser {
     import UGenSpec._
 
     val attrs = node.attributes.asAttrMap
+    val uName = attrs.string ("name")
+
     if (verify) {
       val unknown = attrs.keySet -- nodeAttrKeys
-      require(unknown.isEmpty, s"Unsupported ugen attributes: ${unknown.mkString(",")}")
+      require(unknown.isEmpty, s"Unsupported ugen attributes in ${uName}: ${unknown.mkString(",")}")
+
+      val unknownN = (node.child.collect({ case e: xml.Elem => e.label })(breakOut): Set[String]) -- nodeChildKeys
+      require(unknownN.isEmpty, s"Unsupported ugen child nodes in ${uName}: ${unknownN.mkString(",")}")
     }
 
-    val uName         = attrs.string ("name")
 
     // ---- attributes ----
 
@@ -332,10 +348,10 @@ private[synth] object UGenSpecParser {
 
     // ---- arguments ----
 
-    var args          = IIdxSeq.empty[Argument]
+    var args          = Vector.empty: IIdxSeq[Argument]
     var argsOrd       = Map.empty[Int, Argument]
     var argMap        = Map.empty[String, Argument]
-    var inputs        = IIdxSeq.empty[Input]
+    var inputs        = Vector.empty[Input]
     var inputMap      = Map.empty[String, Input]
     var argDocs       = Map.empty[String, List[String]]
 
@@ -409,17 +425,30 @@ private[synth] object UGenSpecParser {
       }
     }
 
-    val uDoc = if (docs) mkDoc(node, argDocs) else None
-//if (uDoc.isDefined) println("HAS DOC: " + uName)
+    // ---- outputs ----
+    var outputs     = Vector.empty[Output]
+    var outputDocs  = Map.empty[String, List[String]]
+
+    val oNodes  = (node \ "output")
+    val zeroOut = (node \ "no-outputs").nonEmpty
+    if (zeroOut && oNodes.nonEmpty) sys.error(s"Cannot mix no-outputs and output nodes, in ugen ${uName}")
+
+    if (zeroOut) {
+      outputs = DEFAULT_OUTPUTS
+    } else oNodes.foreach { oNode =>
+      val oAttrs = oNode.attributes.asAttrMap
+      if (verify) {
+        val unknown = oAttrs.keySet -- outputAttrKeys
+        require(unknown.isEmpty, s"Unsupported ugen outputs attributes: ${unknown.mkString(",")}")
+      }
+
+    }
+
+    // ---- wrap up ----
+
+    val uDoc = if (docs) mkDoc(node, argDocs = argDocs, outputDocs = outputDocs) else None
 
     UGenSpec(name = uName, attr = uAttr, rates = Rates.Set(Set.empty),
-      args = args, inputs = inputs, outputs = IIdxSeq.empty, doc = uDoc)
+      args = args, inputs = inputs, outputs = outputs, doc = uDoc)
   }
-
-//  private def booleanAttr(n: xml.Node, name: String, default: Boolean = false) =
-//    (n \ ("@" + name)).headOption.map(_.text.toBoolean).getOrElse(default)
-//
-//  private def getIntAttr(n: xml.Node, name: String, default: Int) =
-//    (n \ ("@" + name)).headOption.map(_.text.toInt).getOrElse(default)
-
 }
