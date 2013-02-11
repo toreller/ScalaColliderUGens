@@ -6351,9 +6351,7 @@
             <arg name="pos" default="0.0"/>
         </ugen>
         <ugen name="XFade2">
-            <rate name="control">
-                <arg name="inB"/>
-            </rate>
+            <rate name="control"/>
             <rate name="audio">
                 <arg name="inA" rate="ugen"/>
                 <!-- DC.ar(0) and K2A.ar(0) take about the same amount of CPU,
@@ -6390,9 +6388,7 @@
             </doc>
         </ugen>
         <ugen name="LinXFade2">
-            <rate name="control">
-                <arg name="inB"/>
-            </rate>
+            <rate name="control"/>
             <rate name="audio">
                 <arg name="inA" rate="ugen"/>
                 <!-- DC.ar(0) and K2A.ar(0) take about the same amount of CPU,

@@ -4,6 +4,7 @@ package impl
 import collection.immutable.{IndexedSeq => IIdxSeq}
 import collection.breakOut
 import annotation.switch
+import de.sciss.synth.UGenSpec.{ArgumentValue, ArgumentType}
 
 private[synth] object UGenSpecParser {
   private def DEFAULT_VERIFY = true
@@ -43,6 +44,10 @@ private[synth] object UGenSpecParser {
 
   private val impliedRateAttrKeys = rateAttrKeys ++ Set(
     "method", "methodalias", "implied"
+  )
+
+  private val argRateAttrKeys = Set(
+    "name", "default", "rate"
   )
 
   private implicit final class RichAttrMap(val map: Map[String, String]) extends AnyVal {
@@ -109,15 +114,19 @@ private[synth] object UGenSpecParser {
     }
   }
 
+  private def incompatibleTypeDefault(uName: String, aName: String, tpe: Any, df: Any) {
+    sys.error(s"Mismatch between argument type and default value for ugen ${uName}, argument ${aName}, type is ${tpe}, default is ${df}")
+  }
+
+  private def errorScalarType(uName: String, aName: String, tpe: ArgumentType) {
+    sys.error(s"Cannot use scalar declaration with arguments of type ${tpe}, in ${uName}, argument ${aName}")
+  }
+
   // poor man's type inference
   private def inferArgType(uName: String, aName: String,
-                           aAttrs: Map[String, String]): (UGenSpec.ArgumentType, Option[UGenSpec.ArgumentValue]) = {
+                           aAttrs: Map[String, String]): (ArgumentType, Option[ArgumentValue]) = {
     import UGenSpec.{SignalShape => Sig, _}
     import ArgumentType.GE
-
-    def incompatibleTypeDefault(tpe: Any, df: Any) {
-      sys.error(s"Mismatch between argument type and default value for ugen ${uName}, argument ${aName}, type is ${tpe}, default is ${df}")
-    }
 
     val aTypeExp0 = aAttrs.get("type").map {
       case "ge"       => GE(Sig.Generic)
@@ -136,10 +145,6 @@ private[synth] object UGenSpecParser {
       case other      => sys.error(s"Unsupported type for ugen ${uName}, argument ${aName}: ${other}")
     }
 
-    def errorScalarType(tpe: ArgumentType) {
-      sys.error(s"Cannot use scalar declaration with arguments of type ${tpe}, in ${uName}, argument ${aName}")
-    }
-
     val isInit    = aAttrs.boolean("init")
     val aTypeExp  = if (!isInit) aTypeExp0 else aTypeExp0 match {
       case Some(tpe @ GE(sig, _)) =>
@@ -154,13 +159,13 @@ private[synth] object UGenSpecParser {
           case Sig.Switch     =>
           case Sig.DoneAction =>
           case _ =>
-            errorScalarType(tpe)
+            errorScalarType(uName, aName, tpe)
         }
         Some(GE(sig, scalar = true))
 
       case Some(tpe @ ArgumentType.Int) =>
         if (!aAttrs.boolean("ugenin")) {
-          errorScalarType(tpe)
+          errorScalarType(uName, aName, tpe)
         }
         aTypeExp0
 
@@ -171,91 +176,101 @@ private[synth] object UGenSpecParser {
 
     aAttrs.get("default") match {
       case Some(default) =>
-        val (tpe, df) = default match {
-          case IsFloat(f)       =>
-            // ---- check correctness ----
-            aTypeExp.foreach {
-              case GE(Sig.Generic,_) =>
-              case GE(Sig.Mul,_) =>
-              case other => incompatibleTypeDefault(other, default)
-            }
-            orGeneric -> ArgumentValue.Float(f)
-
-          case IsInt(i) =>
-            // ---- check correctness ----
-            aTypeExp.foreach {
-              case GE(Sig.Int,_) =>
-              case ArgumentType.Int =>
-              case other => incompatibleTypeDefault(other, default)
-            }
-            orGeneric -> ArgumentValue.Int(i)
-
-          case IsTrigger(b)     =>
-            // ---- check correctness ----
-            aTypeExp.foreach {
-              case GE(Sig.Trigger,_) =>
-              case other => incompatibleTypeDefault(other, default)
-            }
-            val tpe = GE(Sig.Trigger)
-            if (isInit) errorScalarType(tpe)
-            tpe -> ArgumentValue.Boolean(value = true)
-
-          case IsBoolean(b)     =>
-            // ---- check correctness ----
-            aTypeExp.foreach {
-              case GE(Sig.Switch,_) =>
-              case other => incompatibleTypeDefault(other, default)
-            }
-            GE(Sig.Switch, scalar = isInit) -> ArgumentValue.Boolean(value = true)
-
-          case IsGate(b) =>
-            // ---- check correctness ----
-            aTypeExp.foreach {
-              case GE(Sig.Gate,_) =>
-              case other => incompatibleTypeDefault(other, default)
-            }
-            val tpe = GE(Sig.Gate)
-            if (isInit) errorScalarType(tpe)
-            tpe -> ArgumentValue.Boolean(value = true)
-
-          case IsDoneAction(a) =>
-            // ---- check correctness ----
-            aTypeExp.foreach {
-              case GE(Sig.DoneAction,_) =>
-              case other => incompatibleTypeDefault(other, default)
-            }
-            GE(Sig.DoneAction, scalar = isInit) -> ArgumentValue.DoneAction(a)
-
-          case "nyquist" =>
-            // ---- check correctness ----
-            aTypeExp.foreach {
-              case GE(Sig.Generic,_) =>
-              case GE(Sig.Int,_) =>
-              case other => incompatibleTypeDefault(other, default)
-            }
-            orGeneric -> ArgumentValue.Nyquist
-
-          case "inf" =>
-            // ---- check correctness ----
-            aTypeExp.foreach {
-              case GE(Sig.Generic,_) =>
-              case GE(Sig.Int,_) =>
-              case other => incompatibleTypeDefault(other, default)
-            }
-            orGeneric -> ArgumentValue.Inf
-
-          case _ =>
-            aTypeExp match {
-              case Some(GE(Sig.String,_)) =>
-              case _ =>
-                sys.error(s"Unsupported default value for ugen ${uName}, argument ${aName}: ${default}")
-            }
-            GE(Sig.String, scalar = isInit) -> ArgumentValue.String(default)
-        }
+        val (tpe, df) = adjustDefault(uName, aName, aTypeExp, isInit, default)
         tpe -> Some(df)
-
-      case _ => // no default
+      case _ =>
         orGeneric -> None
+    }
+  }
+
+  private def adjustDefault(uName: String, aName: String,
+                            aTypeExp: Option[UGenSpec.ArgumentType], isInit: Boolean,
+                            default: String): (UGenSpec.ArgumentType, ArgumentValue) = {
+    import ArgumentType.GE
+    import UGenSpec.{SignalShape => Sig}
+
+    def orGeneric = aTypeExp.getOrElse(GE(Sig.Generic, scalar = isInit))
+
+    default match {
+      case IsFloat(f)       =>
+        // ---- check correctness ----
+        aTypeExp.foreach {
+          case GE(Sig.Generic,_) =>
+          case GE(Sig.Mul,_) =>
+          case other => incompatibleTypeDefault(uName, aName, other, default)
+        }
+        orGeneric -> ArgumentValue.Float(f)
+
+      case IsInt(i) =>
+        // ---- check correctness ----
+        aTypeExp.foreach {
+          case GE(Sig.Int,_) =>
+          case ArgumentType.Int =>
+          case other => incompatibleTypeDefault(uName, aName, other, default)
+        }
+        orGeneric -> ArgumentValue.Int(i)
+
+      case IsTrigger(b)     =>
+        // ---- check correctness ----
+        aTypeExp.foreach {
+          case GE(Sig.Trigger,_) =>
+          case other => incompatibleTypeDefault(uName, aName, other, default)
+        }
+        val tpe = GE(Sig.Trigger)
+        if (isInit) errorScalarType(uName, aName, tpe)
+        tpe -> ArgumentValue.Boolean(value = true)
+
+      case IsBoolean(b)     =>
+        // ---- check correctness ----
+        aTypeExp.foreach {
+          case GE(Sig.Switch,_) =>
+          case other => incompatibleTypeDefault(uName, aName, other, default)
+        }
+        GE(Sig.Switch, scalar = isInit) -> ArgumentValue.Boolean(value = true)
+
+      case IsGate(b) =>
+        // ---- check correctness ----
+        aTypeExp.foreach {
+          case GE(Sig.Gate,_) =>
+          case other => incompatibleTypeDefault(uName, aName, other, default)
+        }
+        val tpe = GE(Sig.Gate)
+        if (isInit) errorScalarType(uName, aName, tpe)
+        tpe -> ArgumentValue.Boolean(value = true)
+
+      case IsDoneAction(a) =>
+        // ---- check correctness ----
+        aTypeExp.foreach {
+          case GE(Sig.DoneAction,_) =>
+          case other => incompatibleTypeDefault(uName, aName, other, default)
+        }
+        GE(Sig.DoneAction, scalar = isInit) -> ArgumentValue.DoneAction(a)
+
+      case "nyquist" =>
+        // ---- check correctness ----
+        aTypeExp.foreach {
+          case GE(Sig.Generic,_) =>
+          case GE(Sig.Int,_) =>
+          case other => incompatibleTypeDefault(uName, aName, other, default)
+        }
+        orGeneric -> ArgumentValue.Nyquist
+
+      case "inf" =>
+        // ---- check correctness ----
+        aTypeExp.foreach {
+          case GE(Sig.Generic,_) =>
+          case GE(Sig.Int,_) =>
+          case other => incompatibleTypeDefault(uName, aName, other, default)
+        }
+        orGeneric -> ArgumentValue.Inf
+
+      case _ =>
+        aTypeExp match {
+          case Some(GE(Sig.String,_)) =>
+          case _ =>
+            sys.error(s"Unsupported default value for ugen ${uName}, argument ${aName}: ${default}")
+        }
+        GE(Sig.String, scalar = isInit) -> ArgumentValue.String(default)
     }
   }
 
@@ -358,6 +373,13 @@ private[synth] object UGenSpecParser {
 
     // ---- rates ----
 
+    var argRatesMap = Map.empty[String, Map[Rate, (Option[String], Option[RateConstraint])]] withDefaultValue Map.empty
+
+    def getRateContraint(map: Map[String, String]): Option[RateConstraint] = map.get("rate").map {
+      case "ugen"   => RateConstraint.SameAsUGen
+      case "audio"  => RateConstraint.Fixed(audio)
+    }
+
     def getRate(map: Map[String, String]): Rate = {
       map.get("name").getOrElse(sys.error(s"Missing rate name in ugen ${uName}")) match {
         case "audio"    => audio
@@ -368,10 +390,34 @@ private[synth] object UGenSpecParser {
       }
     }
 
+    def addArgRate(r: Rate, rNode: xml.Node) {
+      (rNode \ "arg").foreach { raNode =>
+        val raAttr  = raNode.attributes.asAttrMap
+        val raName  = raAttr.string("name")
+        val raDef   = raAttr.get("default")
+        val raCons  = getRateContraint(raAttr)
+
+        if (verify) {
+          val unknown = raAttr -- argRateAttrKeys
+          if (unknown.nonEmpty) {
+            sys.error(s"Unsupported attribute in rate specific argument settings, ugen ${uName}, rate ${r}, argument ${raName}: ${unknown.mkString(",")}")
+          }
+        }
+
+        if (raDef.isEmpty && raCons.isEmpty) {
+          sys.error(s"Empty rate specific argument setting, ugen ${uName}, rate ${r}, argument ${raName}")
+        }
+
+        val oldMap  = argRatesMap(raName)
+        val newMap  = oldMap + (r -> (raDef, raCons))
+        argRatesMap += raName -> newMap
+      }
+    }
+
     val rNodes = (node \ "rate")
     if (rNodes.isEmpty) sys.error(s"No rates specified for ${uName}")
     val impliedRate = (rNodes.size == 1) && rNodes.head.attributes.asAttrMap.boolean("implied")
-    val (rates, rateArgMap) = if (impliedRate) {
+    val rates = if (impliedRate) {
       val rNode   = rNodes.head
       val rAttr   = rNode.attributes.asAttrMap
       val r       = getRate(rAttr)
@@ -393,10 +439,11 @@ private[synth] object UGenSpecParser {
         case other            =>
           sys.error(s"Cannot use both method and methodalias attributes, in ugen ${uName}, rate ${r}")
       }
-      Rates.Implied(r, rMethod) -> Map(r -> (rNode \ "arg"))
+      addArgRate(r, rNode)
+      Rates.Implied(r, rMethod)
 
     } else {
-      val map: Map[Rate, Seq[xml.Node]] = rNodes.map( rNode => {
+      val set: Set[Rate] = rNodes.map(rNode => {
         val rAttr   = rNode.attributes.asAttrMap
         val r       = getRate(rAttr)
 
@@ -405,10 +452,11 @@ private[synth] object UGenSpecParser {
           if (unknown.nonEmpty)
             sys.error(s"Unsupported ugen rate attributes, in ugen ${uName}, rate ${r}: ${unknown.mkString(",")}")
         }
-        r -> (rNode \ "arg")
+        addArgRate(r, rNode)
+        r
       })(breakOut)
 
-      Rates.Set(map.keySet) -> map
+      Rates.Set(set)
     }
 
     // ---- arguments ----
@@ -448,16 +496,25 @@ private[synth] object UGenSpecParser {
       aDefaultOpt.foreach { df => aDefaults += UndefinedRate -> df }
       var aRates      = Map.empty[MaybeRate, RateConstraint]
 
-      def checkRate(a: Map[String, String], r: MaybeRate) {
-        aAttrs.get("rate").foreach {
-          case "ugen"   => aRates += r -> RateConstraint.SameAsUGen
-          case "audio"  => aRates += r -> RateConstraint.Fixed(audio)
-          case other =>
-            sys.error(s"Invalid rate constraint, in ugen ${uName}, argument ${aName}, rate ${other}")
-        }
+      // constraints and rate specific defaults
+
+      getRateContraint(aAttrs).foreach { cons =>
+        aRates += UndefinedRate -> RateConstraint.SameAsUGen
       }
 
-      checkRate(aAttrs, UndefinedRate)
+      argRatesMap(aName).foreach { case (r, (raDef, raCons)) =>
+        raCons.foreach { cons =>
+          aRates += r -> cons
+        }
+        raDef.foreach { df =>
+          val isInit  = aType match {
+            case ArgumentType.GE(_, b) => b
+            case _ => false
+          }
+          val (_, dfv) = adjustDefault(uName, aName, Some(aType), isInit = isInit, default = df)
+          aDefaults += r -> dfv
+        }
+      }
 
       def errorMixPos() {
         sys.error(s"Cannot mix positional and non-positional arguments, in ugen ${uName}, argument ${aName}")
