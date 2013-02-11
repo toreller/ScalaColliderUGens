@@ -1,0 +1,115 @@
+:::: Rate Constraints Feb 2013 ::::
+
+generally checked in `checkInputs`
+sometimes in constructor via `asAudioRateInput`
+`checkSameRateAsFirstInput`
+
+:: sub-audio -> audio requirements ::
+
+AbstractOut (abstract)
+if rate == audio-rate then in argument must be audio-rate
+  - LocalOut
+  - XOut
+  - SharedOut
+  - Out
+  - OffsetOut
+  - ReplaceOut
+
+BufRd, BufWr
+if rate == audio-rate then phase argument must be audio-rate
+
+CheckBadValues: in
+// should fail? -- it does work with K2A, so it should gently upgrade
+
+DelayN, DelayL, DelayC, CombN, CombL, CombC, AllpassN, AllpassL, AllpassC: in
+BufDelayN, BufDelayL, BufDelayC, BufCombN, BufCombL, BufCombL, BufAllpassN, BufAllpassL, BufAllpassC
+
+DiskOut: in
+
+Median: in
+
+FreeVerb2: in, in2
+
+GVerb: in
+
+AmpComp, AmpCompA: freq
+
+Select: array
+
+Pan2, LinPan2, Pan4, PanB, PanAz: in
+
+Balance: left, right
+
+Rotate2: x, y
+
+BiPanB2, XFade2, LinXFade2: inA, inB
+
+DecodeB2: w, x, y
+
+
+:: checkSameRateAsFirstInput ::
+
+Filter (abstract)
+    BPF, FreeVerb, LPF, LPZ2, LagUD, Decay2, Decay, OnePole, Resonz, MoogFF, Integrator,
+    DetectSilence, Lag, LPZ1, Ringz, FOS, RLPF, MidEQ, Slew, LeakDC, TwoPole, Slope, Formlet, SOS,
+    BRF, HPF, HPZ2, BPZ2, BRZ2, Lag2UD, Lag3UD, OneZero, Ramp, Lag3, Lag2, HPZ1, RHPF, TwoZero, APF,
+    BBandStop, BHiPass, BLowShelf, BPeakEQ, BAllPass, BHiShelf, BBandPass, BHiCut, BLowPass, BLowCut, LRLowCut,
+    LRHiCut
+    except: Median
+
+    Pseudo-UGens: VarLag, CombFormlet
+
+LinExp: in
+
+Demand: trig
+
+Poll: trig
+
+SendTrig, SendReply: in/trig
+
+PulseCount: trig
+
+Stepper: trig
+
+ZeroCrossing: in
+
+Timer: trig
+
+:: requires a particular rate ::
+
+T2K.kr : in must be audio-rate
+// should fail? -- it does work with K2A, so it should gently upgrade
+
+:: special cases ::
+
+Duty, TDuty: links rates:
+  if dur.rate == demand and reset.rate != (demand or scalar) --> reset.rate must be ugen.rate
+  (in other words, rate = audio vs. reset.rate = control, rate = control vs. reset.rate = audio)
+  this is totally idiotic jrh style code. we'll not handle this case.
+
+DemandEnvGen
+  if rate == audio and either of (gate, reset) is audio, both of (gate, reset) must be audio
+  we'll not handle this case
+
+Peak, RunningMin, RunningMax
+  these allow the ugen to run at control rate with an input at audio rate; otherwise use
+  checkSameRateAsFirstInput
+  // we can use the existing branching structure by excluding the control-rate case
+  // (should be ok to have control-rate peak with scalar input)
+  // ; so e.g. <rate name="audio"><arg name="in" rate="ugen"/></rate> and the same scalar?
+  // ; actually this could be handled by "sub-audio -> audio"
+
+
+:: others ::
+
+Mix.kr uses A2K for audio inputs -- why?
+   .ar uses K2A for non-audio inputs
+
+asAudioRateInput
+asControlInput  // has other meaning (not for rate coercion)
+
+::::::
+
+the calls to checkSameRateAsFirstInput seem rather arbitrary, for example this is done for Timer, but not for Sweep
+; should look at the source code to determine if this is really an issue or not
+; (Timer and Sweep do handle Ctor differently!)

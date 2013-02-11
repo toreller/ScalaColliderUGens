@@ -1,3 +1,11 @@
+UGens: Sum3, Sum4, SendPeakRMS, BHiCut, BLowCut, LRLowCut, LRHiCut
+Pseudo-UGens: SelectL looks useful, Changed
+
+
+top level arg definition: should not have rate attribute, better to keep them homogeneously in the rate entries
+
+:::::::::::
+
 WhiteNoise etc. --> mce
 special input values: Poll, EnvGen, Klang, ...
 output accessors for multi-output ugens, e.g. for Pitch

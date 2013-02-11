@@ -25,43 +25,112 @@
 
 package de.sciss.synth
 
-import collection.immutable.{IndexedSeq => IIdxSeq}
+import collection.immutable
+import immutable.{IndexedSeq => IIdxSeq}
+import collection.breakOut
+import impl.{UGenSpecParser => ParserImpl}
 
 object UGenSpec {
+  lazy val standardUGens: Map[String, UGenSpec] = {
+    val is = ugen.Control.getClass.getResourceAsStream("standard-ugens.xml")
+    try {
+      val source = xml.Source.fromInputStream(is)
+      parseAll(source)
+    } finally {
+      is.close()
+    }
+  }
+
+  def parseAll(source: xml.InputSource): Map[String, UGenSpec] = ParserImpl.parseAll(source)
+
+  def parse(node: xml.Node): UGenSpec = ParserImpl.parse(node)
+
   // ---- UGen attributes ----
 
   object Attribute {
     sealed trait ImpliesSideEffect extends Attribute
     sealed trait ImpliesIndividual extends Attribute
+
+    case object ReadsBus      extends Attribute.ImpliesIndividual   // cf Specified.txt
+    case object ReadsBuffer   extends Attribute.ImpliesIndividual   // cf Specified.txt
+    case object ReadsFFT      extends Attribute.ImpliesIndividual   // cf Specified.txt
+    case object UsesRandSeed  extends Attribute.ImpliesIndividual
+    case object IsIndividual  extends Attribute.ImpliesIndividual
+
+    case object WritesBus     extends Attribute.ImpliesSideEffect with Attribute.ImpliesIndividual
+    case object WritesBuffer  extends Attribute.ImpliesSideEffect with Attribute.ImpliesIndividual
+    case object WritesFFT     extends Attribute.ImpliesSideEffect with Attribute.ImpliesIndividual
+    case object HasSideEffect extends Attribute.ImpliesSideEffect
+
+    case object HasDoneFlag   extends Attribute
   }
   sealed trait Attribute
-  case object ReadsBus      extends Attribute.ImpliesIndividual   // cf Specified.txt
-  case object ReadsBuffer   extends Attribute.ImpliesIndividual   // cf Specified.txt
-  case object ReadsFFT      extends Attribute.ImpliesIndividual   // cf Specified.txt
-  case object UsesRandSeed  extends Attribute.ImpliesIndividual
-  case object IsIndividual  extends Attribute.ImpliesIndividual
-
-  case object WritesBus     extends Attribute.ImpliesSideEffect with Attribute.ImpliesIndividual
-  case object WritesBuffer  extends Attribute.ImpliesSideEffect with Attribute.ImpliesIndividual
-  case object WritesFFT     extends Attribute.ImpliesSideEffect with Attribute.ImpliesIndividual
-  case object HasSideEffect extends Attribute.ImpliesSideEffect
-
-  case object HasDoneFlag   extends Attribute
 
   // ---- UGen input arguments ----
 
-  final case class Argument(name: String, default: Option[ArgumentValue])
+  final case class Argument(name: String, tpe: ArgumentType,
+                            defaults: Map[MaybeRate, ArgumentValue],
+                            rates: Map[MaybeRate, RateConstraint])
 
+  object ArgumentType {
+    case object Int extends ArgumentType
+    sealed trait GELike extends ArgumentType { def shape: SignalShape }
+    case object GEWithDoneFlag extends GELike { def shape: SignalShape = SignalShape.Generic }
+    final case class GE(shape: SignalShape) extends GELike
+  }
+  sealed trait ArgumentType
+
+  object RateConstraint {
+    case object SameAsUGen extends RateConstraint
+    final case class Fixed(rate: Rate) extends RateConstraint
+  }
+  sealed trait RateConstraint
+
+  object SignalShape {
+    case object Generic     extends SignalShape // aka Float
+    case object Int         extends SignalShape
+    case object String      extends SignalShape
+    case object Trigger     extends SignalShape // with values `low` and `high`
+    case object Switch      extends SignalShape // with values `false` and `true`
+    case object Gate        extends SignalShape // with values `closed` and `open`
+    case object DoneAction  extends SignalShape
+    case object Buffer      extends SignalShape
+    case object FFT         extends SignalShape
+  }
+  sealed trait SignalShape
+
+  object ArgumentValue {
+    final case class Int  (value: scala.Int  ) extends ArgumentValue
+    final case class Float(value: scala.Float) extends ArgumentValue
+    case object Nyquist extends ArgumentValue
+  }
   sealed trait ArgumentValue
-  final case class IntValue  (value: Int) extends ArgumentValue
-  final case class FloatValue(value: Float) extends ArgumentValue
-  case object Nyquist extends ArgumentValue
 
-  // --- Supported rates ----
+  final case class Input(arg: String, variadic: Boolean)
 
+  // ---- Supported rates ----
+
+  object Rates {
+    final case class Implied(rate: Rate, method: Option[String]) extends Rates
+    final case class Set(rates: immutable.Set[Rate]) extends Rates
+  }
   sealed trait Rates
-  final case class ImpliedRate(rate: Rate, method: Option[String]) extends Rates
-  final case class RateSet(rates: Set[Rate]) extends Rates
+
+  // ---- Outputs ----
+
+//  object Outputs {
+//    final case class Argument(name: String) extends Outputs
+//    // type = fft
+//
+//  }
+//  sealed trait Outputs
+
+  final case class Output(name: Option[String], shape: SignalShape, variadic: Option[String])
 }
 final case class UGenSpec(name: String, attr: Set[UGenSpec.Attribute], rates: UGenSpec.Rates,
-                          args: IIdxSeq[UGenSpec.Argument])
+                          args:    IIdxSeq[UGenSpec.Argument],
+                          inputs:  IIdxSeq[UGenSpec.Input   ],
+                          outputs: IIdxSeq[UGenSpec.Output  ]) {
+  lazy val argMap:   Map[String, UGenSpec.Argument] = args.map  (a => a.name -> a)(breakOut)
+  lazy val inputMap: Map[String, UGenSpec.Input   ] = inputs.map(i => i.arg  -> i)(breakOut)
+}

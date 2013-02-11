@@ -11,24 +11,13 @@ homepage in ThisBuild <<= name { n => Some(url("https://github.com/Sciss/" + n))
 // default license - note: does not apply to the -spec sub project
 // licenses in ThisBuild := Seq("GPL v2+" -> url("http://www.gnu.org/licenses/gpl-2.0.txt"))
 
-scalaVersion in ThisBuild := "2.10.0"
+scalaVersion in ThisBuild := "2.10.+"
 
 retrieveManaged in ThisBuild := true
 
 scalacOptions in ThisBuild ++= Seq("-deprecation", "-unchecked", "-feature")
 
-// ---- build info ----
-//  
-// buildInfoSettings
-// 
-// sourceGenerators in Compile <+= buildInfo
-// 
-// buildInfoKeys := Seq( name, organization, version, scalaVersion, description,
-//    BuildInfoKey.map( homepage ) { case (k, opt) => k -> opt.get },
-//    BuildInfoKey.map( licenses ) { case (_, Seq( (lic, _) )) => "license" -> lic }
-// )
-// 
-// buildInfoPackage := "de.sciss.synth.ugen"
+initialCommands in Console := """import de.sciss.synth._"""
 
 // ---- publishing ----
 

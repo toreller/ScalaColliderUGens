@@ -5,25 +5,25 @@ import sbtbuildinfo.Plugin._
 
 object Build extends sbt.Build {
   lazy val root: Project = Project(
-    id = "scalacolliderugens",
-    base = file("."),
+    id        = "scalacolliderugens",
+    base      = file("."),
     aggregate = Seq(spec, api, gen, core),
-    settings = Project.defaultSettings ++ Seq(
+    settings  = Project.defaultSettings ++ Seq(
       publishLocal := {},
       publish := {}
     )
   )
 
   // taking inspiration from http://stackoverflow.com/questions/11509843/sbt-generate-code-using-project-defined-generator
-  val ugenGenerator = TaskKey[Seq[File]]("ugen-generate", "Generate UGen class files")
+  lazy val ugenGenerator = TaskKey[Seq[File]]("ugen-generate", "Generate UGen class files")
 
   def licenseURL(licName: String, sub: String) =
     licenses <<= (name in root) { n => Seq(licName -> url("https://raw.github.com/Sciss/" + n + "/master/" + sub + "/LICENSE")) }
 
   lazy val spec = Project(
-    id = "scalacolliderugens-spec",
-    base = file("spec"),
-    settings = Project.defaultSettings /* ++ buildInfoSettings */ ++ Seq(
+    id        = "scalacolliderugens-spec",
+    base      = file("spec"),
+    settings  = Project.defaultSettings /* ++ buildInfoSettings */ ++ Seq(
       description := "UGens XML specification files for ScalaCollider",
       autoScalaLibrary := false, // this is a pure xml containing jar
       crossPaths := false,
@@ -34,10 +34,10 @@ object Build extends sbt.Build {
   )
 
   lazy val api = Project(
-    id = "scalacolliderugens-api",
-    base = file("api"),
+    id        = "scalacolliderugens-api",
+    base      = file("api"),
 //    dependencies = Seq(xml),
-    settings = Project.defaultSettings ++ buildInfoSettings ++ Seq(
+    settings  = Project.defaultSettings ++ buildInfoSettings ++ Seq(
       description := "Basic UGens API for ScalaCollider",
       licenseURL("GPL v2+", "api"),
       sourceGenerators in Compile <+= buildInfo,
@@ -54,10 +54,10 @@ object Build extends sbt.Build {
   )
 
   lazy val gen = Project(
-    id = "scalacolliderugens-gen",
-    base = file("gen"),
-    dependencies = Seq(spec),
-    settings = Project.defaultSettings ++ Seq(
+    id            = "scalacolliderugens-gen",
+    base          = file("gen"),
+    dependencies  = Seq(spec, api),
+    settings      = Project.defaultSettings ++ Seq(
       description := "Source code generator for ScalaCollider UGens",
       licenseURL("GPL v2+", "gen"),
       libraryDependencies ++= Seq(
@@ -76,10 +76,10 @@ object Build extends sbt.Build {
   )
 
   lazy val core = Project(
-    id = "scalacolliderugens-core",
-    base = file("core"),
-    dependencies = Seq(api),
-    settings = Project.defaultSettings ++ Seq(
+    id            = "scalacolliderugens-core",
+    base          = file("core"),
+    dependencies  = Seq(api),
+    settings      = Project.defaultSettings ++ Seq(
       description := "UGen classes for ScalaCollider",
       licenseURL("GPL v2+", "core"),
       sourceGenerators in Compile <+= (ugenGenerator in Compile),

@@ -1275,7 +1275,9 @@
         </ugen>
         <ugen name="BufRd" readsbuf="true" doneflag="true">
             <rate name="control"/>
-            <rate name="audio"/>
+            <rate name="audio">
+                <arg name="index" rate="ugen"/>
+            </rate>
             <outputs num="numChannels"/>
             <arg name="numChannels" type="int">
                 <doc>
@@ -1326,7 +1328,9 @@
         </ugen>
         <ugen name="BufWr" writesbuf="true" doneflag="true">
             <rate name="control"/>
-            <rate name="audio"/>
+            <rate name="audio">
+                <arg name="index" rate="ugen"/>
+            </rate>
             <arg name="buf" type="buf" pos="1"/>
             <arg name="index" default="0.0" pos="2"/>
             <arg name="loop" default="true" pos="3"/>
@@ -1430,7 +1434,10 @@
         </ugen>
 
         <ugen name="BufDelayN" readsbuf="true" writesbuf="true">
-            <rate name="audio"/>
+            <rate name="control"/>
+            <rate name="audio">
+                <arg name="in" rate="ugen"/>
+            </rate>
             <arg name="buf" type="buf">
                 <doc>
                     Buffer index.
@@ -1455,7 +1462,10 @@
             </doc>
         </ugen>
         <ugen name="BufDelayL" readsbuf="true" writesbuf="true">
-            <rate name="audio"/>
+            <rate name="control"/>
+            <rate name="audio">
+                <arg name="in" rate="ugen"/>
+            </rate>
             <arg name="buf" type="buf">
                 <doc>
                     Buffer index.
@@ -1480,7 +1490,10 @@
             </doc>
         </ugen>
         <ugen name="BufDelayC" readsbuf="true" writesbuf="true">
-            <rate name="audio"/>
+            <rate name="control"/>
+            <rate name="audio">
+                <arg name="in" rate="ugen"/>
+            </rate>
             <arg name="buf" type="buf">
                 <doc>
                     Buffer index.
@@ -1505,7 +1518,9 @@
             </doc>
         </ugen>
         <ugen name="BufCombN" readsbuf="true" writesbuf="true">
-            <rate name="audio"/>
+            <rate name="audio">
+                <arg name="in" rate="ugen"/>
+            </rate>
             <arg name="buf" type="buf">
                 <doc>
                     Buffer index.
@@ -1536,7 +1551,9 @@
             </doc>
         </ugen>
         <ugen name="BufCombL" readsbuf="true" writesbuf="true">
-            <rate name="audio"/>
+            <rate name="audio">
+                <arg name="in" rate="ugen"/>
+            </rate>
             <arg name="buf" type="buf">
                 <doc>
                     Buffer index.
@@ -1567,7 +1584,9 @@
             </doc>
         </ugen>
         <ugen name="BufCombC" readsbuf="true" writesbuf="true">
-            <rate name="audio"/>
+            <rate name="audio">
+                <arg name="in" rate="ugen"/>
+            </rate>
             <arg name="buf" type="buf">
                 <doc>
                     Buffer index.
@@ -1598,7 +1617,9 @@
             </doc>
         </ugen>
         <ugen name="BufAllpassN" readsbuf="true" writesbuf="true">
-            <rate name="audio"/>
+            <rate name="audio">
+                <arg name="in" rate="ugen"/>
+            </rate>
             <arg name="buf" type="buf">
                 <doc>
                     Buffer index.
@@ -1629,7 +1650,9 @@
             </doc>
         </ugen>
         <ugen name="BufAllpassL" readsbuf="true" writesbuf="true">
-            <rate name="audio"/>
+            <rate name="audio">
+                <arg name="in" rate="ugen"/>
+            </rate>
             <arg name="buf" type="buf">
                 <doc>
                     Buffer index.
@@ -1660,7 +1683,9 @@
             </doc>
         </ugen>
         <ugen name="BufAllpassC" readsbuf="true" writesbuf="true">
-            <rate name="audio"/>
+            <rate name="audio">
+                <arg name="in" rate="ugen"/>
+            </rate>
             <arg name="buf" type="buf">
                 <doc>
                     Buffer index.
@@ -1692,7 +1717,9 @@
         </ugen>
         <ugen name="DelayN">
             <rate name="control"/>
-            <rate name="audio"/>
+            <rate name="audio">
+                <arg name="in" rate="ugen"/>
+            </rate>
             <arg name="in">
                 <doc>
                     The input signal.
@@ -1718,7 +1745,9 @@
         </ugen>
         <ugen name="DelayL">
             <rate name="control"/>
-            <rate name="audio"/>
+            <rate name="audio">
+                <arg name="in" rate="ugen"/>
+            </rate>
             <arg name="in">
                 <doc>
                     The input signal.
@@ -1744,7 +1773,9 @@
         </ugen>
         <ugen name="DelayC">
             <rate name="control"/>
-            <rate name="audio"/>
+            <rate name="audio">
+                <arg name="in" rate="ugen"/>
+            </rate>
             <arg name="in">
                 <doc>
                     The input signal.
@@ -1769,8 +1800,10 @@
             </doc>
         </ugen>
         <ugen name="CombN">
-            <rate name="audio"/>
             <rate name="control"/>
+            <rate name="audio">
+                <arg name="in" rate="ugen"/>
+            </rate>
             <arg name="in">
                 <doc>
                     The input signal.
@@ -1801,8 +1834,10 @@
             </doc>
         </ugen>
         <ugen name="CombL">
-            <rate name="audio"/>
             <rate name="control"/>
+            <rate name="audio">
+                <arg name="in" rate="ugen"/>
+            </rate>
             <arg name="in">
                 <doc>
                     The input signal.
@@ -1833,8 +1868,10 @@
             </doc>
         </ugen>
         <ugen name="CombC">
-            <rate name="audio"/>
             <rate name="control"/>
+            <rate name="audio">
+                <arg name="in" rate="ugen"/>
+            </rate>
             <arg name="in">
                 <doc>
                     The input signal.
@@ -1865,8 +1902,10 @@
             </doc>
         </ugen>
         <ugen name="AllpassN">
-            <rate name="audio"/>
             <rate name="control"/>
+            <rate name="audio">
+                <arg name="in" rate="ugen"/>
+            </rate>
             <arg name="in">
                 <doc>
                     The input signal.
@@ -1897,8 +1936,10 @@
             </doc>
         </ugen>
         <ugen name="AllpassL">
-            <rate name="audio"/>
             <rate name="control"/>
+            <rate name="audio">
+                <arg name="in" rate="ugen"/>
+            </rate>
             <arg name="in">
                 <doc>
                     The input signal.
@@ -1929,8 +1970,10 @@
             </doc>
         </ugen>
         <ugen name="AllpassC">
-            <rate name="audio"/>
             <rate name="control"/>
+            <rate name="audio">
+                <arg name="in" rate="ugen"/>
+            </rate>
             <arg name="in">
                 <doc>
                     The input signal.
@@ -2185,7 +2228,7 @@
             <rate name="control"/>
             <rate name="audio"/>
             <outputs num="in"/>
-            <arg name="trig" pos="low">
+            <arg name="trig" pos="0" rate="ugen">
                 <doc>
                     trigger. Can be any signal. A trigger happens when the signal changes from non-positive to positive.
                 </doc>
@@ -2586,7 +2629,9 @@
         </ugen>
 
         <ugen name="DiskOut" writesbuf="true">
-            <rate name="audio"/> <!-- implied="true" -->
+            <rate name="audio">
+                <arg name="in" rate="ugen"/>
+            </rate>
             <arg name="buf" type="buf">
                 <doc>
                     the buffer used internally by the UGen. this number of frames in the buffer must
@@ -2596,7 +2641,7 @@
                     (and not write anything to the file).
                 </doc>
             </arg>
-            <arg name="in" multi="true" rate="ugen">
+            <arg name="in" multi="true">
                 <doc>
                     the signal to be recorded
                 </doc>
@@ -2750,7 +2795,7 @@
     <file name="FFT_UGens">
         <ugen name="FFT" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
+            <outputs type="fft"/>
             <arg name="buf" type="buf" init="true">
                 <doc>
                     The buffer to use for writing the FFT to. The size must be a power of two.
@@ -2813,7 +2858,7 @@
         <ugen name="IFFT" readsfft="true"> <!-- outputs something, like phase? -->
             <rate name="control"/>
             <rate name="audio" methodalias="apply"/>
-            <arg name="chain" type="fftbuf"/>
+            <arg name="chain" type="fft"/>
             <arg name="winType" default="0" init="true"/>
             <arg name="winSize" default="0" init="true"/>
         </ugen>
@@ -2848,8 +2893,8 @@
     <!-- <file name="PV_UGens"> -->
         <ugen name="PV_MagAbove" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chain" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chain" type="fft">
                 <doc>
                     the FFT'ed buffer
                 </doc>
@@ -2867,8 +2912,8 @@
         </ugen>
         <ugen name="PV_MagBelow" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chain" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chain" type="fft">
                 <doc>
                     the FFT'ed buffer
                 </doc>
@@ -2886,8 +2931,8 @@
         </ugen>
         <ugen name="PV_MagClip" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chain" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chain" type="fft">
                 <doc>
                     the FFT'ed buffer
                 </doc>
@@ -2906,14 +2951,14 @@
         </ugen>
         <ugen name="PV_MagMul" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chainA" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chainA" type="fft">
                 <doc>
                     the first FFT'ed buffer (this gets replaced by
                     the output signal)
                 </doc>
             </arg>
-            <arg name="chainB" type="fftbuf">
+            <arg name="chainB" type="fft">
                 <doc>
                     the second FFT'ed buffer
                 </doc>
@@ -2927,14 +2972,14 @@
         </ugen>
         <ugen name="PV_MagDiv" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chainA" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chainA" type="fft">
                 <doc>
                     the first FFT'ed buffer (this gets replaced by
                     the output signal)
                 </doc>
             </arg>
-            <arg name="chainB" type="fftbuf">
+            <arg name="chainB" type="fft">
                 <doc>
                     the second FFT'ed buffer
                 </doc>
@@ -2956,8 +3001,8 @@
         </ugen>
         <ugen name="PV_MagSquared" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chain" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chain" type="fft">
                 <doc>
                     the FFT'ed buffer
                 </doc>
@@ -2971,8 +3016,8 @@
         </ugen>
         <ugen name="PV_MagNoise" readsfft="true" writesfft="true" random="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chain" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chain" type="fft">
                 <doc>
                     the FFT'ed buffer
                 </doc>
@@ -2985,14 +3030,14 @@
         </ugen>
         <ugen name="PV_Copy" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chainA" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chainA" type="fft">
                 <doc>
                     the first FFT'ed buffer (this gets replaced by
                     the output signal)
                 </doc>
             </arg>
-            <arg name="chainB" type="fftbuf">
+            <arg name="chainB" type="fft">
                 <doc>
                     the second FFT'ed buffer
                 </doc>
@@ -3010,14 +3055,14 @@
         </ugen>
         <ugen name="PV_CopyPhase" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chainA" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chainA" type="fft">
                 <doc>
                     the first FFT'ed buffer (this gets replaced by
                     the output signal)
                 </doc>
             </arg>
-            <arg name="chainB" type="fftbuf">
+            <arg name="chainB" type="fft">
                 <doc>
                     the second FFT'ed buffer
                 </doc>
@@ -3031,8 +3076,8 @@
         </ugen>
         <ugen name="PV_PhaseShift" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chain" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chain" type="fft">
                 <doc>
                     the FFT'ed buffer
                 </doc>
@@ -3050,8 +3095,8 @@
         </ugen>
         <ugen name="PV_PhaseShift90" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chain" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chain" type="fft">
                 <doc>
                     the FFT'ed buffer
                 </doc>
@@ -3064,8 +3109,8 @@
         </ugen>
         <ugen name="PV_PhaseShift270" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chain" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chain" type="fft">
                 <doc>
                     the FFT'ed buffer
                 </doc>
@@ -3078,14 +3123,14 @@
         </ugen>
         <ugen name="PV_Min" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chainA" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chainA" type="fft">
                 <doc>
                     the first FFT'ed buffer (this gets replaced by
                     the output signal)
                 </doc>
             </arg>
-            <arg name="chainB" type="fftbuf">
+            <arg name="chainB" type="fft">
                 <doc>
                     the second FFT'ed buffer
                 </doc>
@@ -3099,14 +3144,14 @@
         </ugen>
         <ugen name="PV_Max" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chainA" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chainA" type="fft">
                 <doc>
                     the first FFT'ed buffer (this gets replaced by
                     the output signal)
                 </doc>
             </arg>
-            <arg name="chainB" type="fftbuf">
+            <arg name="chainB" type="fft">
                 <doc>
                     the second FFT'ed buffer
                 </doc>
@@ -3120,14 +3165,14 @@
         </ugen>
         <ugen name="PV_Mul" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chainA" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chainA" type="fft">
                 <doc>
                     the first FFT'ed buffer (this gets replaced by
                     the output signal)
                 </doc>
             </arg>
-            <arg name="chainB" type="fftbuf">
+            <arg name="chainB" type="fft">
                 <doc>
                     the second FFT'ed buffer
                 </doc>
@@ -3142,14 +3187,14 @@
         </ugen>
         <ugen name="PV_Div" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chainA" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chainA" type="fft">
                 <doc>
                     the first FFT'ed buffer (this gets replaced by
                     the output signal)
                 </doc>
             </arg>
-            <arg name="chainB" type="fftbuf">
+            <arg name="chainB" type="fft">
                 <doc>
                     the second FFT'ed buffer
                 </doc>
@@ -3164,14 +3209,14 @@
         </ugen>
         <ugen name="PV_Add" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chainA" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chainA" type="fft">
                 <doc>
                     the first FFT'ed buffer (this gets replaced by
                     the output signal)
                 </doc>
             </arg>
-            <arg name="chainB" type="fftbuf">
+            <arg name="chainB" type="fft">
                 <doc>
                     the second FFT'ed buffer
                 </doc>
@@ -3186,8 +3231,8 @@
         </ugen>
         <ugen name="PV_RectComb" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chain" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chain" type="fft">
                 <doc>
                     the FFT'ed buffer
                 </doc>
@@ -3230,13 +3275,13 @@
         </ugen>
         <ugen name="PV_RectComb2" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chainA" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chainA" type="fft">
                 <doc>
                     the first FFT'ed buffer (this gets replaced by the output signal)
                 </doc>
             </arg>
-            <arg name="chainB" type="fftbuf">
+            <arg name="chainB" type="fft">
                 <doc>
                     the second FFT'ed buffer
                 </doc>
@@ -3281,8 +3326,8 @@
         </ugen>
         <ugen name="PV_BrickWall" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chain" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chain" type="fft">
                 <doc>
                     the FFT'ed buffer
                 </doc>
@@ -3303,13 +3348,13 @@
         </ugen>
         <ugen name="PV_BinWipe" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chainA" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chainA" type="fft">
                 <doc>
                     the first FFT'ed buffer (this gets replaced by the output signal)
                 </doc>
             </arg>
-            <arg name="chainB" type="fftbuf">
+            <arg name="chainB" type="fft">
                 <doc>
                     the second FFT'ed buffer
                 </doc>
@@ -3333,8 +3378,8 @@
         </ugen>
         <ugen name="PV_LocalMax" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chain" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chain" type="fft">
                 <doc>
                     the FFT'ed buffer
                 </doc>
@@ -3355,8 +3400,8 @@
         </ugen>
         <ugen name="PV_Conj" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chain" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chain" type="fft">
                 <doc>
                     the FFT'ed buffer
                 </doc>
@@ -3372,8 +3417,8 @@
 
         <ugen name="PV_BinScramble" readsfft="true" writesfft="true" random="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chain" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chain" type="fft">
                 <doc>
                     the FFT'ed buffer
                 </doc>
@@ -3404,8 +3449,8 @@
         </ugen>
         <ugen name="PV_MagSmear" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chain" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chain" type="fft">
                 <doc>
                     the FFT'ed buffer
                 </doc>
@@ -3423,8 +3468,8 @@
         </ugen>
         <ugen name="PV_MagShift" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chain" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chain" type="fft">
                 <doc>
                     the FFT'ed buffer
                 </doc>
@@ -3450,8 +3495,8 @@
         </ugen>
         <ugen name="PV_BinShift" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chain" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chain" type="fft">
                 <doc>
                     the FFT'ed buffer
                 </doc>
@@ -3479,13 +3524,13 @@
 
         <ugen name="PV_RandWipe" readsfft="true" writesfft="true" random="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chainA" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chainA" type="fft">
                 <doc>
                     the first FFT'ed buffer (this gets replaced by the output signal)
                 </doc>
             </arg>
-            <arg name="chainB" type="fftbuf">
+            <arg name="chainB" type="fft">
                 <doc>
                     the second FFT'ed buffer
                 </doc>
@@ -3517,8 +3562,8 @@
         </ugen>
         <ugen name="PV_Diffuser" readsfft="true" writesfft="true" random="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chain" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chain" type="fft">
                 <doc>
                     the FFT'ed buffer
                 </doc>
@@ -3538,8 +3583,8 @@
         </ugen>
         <ugen name="PV_RandComb" readsfft="true" writesfft="true" random="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chain" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chain" type="fft">
                 <doc>
                     the FFT'ed buffer
                 </doc>
@@ -3567,8 +3612,8 @@
         </ugen>
         <ugen name="PV_MagFreeze" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chain" type="fftbuf">
+            <outputs type="fft"/>
+            <arg name="chain" type="fft">
                 <doc>
                     the FFT'ed buffer
                 </doc>
@@ -3727,15 +3772,15 @@
 
         <ugen name="PV_ConformalMap" readsfft="true" writesfft="true">
             <rate name="control" implied="true" method="apply"/>
-            <outputs type="fftbuf"/>
-            <arg name="chain" type="fftbuf"/>
+            <outputs type="fft"/>
+            <arg name="chain" type="fft"/>
             <arg name="real" default="0.0"/>
             <arg name="imag" default="0.0"/>
         </ugen>
 
         <ugen name="PV_JensenAndersen" readsfft="true">
             <rate name="audio"/>
-            <arg name="chain" type="fftbuf"/>
+            <arg name="chain" type="fft"/>
             <arg name="propSC" default="0.25"/>
             <arg name="propHFE" default="0.25"/>
             <arg name="propHFC" default="0.25"/>
@@ -3745,7 +3790,7 @@
         </ugen>
         <ugen name="PV_HainsworthFoote" readsfft="true">
             <rate name="audio"/>
-            <arg name="chain" type="fftbuf"/>
+            <arg name="chain" type="fft"/>
             <arg name="propH" default="0.0"/>
             <arg name="propF" default="0.0"/>
             <arg name="thresh" default="1.0"/>
@@ -4307,8 +4352,10 @@
         </ugen>
         <ugen name="Median">
             <rate name="control"/>
-            <rate name="audio"/>
-            <arg name="in" rate="ugen" pos="1"/>
+            <rate name="audio">
+                <arg name="in" rate="ugen"/>
+            </rate>
+            <arg name="in" pos="1"/>
             <arg name="length" default="3" init="true" pos="0"/>
             <doc warnpos="true"/>
         </ugen>
@@ -4877,9 +4924,11 @@
     <file name="IOUGens">
         <ugen name="OffsetOut" writesbus="true">
             <outputs num="0"/>
-            <rate name="audio" implied="true"/>
+            <rate name="audio" implied="true">
+                <arg name="in" rate="ugen"/>
+            </rate>
             <arg name="bus" type="bus"/>
-            <arg name="in" multi="true" rate="ugen"/>
+            <arg name="in" multi="true"/>
         </ugen>
         <ugen name="LocalIn">
             <outputs num="numChannels"/>
@@ -4908,9 +4957,11 @@
 
         <ugen name="ReplaceOut" writesbus="true">
             <outputs num="0"/>
-            <rate name="audio" implied="true"/>
+            <rate name="audio" implied="true">
+                <arg name="in" rate="ugen"/>
+            </rate>
             <arg name="bus" type="bus"/>
-            <arg name="in" multi="true" rate="ugen"/>
+            <arg name="in" multi="true"/>
         </ugen>
         <ugen name="Out" writesbus="true">
             <outputs num="0"/>
@@ -5184,7 +5235,7 @@
         </ugen>
         <ugen name="T2K">
             <rate name="control" implied="true"/>
-            <arg name="in"/>
+            <arg name="in" rate="audio"/>
         </ugen>
         <ugen name="T2A">
             <rate name="audio" implied="true"/>
@@ -5302,7 +5353,9 @@
         <ugen name="AmpComp">
             <rate name="scalar"/>
             <rate name="control"/>
-            <rate name="audio"/>
+            <rate name="audio">
+                <arg name="freq" rate="ugen"/>
+            </rate>
             <arg name="freq" default="261.626"/>
             <arg name="root" default="261.626"/>
             <arg name="expon" default="0.3333"/>
@@ -5310,7 +5363,9 @@
         <ugen name="AmpCompA">
             <rate name="scalar"/>
             <rate name="control"/>
-            <rate name="audio"/>
+            <rate name="audio">
+                <arg name="freq" rate="ugen"/>
+            </rate>
             <arg name="freq" default="1000.0"/>
             <arg name="root" default="0.0"/>
             <arg name="minAmp" default="0.32"/>
@@ -5436,7 +5491,7 @@
     <file name="MachineListening">
         <ugen name="BeatTrack" readsfft="true">
             <rate name="control" implied="true"/>
-            <arg name="chain" type="fftbuf">
+            <arg name="chain" type="fft">
                 <doc>
                     the output (buffer) of an FFT UGen which transforms the audio input to track.
                     The expected size of FFT is 1024 for 44100 and 48000 sampling rate, and 2048 for double those.
@@ -5474,7 +5529,7 @@
         </ugen>
         <ugen name="Loudness" readsfft="true">
             <rate name="control" implied="true"/>
-            <arg name="chain" type="fftbuf">
+            <arg name="chain" type="fft">
                 <doc>
                     the output (buffer) of an FFT UGen which transforms the audio input to track.
                     The FFT size should be 1024 for 44.1 and 48 kHz sampling rate, and 2048 for 88.2 and 96 kHz sampling rate.
@@ -5508,7 +5563,7 @@
         </ugen>
         <ugen name="KeyTrack" readsfft="true">
             <rate name="control" implied="true"/>
-            <arg name="chain" type="fftbuf">
+            <arg name="chain" type="fft">
                 <doc>
                     the output (buffer) of an FFT UGen which transforms the audio input to track.
                     For the FFT chain, with a standard hop of half FFT size, the FFT size should be
@@ -5539,7 +5594,7 @@
         <ugen name="MFCC" readsfft="true">
             <rate name="control" implied="true"/>
             <outputs num="numCoeffs"/>
-            <arg name="chain" type="fftbuf">
+            <arg name="chain" type="fft">
                 <doc>
                     the output (buffer) of an FFT UGen which transforms the audio input to track.
                     For the FFT chain, with a standard hop of half FFT size, the FFT size should be
@@ -5574,7 +5629,7 @@
         </ugen>
         <ugen name="Onsets" readsfft="true">
             <rate name="control" implied="true"/>
-            <arg name="chain" type="fftbuf">
+            <arg name="chain" type="fft">
                 <doc>
                     the output (buffer) of an FFT UGen which transforms the audio input to track.
                     For the FFT chain, you should typically use a frame size of 512 or 1024 (at 44.1 kHz sampling rate)
@@ -5730,7 +5785,7 @@
 
         <ugen name="SpecFlatness" readsfft="true">
             <rate name="control" implied="true"/>
-            <arg name="chain" type="fftbuf">
+            <arg name="chain" type="fft">
                 <doc>
                     the fft signal (buffer) to analyze
                 </doc>
@@ -5755,7 +5810,7 @@
         </ugen>
         <ugen name="SpecPcile" readsfft="true">
             <rate name="control" implied="true"/>
-            <arg name="chain" type="fftbuf">
+            <arg name="chain" type="fft">
                 <doc>
                     the fft signal (buffer) to analyze
                 </doc>
@@ -6019,7 +6074,9 @@
         </ugen>
         <ugen name="Select">
             <rate name="control"/>
-            <rate name="audio"/>
+            <rate name="audio">
+                <arg name="in" rate="ugen"/>
+            </rate>
             <arg name="index" type="gint">
                 <doc>
                     an index signal into the channels of the `multi` argument. The index
@@ -6509,18 +6566,23 @@
             <arg name="damp" default="0.5"/>
         </ugen>
         <ugen name="FreeVerb2">
-            <rate name="audio" implied="true"/>
+            <rate name="audio" implied="true">
+                <arg name="left" rate="ugen"/>
+                <arg name="right" rate="ugen"/>
+            </rate>
             <outputs num="2"/>
-            <arg name="left" rate="ugen"/>
-            <arg name="right" rate="ugen"/>
+            <arg name="left"/>
+            <arg name="right"/>
             <arg name="mix" default="0.33"/>
             <arg name="room" default="0.5"/>
             <arg name="damp" default="0.5"/>
         </ugen>
         <ugen name="GVerb">
-            <rate name="audio" implied="true"/>
+            <rate name="audio" implied="true">
+                <arg name="in" rate="ugen"/>
+            </rate>
             <outputs num="2"/>
-            <arg name="in" rate="ugen"/>
+            <arg name="in"/>
             <arg name="roomSize" default="10.0"/>
             <arg name="revTime" default="3.0"/>
             <arg name="damping" default="0.5"/>
@@ -6537,7 +6599,9 @@
         <ugen name="CheckBadValues" sideeffect="true">
             <rate name="scalar"/>
             <rate name="control"/>
-            <rate name="audio"/>
+            <rate name="audio">
+                <arg name="in" rate="ugen"/>
+            </rate>
             <arg name="in">
                 <doc>
                     the signal to be tested
@@ -6812,13 +6876,13 @@
         <ugen name="PulseCount">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="trig" type="trig"/>
+            <arg name="trig" type="trig" rate="ugen"/>
             <arg name="reset" type="trig" default="0"/>
         </ugen>
         <ugen name="Stepper">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="trig" type="trig">
+            <arg name="trig" type="trig" rate="ugen">
                 <doc>
                     The trigger signal which increments the counter. A trigger happens when the signal
                     changes from non-positive to positive. Note that if the UGen is created with the
@@ -6898,12 +6962,12 @@
         <ugen name="ZeroCrossing">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="in"/>
+            <arg name="in" rate="ugen"/>
         </ugen>
         <ugen name="Timer">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="trig" type="trig">
+            <arg name="trig" type="trig" rate="ugen">
                 <doc>
                     the trigger to update the output signal.
                     A trigger occurs when trig signal crosses from non-positive to positive.
@@ -6961,19 +7025,25 @@
         </ugen>
         <ugen name="Peak">
             <rate name="control"/>
-            <rate name="audio"/>
+            <rate name="audio">
+                <arg name="in" rate="ugen"/> <!-- workaround -->
+            </rate>
             <arg name="in"/>
             <arg name="trig" type="trig"/>
         </ugen>
         <ugen name="RunningMin">
             <rate name="control"/>
-            <rate name="audio"/>
+            <rate name="audio">
+                <arg name="in" rate="ugen"/> <!-- workaround -->
+            </rate>
             <arg name="in"/>
             <arg name="trig" type="trig"/>
         </ugen>
         <ugen name="RunningMax">
             <rate name="control"/>
-            <rate name="audio"/>
+            <rate name="audio">
+                <arg name="in" rate="ugen"/> <!-- workaround -->
+            </rate>
             <arg name="in"/>
             <arg name="trig" type="trig"/>
         </ugen>
@@ -7155,7 +7225,7 @@
     <file name="UnpackFFTUGens">
         <ugen name="Unpack1FFT" readsfft="true">
             <rate name="demand" implied="true" method="apply"/>
-            <arg name="chain" type="fftbuf"/>
+            <arg name="chain" type="fft"/>
             <arg name="fftSize" type="gint"/>
             <arg name="bin" type="gint"/>
             <arg name="which" default="0"/>
