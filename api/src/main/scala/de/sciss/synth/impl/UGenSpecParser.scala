@@ -7,11 +7,11 @@ import collection.breakOut
 private[synth] object UGenSpecParser {
   private def DEFAULT_VERIFY = true
 
-  def parseAll(source: xml.InputSource): Map[String, UGenSpec] = {
+  def parseAll(source: xml.InputSource, docs: Boolean = false): Map[String, UGenSpec] = {
     val root      = xml.XML.load(source)
     val ugenNodes = root \\ "ugen"
     ugenNodes.map( n => {
-      val spec = parse(n, verify = DEFAULT_VERIFY)
+      val spec = parse(n, docs = docs, verify = DEFAULT_VERIFY)
       spec.name -> spec
     })(breakOut)
   }
@@ -191,7 +191,7 @@ private[synth] object UGenSpecParser {
             }
             GE(Sig.Switch, scalar = isInit) -> ArgumentValue.Boolean(value = true)
 
-          case IsGate(b)        =>
+          case IsGate(b) =>
             // ---- check correctness ----
             aTypeExp.foreach {
               case GE(Sig.Gate,_) =>
@@ -201,7 +201,7 @@ private[synth] object UGenSpecParser {
             if (isInit) errorScalarType(tpe)
             tpe -> ArgumentValue.Boolean(value = true)
 
-          case IsDoneAction(a)  =>
+          case IsDoneAction(a) =>
             // ---- check correctness ----
             aTypeExp.foreach {
               case GE(Sig.DoneAction,_) =>
@@ -209,7 +209,7 @@ private[synth] object UGenSpecParser {
             }
             GE(Sig.DoneAction, scalar = isInit) -> ArgumentValue.DoneAction(a)
 
-          case "nyquist"        =>
+          case "nyquist" =>
             // ---- check correctness ----
             aTypeExp.foreach {
               case GE(Sig.Generic,_) =>
@@ -242,7 +242,49 @@ private[synth] object UGenSpecParser {
     }
   }
 
-  def parse(node: xml.Node, verify: Boolean = false): UGenSpec = {
+  private def trimDoc(docText: String): List[String] = {
+    val trim0 = docText.lines.map(_.trim).toIndexedSeq
+    val trim1 = trim0.dropWhile(_.isEmpty)
+    val idx   = trim1.lastIndexWhere(_.isEmpty) // why there's no dropRightWhile?
+    val trim  = if (idx >= 0) trim1.dropRight(trim1.size - idx) else trim1
+    val b     = List.newBuilder[String]
+    val sb    = new StringBuilder
+
+    def flush() {
+      if (!sb.isEmpty) {
+        b += sb.toString
+        sb.clear()
+      }
+    }
+
+    trim.foreach { line =>
+      if (line.isEmpty) flush() else {
+        sb.append(' ')
+        sb.append(line)
+      }
+    }
+    b.result()
+  }
+
+  private def mkDoc(node: xml.Node, argDocs: Map[String, List[String]]): Option[UGenSpec.Doc] = {
+    val docOpt = (node \ "doc").headOption
+    docOpt.flatMap { dNode =>
+      val dSees: List[String] = (dNode \ "see").map(_.text)(breakOut)
+      val dAttr     = dNode.attributes.asAttrMap
+      val dWarnPos  = dAttr.boolean("warnpos")
+      val dText     = (dNode \ "text").text
+      val hasAny    = !dText.isEmpty || dSees.nonEmpty || dWarnPos || argDocs.nonEmpty
+      if (hasAny) {
+        val dTextT  = trimDoc(dText)
+        val doc     = UGenSpec.Doc(body = dTextT, args = argDocs, links = dSees, warnPos = dWarnPos)
+        Some(doc)
+      } else {
+        None
+      }
+    }
+  }
+
+  def parse(node: xml.Node, docs: Boolean = false, verify: Boolean = false): UGenSpec = {
     if (node.label != "ugen") throw new IllegalArgumentException(s"Not a 'ugen' node: ${node}")
 
     import UGenSpec._
@@ -295,6 +337,7 @@ private[synth] object UGenSpecParser {
     var argMap        = Map.empty[String, Argument]
     var inputs        = IIdxSeq.empty[Input]
     var inputMap      = Map.empty[String, Input]
+    var argDocs       = Map.empty[String, List[String]]
 
     (node \ "arg").foreach { aNode =>
       val aAttrs      = aNode.attributes.asAttrMap
@@ -342,6 +385,14 @@ private[synth] object UGenSpecParser {
           args :+= arg
       }
       argMap += aName -> arg
+
+      if (docs) {
+        val aDoc  = (aNode \ "doc").text
+        if (!aDoc.isEmpty) {
+          val aDocT = trimDoc(aDoc)
+          if (aDocT.nonEmpty) argDocs += aName -> aDocT
+        }
+      }
     }
 
     if (argsOrd.nonEmpty) {
@@ -358,8 +409,11 @@ private[synth] object UGenSpecParser {
       }
     }
 
+    val uDoc = if (docs) mkDoc(node, argDocs) else None
+//if (uDoc.isDefined) println("HAS DOC: " + uName)
+
     UGenSpec(name = uName, attr = uAttr, rates = Rates.Set(Set.empty),
-      args = args, inputs = inputs, outputs = IIdxSeq.empty)
+      args = args, inputs = inputs, outputs = IIdxSeq.empty, doc = uDoc)
   }
 
 //  private def booleanAttr(n: xml.Node, name: String, default: Boolean = false) =

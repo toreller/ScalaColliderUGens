@@ -36,15 +36,16 @@ object UGenSpec {
     val is = ugen.Control.getClass.getResourceAsStream("standard-ugens.xml")
     try {
       val source = xml.Source.fromInputStream(is)
-      parseAll(source)
+      parseAll(source, docs = true)
     } finally {
       is.close()
     }
   }
 
-  def parseAll(source: xml.InputSource): Map[String, UGenSpec] = ParserImpl.parseAll(source)
+  def parseAll(source: xml.InputSource, docs: Boolean = false): Map[String, UGenSpec] =
+    ParserImpl.parseAll(source, docs = docs)
 
-  def parse(node: xml.Node): UGenSpec = ParserImpl.parse(node)
+  def parse(node: xml.Node, docs: Boolean = false): UGenSpec = ParserImpl.parse(node, docs = docs)
 
   // ---- UGen attributes ----
 
@@ -196,12 +197,15 @@ object UGenSpec {
 //  }
 //  sealed trait Outputs
 
-  final case class Output(name: Option[String], shape: SignalShape, variadic: Option[String])
+  final case class Output(name: Option[String], shape: SignalShape, variadic: Option[String], doc: Option[String])
+
+  final case class Doc(body: List[String], args: Map[String, List[String]], links: List[String], warnPos: Boolean)
 }
 final case class UGenSpec(name: String, attr: Set[UGenSpec.Attribute], rates: UGenSpec.Rates,
                           args:    IIdxSeq[UGenSpec.Argument],
                           inputs:  IIdxSeq[UGenSpec.Input   ],
-                          outputs: IIdxSeq[UGenSpec.Output  ]) {
+                          outputs: IIdxSeq[UGenSpec.Output  ],
+                          doc:     Option [UGenSpec.Doc]) {
   lazy val argMap:   Map[String, UGenSpec.Argument] = args.map  (a => a.name -> a)(breakOut)
   lazy val inputMap: Map[String, UGenSpec.Input   ] = inputs.map(i => i.arg  -> i)(breakOut)
 
