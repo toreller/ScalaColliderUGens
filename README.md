@@ -52,7 +52,7 @@ There is no DTD yet. But the structure of the XML file is as follows:
                 [ <arg ... /> ]
              </rate>
              <rate ... />
-             [ <outputs num="NumberOfOutputs"/> ]
+             [ <output ... /> ]
              <arg name="ArgumentName" [ argAttrs ]>
                 [ <doc>Argument description</doc> ]
              </arg>
@@ -93,33 +93,52 @@ More flags and meta data are planned in future version, e.g. oscillator signal r
 
 #### UGen Rates
 
-The possible rate names are `"scalar"`, `"control"`, `"audio"`, and `"demand"`. Each supported rate should have its own element. There are two extra attributes, `implied` and `method`.
+The possible rate names are `"scalar"`, `"control"`, `"audio"`, and `"demand"`. Each supported rate should have its own element. There are three extra attributes, `implied`, `method`, and `methodalias`.
 
 `implied` says that the UGen not only has exactly one supported rate (an exception is thrown if you have a UGen with multiple rate elements and an `implied` attribute), but that this a natural precondition for the type of UGen. That way, the `case class` for that UGen does not carry a `rate` argument, but mixes in a trait which provides it. As a consequence, there is no argument for the rate when using pattern matching against that UGen. For example, `K2A` makes only sense at audio rate, `A2K` makes only sense at control rate, `FreeVerb` and `Pitch` make only sense at audio rate. Using this attribute, we have `case class K2A(in: GE)` (with mixin `AudioRated`) instead of the redundant `case class K2A(rate: Rate, in: GE)`.
 
 Be very __careful__ with this attribute, it should not be used if another rate could be added in a future SuperCollider version, as this would break binary compatibility. This is why `implied` has been removed from `DiskIn`, for example (there is no reason, why `DiskIn` could not support control rate reading in the future).
 
-The second attribute, `method`, builds up `implied` and requires tha `implied` has been specified. It states that instead of the default method name in the companion object&mdash;`ir` for scalar rate, `kr` for control rate, `ar` for audio rate, and `dr` for demand rate&mdash;an alternative method name is used. The method name is typically `apply`, so that instead of `FFT.kr(buf, sig)` you have to write `FFT.apply(buf, sig)` or short `FFT(buf, sig)`, which is more convenient.
+The second attribute, `method`, builds up `implied` and requires that `implied` has been specified. It states that instead of the default method name in the companion object&mdash;`ir` for scalar rate, `kr` for control rate, `ar` for audio rate, and `dr` for demand rate&mdash;an alternative method name is used. The method name is typically `apply`, so that instead of `FFT.kr(buf, sig)` you have to write `FFT.apply(buf, sig)` or short `FFT(buf, sig)`, which is more convenient.
+
+`methodalias` adds _an additional_ method for the rate. An example is `IFFT` which specifies `<rate name="audio" methodalias="apply"/>`. This means the default method `ar` is created, plus an `apply` method as an alias.
 
 #### Argument Attributes ####
 
 |Attribute Name|Value                            |Example   |
 |--------------|---------------------------------|----------|
 |`default`     |Default expression for the argument. This can be either a number literal or a special string such `"nyquist"` or `"doNothing"` (see below) |`440`, `1.0`, `inf` |
-|`type`        |Argument type when it is not `GE`. Note that `"String"` (e.g. in `Poll`) is properly converted to a sequence of constant value inputs. Other types such as `Int` are treated as _auxiliary_ for the construction of the UGen (e.g. to determine its number of inputs or outputs) and _do not appear_ as actual UGen inputs. (See below for attribute `ugenin` which makes an exception) |`PanAz`, `Poll` |
+|`type`        |Argument type when it is not `ge` (generic graph element). (See below) |`PanAz`, `Poll` |
 |`rate`|Constrains the supported rate for this argument. The only value presently recognized is `"ugen"` which means the argument is required to run at the _same rate as the UGen_. Please see also the section below about rate specific argument settings. | `DiskOut` (`in`) |
 
-The allowed string literals for the default value are any of the `DoneAction`s (e.g. `"freeSelf"`) and `"nyquist"` which is understood as `SampleRate.ir/2`. Note that expressions such as `"60.midicps"` have been currently disallowed for simplicity and language neutrality.
+The following table lists the allowed `type` values, and corresponding ways of defining default values. If the default value is unambiguous, the type is automatically inferred, e.g. using `default="high"` implies a `type="trig"`. If the type and default value are incompatible, the parser will throw an exception.
+
+|Type name      |Description                                  |Example defaults    |
+|---------------|---------------------------------------------|--------------------|
+|`ge` (default) |Generic graph element                        | `-1.0`, `440.0`    |
+|`gint`         |Graph element used as integer                | `-1`, `18`         |
+|`gstring`      |String converted to variadic float constants | `"poll"`           |
+|`bus`          |Bus index                                    | no default allowed |
+|`buf`          |Buffer identifier                            | no default allowed |
+|`fft`          |FFT buffer phase chain signal                | no default allowed |
+|`trig`         |Trigger signal (transition <= 0 to >0)       | `low`, `high`      |
+|`switch`       |Off/On signal (zero versus non-zero)         | `false`, `true`    |
+|`gate`         |Gating signal (open above zero)              | `closed`, `open`   |
+|`mul`          |Synthetic multiplier input                   | `1.0`              |
+|`action`       |Done action                                  | `freeSelf`, `doNothing` |
+|`doneflag`     |UGen which sets a done flag                  | no default allowed |
+|`int`          |Static integer (no graph element)            | `-1`, `18`         |
+
+A special default value `"nyquist"` can be used which is understood as `SampleRate.ir/2`. Note that expressions such as `"60.midicps"` have been currently disallowed for simplicity and language neutrality.
 
 The following three argument attributes have boolean values, and are `"false"` by default:
 
 |Attribute Name|Meaning when value is `"true"`   |Example   |
 |--------------|---------------------------------|----------|
 |`ugenin`|Forces an `Int` type argument to be used as actual UGen input and not just auxiliary type. | `MFCC` |
-|`multi`|Indicates an argument which expands over multiple UGen inputs. | `RecordBuf` (`in`), `Dseq` (`seq`) |
-|`doneflag`|Forces the argument input to be a UGen which sets a done-flag (e.g. `Line`). That way it is prevented that for example a `FreeSelfWhenDone` UGen is fed by another UGen which is falsely believed to set a done-flag, but which actually doesn't.| `FreeSelfWhenDone`|
+|`variadic`|Indicates an argument which expands over multiple UGen inputs. | `RecordBuf` (`in`), `Dseq` (`seq`) |
 
-Arguments should be chosen careful not to conflict with methods available on `GE`. This is the reason, why various arguments which are named `rate` in SCLang have been renamed for example to `speed`, `freq` etc. It is recommended to take a look at the naming of the arguments in the default plugins (rather than relying on the naming in SCLang which is often unreflected and irregular) and try to reuse them whenever possible, and to be as consistent as possible with abbreviations. Care is also needed with the default values. There are some default values in SCLang which are insensible, while other useful defaults are missing. The aim is not to provide default values for every possible argument, but to require to fill in arguments for which defaults do not make sense.
+Arguments should be chosen careful not to conflict with methods available on `GEOps`. This is the reason, why various arguments which are named `rate` in SCLang have been renamed for example to `speed`, `freq` etc. It is recommended to take a look at the naming of the arguments in the default plugins (rather than relying on the naming in SCLang which is often unreflected and irregular) and try to reuse them whenever possible, and to be as consistent as possible with abbreviations. Care is also needed with the default values. There are some default values in SCLang which are insensible, while other useful defaults are missing. The aim is not to provide default values for every possible argument, but to require to fill in arguments for which defaults do not make sense.
 
 #### Argument Positions
 
@@ -130,14 +149,14 @@ If a UGen's arguments do not have `pos` attributes, they are considered in the o
 As an example, consider `XOut` which has the unintuitive argument order of _bus_, followed by _cross-fade level_, followed by _input signal_. Compare this to `Out` which has the two arguments of _bus_, followed by _input signal_. We decided to make the `XOut` arguments appear to the user in the order of _bus_, then _input signal_ (just like `Out`), then followed by the distinguishing parameter of the _cross-fade level_. Thus we assign `pos="1"` to the `in` argument and `pos="2"` to the `xfade` argument, so they switch their positions. To minimize mistakes, ScalaCollider-UGens requires that we also add `pos="0"` to the `bus` argument, even if that does not affect its final position. The whole UGen specification thus becomes:
 
     <ugen name="XOut" writesbus="true">
-       <outputs num="0"/>
+       <no-outputs/>
        <rate name="audio">
           <arg name="in" rate="ugen"/>
        </rate>
        <rate name="control"/>
        <arg name="bus" pos="0"/>
        <arg name="xfade" pos="2"/>
-       <arg name="in" multi="true" pos="1"/>
+       <arg name="in" variadic="true" pos="1"/>
        <doc warnpos="true"/>
     </ugen>
 
@@ -163,28 +182,29 @@ As an example for different default values, here is the full text of `LeakDC`:
 An an example of restricting the argument's rate only in certain cases is `Out`:
 
     <ugen name="Out" writesbus="true">
-       <outputs num="0"/>
+       <no-outputs/>
        <rate name="audio">
           <arg name="in" rate="ugen"/>
        </rate>
        <rate name="control"/>
        <rate name="scalar"/>
        <arg name="bus"/>
-       <arg name="in" multi="true"/>
+       <arg name="in" variadic="true"/>
     </ugen>
 
 Here, the "outer" definition of argument `in` says that the argument is a multi-channel argument, but it does not enforce a particular rate. Only for the case that `Out` is run at audio rate, the auxiliary entry for `in` enforces that `in` in this case must run at the same rate as the UGen (thus audio rate, too).
 
-#### Number of Outputs
+#### Outputs
 
-By default the UGen is considered to have one output. All other UGens must explicitly contain an `<outputs ... />` element. This element must have a `num` attribute which specifies the number of outputs either as a number literal or as a name of one of the UGen's arguments:
+By default the UGen is considered to have one monophonic output. All other UGens must explicitly contain either a `<no-outputs/>` element, or one or more `<output ... />` elements. An output element may have a `name` and `type` attribute, and one element may have a `variadic="<id>"` attribute, where `<id>` is the name of the input argument determining the number of channels. A `<doc>` element may be nested inside a `<output>` node. Examples:
 
-|Example                       |Type             |UGen    |
-|------------------------------|-----------------|--------|
-|`<outputs num="0"/>`          | Constant Literal| `Out`  |
-|`<outputs num="2"/>`          | Constant Literal| `Pan2` |
-|`<outputs num="in"/>`         | Reference to a `GE` argument, here meaning that the number of outputs equals the number of channels of the multi-channel argument input `in` | `Demand` |
-|`<outputs num="numChannels"/>`| Reference to an `Int` argument, meaning that this argument provides the number of outputs directly | `DiskIn` |
+|Example                                       |UGen           |Note                             |
+|----------------------------------------------|---------------|---------------------------------|
+|`<no-outputs/>`                               | `Out`         |                                 |
+|`<output name="left"/><output name="right"/>` | `Pan2`        |                                 |
+|`<output variadic="in"/>`                     | `Demand`      | `in` is a `GE` type input       |
+|`<output variadic="numChannels"/>`            | `DiskIn`      | `numChannels` is an `Int` input |
+|`<output name="chain" type="fft"/>`           | `PV_MagShift` |                                 |
 
 #### Descriptions
 

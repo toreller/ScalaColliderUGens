@@ -3,6 +3,7 @@ package impl
 
 import collection.immutable.{IndexedSeq => IIdxSeq}
 import collection.breakOut
+import annotation.switch
 
 private[synth] object UGenSpecParser {
   private def DEFAULT_VERIFY = true
@@ -34,6 +35,14 @@ private[synth] object UGenSpecParser {
 
   private val outputAttrKeys = Set(
     "name", "type", "variadic"
+  )
+
+  private val rateAttrKeys = Set(
+    "name"  // required
+  )
+
+  private val impliedRateAttrKeys = rateAttrKeys ++ Set(
+    "method", "methodalias", "implied"
   )
 
   private implicit final class RichAttrMap(val map: Map[String, String]) extends AnyVal {
@@ -342,8 +351,65 @@ private[synth] object UGenSpecParser {
 
     if (doneFlag)     uAttr += HasDoneFlag
 
-//    val indSideEffect = writesBus || writesBuffer || writesFFT
-//    val indIndiv      = readsBus  || readsBuffer  || readsFFT || indSideEffect || random
+    val indSideEffect = writesBus || writesBuffer || writesFFT
+    val indIndiv      = readsBus  || readsBuffer  || readsFFT || indSideEffect || random
+
+    val aNodes = (node \ "arg")
+
+    // ---- rates ----
+
+    def getRate(map: Map[String, String]): Rate = {
+      map.get("name").getOrElse(sys.error(s"Missing rate name in ugen ${uName}")) match {
+        case "audio"    => audio
+        case "control"  => control
+        case "scalar"   => scalar
+        case "demand"   => demand
+        case other      => sys.error(s"Invalid rate in ugen ${uName}: ${other}")
+      }
+    }
+
+    val rNodes = (node \ "rate")
+    if (rNodes.isEmpty) sys.error(s"No rates specified for ${uName}")
+    val impliedRate = (rNodes.size == 1) && rNodes.head.attributes.asAttrMap.boolean("implied")
+    val (rates, rateArgMap) = if (impliedRate) {
+      val rNode   = rNodes.head
+      val rAttr   = rNode.attributes.asAttrMap
+      val r       = getRate(rAttr)
+
+      if (verify) {
+        val unknown = rAttr -- impliedRateAttrKeys
+        if (unknown.nonEmpty)
+          sys.error(s"Unsupported ugen rate attributes, in ugen ${uName}, rate ${r}: ${unknown.mkString(",")}")
+      }
+
+      val rMethod = (rAttr.get("method"), rAttr.get("methodalias")) match {
+        case (None, None)     => RateMethod.Default
+        case (Some(""), None) =>
+          if (aNodes.nonEmpty || indIndiv)
+            sys.error(s"Cannot produce singleton for ugen ${uName} that has arguments or is individual")
+          RateMethod.None
+        case (Some(m), None)  => RateMethod.Custom(m)
+        case (None, Some(m))  => RateMethod.Alias(m)
+        case other            =>
+          sys.error(s"Cannot use both method and methodalias attributes, in ugen ${uName}, rate ${r}")
+      }
+      Rates.Implied(r, rMethod) -> Map(r -> (rNode \ "arg"))
+
+    } else {
+      val map: Map[Rate, Seq[xml.Node]] = rNodes.map( rNode => {
+        val rAttr   = rNode.attributes.asAttrMap
+        val r       = getRate(rAttr)
+
+        if (verify) {
+          val unknown = rAttr -- rateAttrKeys
+          if (unknown.nonEmpty)
+            sys.error(s"Unsupported ugen rate attributes, in ugen ${uName}, rate ${r}: ${unknown.mkString(",")}")
+        }
+        r -> (rNode \ "arg")
+      })(breakOut)
+
+      Rates.Set(map.keySet) -> map
+    }
 
     // ---- arguments ----
 
@@ -354,7 +420,7 @@ private[synth] object UGenSpecParser {
     var inputMap      = Map.empty[String, Input]
     var argDocs       = Map.empty[String, List[String]]
 
-    (node \ "arg").foreach { aNode =>
+    aNodes.foreach { aNode =>
       val aAttrs      = aNode.attributes.asAttrMap
       if (verify) {
         val unknown = aAttrs.keySet -- argAttrKeys
@@ -378,15 +444,26 @@ private[synth] object UGenSpecParser {
         inputs :+= in
       }
 
-      val aDefaultsB  = Map.newBuilder[MaybeRate, ArgumentValue]
-      aDefaultOpt.foreach { df => aDefaultsB += UndefinedRate -> df }
-      val aRatesB     = Map.newBuilder[MaybeRate, RateConstraint]
+      var aDefaults   = Map.empty[MaybeRate, ArgumentValue]
+      aDefaultOpt.foreach { df => aDefaults += UndefinedRate -> df }
+      var aRates      = Map.empty[MaybeRate, RateConstraint]
+
+      def checkRate(a: Map[String, String], r: MaybeRate) {
+        aAttrs.get("rate").foreach {
+          case "ugen"   => aRates += r -> RateConstraint.SameAsUGen
+          case "audio"  => aRates += r -> RateConstraint.Fixed(audio)
+          case other =>
+            sys.error(s"Invalid rate constraint, in ugen ${uName}, argument ${aName}, rate ${other}")
+        }
+      }
+
+      checkRate(aAttrs, UndefinedRate)
 
       def errorMixPos() {
         sys.error(s"Cannot mix positional and non-positional arguments, in ugen ${uName}, argument ${aName}")
       }
 
-      val arg = Argument(aName, aType, aDefaultsB.result(), aRatesB.result())
+      val arg = Argument(aName, aType, aDefaults, aRates)
       aAttrs.intOption("pos") match {                                                 // handles "pos"
         case Some(pos) =>
           if (args.nonEmpty) errorMixPos()
@@ -493,7 +570,6 @@ private[synth] object UGenSpecParser {
 
     val uDoc = if (docs) mkDoc(node, argDocs = argDocs, outputDocs = outputDocs) else None
 
-    UGenSpec(name = uName, attr = uAttr, rates = Rates.Set(Set.empty),
-      args = args, inputs = inputs, outputs = outputs, doc = uDoc)
+    UGenSpec(name = uName, attr = uAttr, rates = rates, args = args, inputs = inputs, outputs = outputs, doc = uDoc)
   }
 }

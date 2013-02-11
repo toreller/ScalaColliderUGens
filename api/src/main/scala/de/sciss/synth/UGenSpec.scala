@@ -79,12 +79,17 @@ object UGenSpec {
         case Some(v) => s"${base} = ${v}"
         case _ => base
       }
-      val m = defaults - UndefinedRate
-      val s2 = if (m.isEmpty) s1 else {
-        s"${s1} ${m.mkString("[", ", ", "]")}"
+      val md = defaults - UndefinedRate
+      val s2 = if (md.isEmpty) s1 else {
+        s"${s1} ${md.mkString("[", ", ", "]")}"
       }
-      if (rates.isEmpty) s2 else {
-        s"${s2} -> ${rates.mkString("[", ", ", "]")}"
+      val s3 = rates.get(UndefinedRate) match {
+        case Some(v) => s"${s2} @${v}"
+        case _ => s2
+      }
+      val mr = rates - UndefinedRate
+      if (mr.isEmpty) s3 else {
+        s"${s3} -> ${mr.mkString("[", ", ", "]")}"
       }
     }
   }
@@ -172,21 +177,30 @@ object UGenSpec {
 
   // ---- Supported rates ----
 
+  object RateMethod {
+    case object Default extends RateMethod
+    case class Custom(name: String) extends RateMethod
+    case class Alias (name: String) extends RateMethod
+    case object None extends RateMethod
+  }
+  sealed trait RateMethod
+
   object Rates {
-    final case class Implied(rate: Rate, method: Option[String]) extends Rates {
+    final case class Implied(rate: Rate, method: RateMethod) extends Rates {
       override def toString = {
         val base = "implied: " + rate
         method match {
-          case Some(m) => s"${base} (method = ${m})"
-          case _ => base
+          case RateMethod.Default => base
+          case _                  => s"${base} (method = ${method})"
         }
       }
     }
     final case class Set(rates: immutable.Set[Rate]) extends Rates {
       override def toString = rates.mkString("[", ", ", "]")
+      def method = RateMethod.Default
     }
   }
-  sealed trait Rates
+  sealed trait Rates { def method: RateMethod }
 
   // ---- Outputs ----
 
