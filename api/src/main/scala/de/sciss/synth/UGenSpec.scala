@@ -93,6 +93,12 @@ object UGenSpec {
 //    sealed trait GELike extends ArgumentType { def shape: SignalShape }
 //    case object GEWithDoneFlag extends GELike { def shape: SignalShape = SignalShape.Generic }
 //    final case class GE(shape: SignalShape) extends GELike
+    final case class GE(shape: SignalShape, scalar: Boolean = false) extends ArgumentType {
+      override def toString = {
+        val base = shape.toString
+        if (scalar) base + " (@init)" else base
+      }
+    }
   }
   sealed trait ArgumentType
 
@@ -120,7 +126,7 @@ object UGenSpec {
     case object DoneAction  extends SignalShape
     case object DoneFlag    extends SignalShape
   }
-  sealed trait SignalShape extends ArgumentType // .GELike { def shape = this }
+  sealed trait SignalShape /* extends ArgumentType */ // .GELike { def shape = this }
 
   object ArgumentValue {
     final case class Int(value: scala.Int) extends ArgumentValue {
@@ -159,7 +165,9 @@ object UGenSpec {
     def toGE: GE
   }
 
-  final case class Input(arg: String, variadic: Boolean)
+  final case class Input(arg: String, variadic: Boolean) {
+    override def toString = if (variadic) arg + "..." else arg
+  }
 
   // ---- Supported rates ----
 

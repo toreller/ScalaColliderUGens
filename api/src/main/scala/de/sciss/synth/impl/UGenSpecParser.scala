@@ -95,28 +95,62 @@ private[synth] object UGenSpecParser {
   // poor man's type inference
   private def inferArgType(uName: String, aName: String,
                            aAttrs: Map[String, String]): (UGenSpec.ArgumentType, Option[UGenSpec.ArgumentValue]) = {
-    import UGenSpec._
+    import UGenSpec.{SignalShape => Sig, _}
+    import ArgumentType.GE
 
     def incompatibleTypeDefault(tpe: Any, df: Any) {
       sys.error(s"Mismatch between argument type and default value for ugen ${uName}, argument ${aName}, type is ${tpe}, default is ${df}")
     }
 
-    val aTypeExp  = aAttrs.get("type").map {
-      case "ge"       => SignalShape.Generic
-      case "gint"     => SignalShape.Int
-      case "gstring"  => SignalShape.String
-      case "bus"      => SignalShape.Bus
-      case "buf"      => SignalShape.Buffer
-      case "fft"      => SignalShape.FFT
-      case "trig"     => SignalShape.Trigger
-      case "switch"   => SignalShape.Switch
-      case "gate"     => SignalShape.Gate
-      case "mul"      => SignalShape.Mul
-      case "action"   => SignalShape.DoneAction
-      case "doneflag" => SignalShape.DoneFlag
+    val aTypeExp0 = aAttrs.get("type").map {
+      case "ge"       => GE(Sig.Generic)
+      case "gint"     => GE(Sig.Int)
+      case "gstring"  => GE(Sig.String)
+      case "bus"      => GE(Sig.Bus)
+      case "buf"      => GE(Sig.Buffer)
+      case "fft"      => GE(Sig.FFT)
+      case "trig"     => GE(Sig.Trigger)
+      case "switch"   => GE(Sig.Switch)
+      case "gate"     => GE(Sig.Gate)
+      case "mul"      => GE(Sig.Mul)
+      case "action"   => GE(Sig.DoneAction)
+      case "doneflag" => GE(Sig.DoneFlag)
       case "int"      => ArgumentType.Int
       case other      => sys.error(s"Unsupported type for ugen ${uName}, argument ${aName}: ${other}")
     }
+
+    def errorScalarType(tpe: ArgumentType) {
+      sys.error(s"Cannot use scalar declaration with arguments of type ${tpe}, in ${uName}, argument ${aName}")
+    }
+
+    val isInit    = aAttrs.boolean("init")
+    val aTypeExp  = if (!isInit) aTypeExp0 else aTypeExp0 match {
+      case Some(tpe @ GE(sig, _)) =>
+        // disallow for Trigger, Gate, Mul, DoneFlag
+        sig match {
+          case Sig.Generic    =>
+          case Sig.Int        =>
+          case Sig.String     =>
+          case Sig.Bus        =>
+          case Sig.Buffer     =>
+          case Sig.FFT        =>
+          case Sig.Switch     =>
+          case Sig.DoneAction =>
+          case _ =>
+            errorScalarType(tpe)
+        }
+        Some(GE(sig, scalar = true))
+
+      case Some(tpe @ ArgumentType.Int) =>
+        if (!aAttrs.boolean("ugenin")) {
+          errorScalarType(tpe)
+        }
+        aTypeExp0
+
+      case _ => aTypeExp0
+    }
+
+    def orGeneric = aTypeExp.getOrElse(GE(Sig.Generic, scalar = isInit))
 
     aAttrs.get("default") match {
       case Some(default) =>
@@ -124,81 +158,87 @@ private[synth] object UGenSpecParser {
           case IsFloat(f)       =>
             // ---- check correctness ----
             aTypeExp.foreach {
-              case SignalShape.Generic =>
-              case SignalShape.Mul =>
+              case GE(Sig.Generic,_) =>
+              case GE(Sig.Mul,_) =>
               case other => incompatibleTypeDefault(other, default)
             }
-            aTypeExp.getOrElse(SignalShape.Generic) -> ArgumentValue.Float(f)
+            orGeneric -> ArgumentValue.Float(f)
 
-          case IsInt(i)         =>
+          case IsInt(i) =>
             // ---- check correctness ----
             aTypeExp.foreach {
-              case SignalShape.Int =>
+              case GE(Sig.Int,_) =>
               case ArgumentType.Int =>
               case other => incompatibleTypeDefault(other, default)
             }
-            aTypeExp.getOrElse(SignalShape.Generic) -> ArgumentValue.Int(i)
+            orGeneric -> ArgumentValue.Int(i)
 
           case IsTrigger(b)     =>
             // ---- check correctness ----
             aTypeExp.foreach {
-              case SignalShape.Trigger =>
+              case GE(Sig.Trigger,_) =>
               case other => incompatibleTypeDefault(other, default)
             }
-            SignalShape.Trigger -> ArgumentValue.Boolean(value = true)
+            val tpe = GE(Sig.Trigger)
+            if (isInit) errorScalarType(tpe)
+            tpe -> ArgumentValue.Boolean(value = true)
 
           case IsBoolean(b)     =>
             // ---- check correctness ----
             aTypeExp.foreach {
-              case SignalShape.Switch =>
+              case GE(Sig.Switch,_) =>
               case other => incompatibleTypeDefault(other, default)
             }
-            SignalShape.Switch -> ArgumentValue.Boolean(value = true)
+            GE(Sig.Switch, scalar = isInit) -> ArgumentValue.Boolean(value = true)
 
           case IsGate(b)        =>
             // ---- check correctness ----
             aTypeExp.foreach {
-              case SignalShape.Gate =>
+              case GE(Sig.Gate,_) =>
               case other => incompatibleTypeDefault(other, default)
             }
-            SignalShape.Gate -> ArgumentValue.Boolean(value = true)
+            val tpe = GE(Sig.Gate)
+            if (isInit) errorScalarType(tpe)
+            tpe -> ArgumentValue.Boolean(value = true)
 
           case IsDoneAction(a)  =>
             // ---- check correctness ----
             aTypeExp.foreach {
-              case SignalShape.DoneAction =>
+              case GE(Sig.DoneAction,_) =>
               case other => incompatibleTypeDefault(other, default)
             }
-            SignalShape.DoneAction -> ArgumentValue.DoneAction(a)
+            GE(Sig.DoneAction, scalar = isInit) -> ArgumentValue.DoneAction(a)
 
           case "nyquist"        =>
             // ---- check correctness ----
             aTypeExp.foreach {
-              case SignalShape.Generic =>
-              case SignalShape.Int =>
+              case GE(Sig.Generic,_) =>
+              case GE(Sig.Int,_) =>
               case other => incompatibleTypeDefault(other, default)
             }
-            aTypeExp.getOrElse(SignalShape.Generic) -> ArgumentValue.Nyquist
+            orGeneric -> ArgumentValue.Nyquist
 
           case "inf" =>
             // ---- check correctness ----
             aTypeExp.foreach {
-              case SignalShape.Generic =>
-              case SignalShape.Int =>
+              case GE(Sig.Generic,_) =>
+              case GE(Sig.Int,_) =>
               case other => incompatibleTypeDefault(other, default)
             }
-            aTypeExp.getOrElse(SignalShape.Generic) -> ArgumentValue.Inf
+            orGeneric -> ArgumentValue.Inf
 
           case _ =>
-            if (aTypeExp != Some(SignalShape.String)) {
-              sys.error(s"Unsupported default value for ugen ${uName}, argument ${aName}: ${default}")
+            aTypeExp match {
+              case Some(GE(Sig.String,_)) =>
+              case _ =>
+                sys.error(s"Unsupported default value for ugen ${uName}, argument ${aName}: ${default}")
             }
-            SignalShape.String -> ArgumentValue.String(default)
+            GE(Sig.String, scalar = isInit) -> ArgumentValue.String(default)
         }
         tpe -> Some(df)
 
       case _ => // no default
-        aTypeExp.getOrElse(SignalShape.Generic) -> None
+        orGeneric -> None
     }
   }
 
@@ -230,23 +270,23 @@ private[synth] object UGenSpecParser {
     val doneFlag      = attrs.boolean("doneflag")
     val indiv         = attrs.boolean("indiv")
 
-    var attrB         = Set.newBuilder[Attribute]
+    var uAttr         = Set.empty[Attribute]
     import Attribute._
-    if (readsBus)     attrB += ReadsBus
-    if (readsBuffer)  attrB += ReadsBuffer
-    if (readsFFT)     attrB += ReadsFFT
-    if (random)       attrB += UsesRandSeed
-    if (indiv)        attrB += IsIndividual
+    if (readsBus)     uAttr += ReadsBus
+    if (readsBuffer)  uAttr += ReadsBuffer
+    if (readsFFT)     uAttr += ReadsFFT
+    if (random)       uAttr += UsesRandSeed
+    if (indiv)        uAttr += IsIndividual
 
-    if (writesBus)    attrB += WritesBus
-    if (writesBuffer) attrB += WritesBuffer
-    if (writesFFT)    attrB += WritesFFT
-    if (sideEffect)   attrB += HasSideEffect
+    if (writesBus)    uAttr += WritesBus
+    if (writesBuffer) uAttr += WritesBuffer
+    if (writesFFT)    uAttr += WritesFFT
+    if (sideEffect)   uAttr += HasSideEffect
 
-    if (doneFlag)     attrB += HasDoneFlag
+    if (doneFlag)     uAttr += HasDoneFlag
 
-    val indSideEffect = writesBus || writesBuffer || writesFFT
-    val indIndiv      = readsBus  || readsBuffer  || readsFFT || indSideEffect || random
+//    val indSideEffect = writesBus || writesBuffer || writesFFT
+//    val indIndiv      = readsBus  || readsBuffer  || readsFFT || indSideEffect || random
 
     // ---- arguments ----
 
@@ -265,11 +305,13 @@ private[synth] object UGenSpecParser {
       val aName       = aAttrs.string("name")
 
       // have to deal with:
-      // "type" (ok), "init", "default" (ok), "rate", "ugenin" (ok), "pos" (ok), "variadic" (ok)
-      val (aType, aDefaultOpt) = inferArgType(uName = uName, aName = aName, aAttrs)   // handles "type" and "default"
+      // "type" (ok), "init" (ok), "default" (ok), "rate", "ugenin" (ok), "pos" (ok), "variadic" (ok)
+      val (aType, aDefaultOpt) = inferArgType(uName = uName, aName = aName, aAttrs)   // handles "type", "default", "init"
 
-      val isInput = aType.isInstanceOf[SignalShape] ||
-        (aType == ArgumentType.Int && aAttrs.boolean("ugenin"))                       // handles "ugenin"
+      val isInput = aType match {
+        case ArgumentType.GE(_, _) => true
+        case ArgumentType.Int => aAttrs.boolean("ugenin")                             // handles "ugenin"
+      }
 
       if (isInput) {
         val variadic = aAttrs.boolean("variadic")                                     // handles "variadic"
@@ -287,7 +329,7 @@ private[synth] object UGenSpecParser {
       }
 
       val arg = Argument(aName, aType, aDefaultsB.result(), aRatesB.result())
-      aAttrs.intOption("pos") match {                                               // handles "pos"
+      aAttrs.intOption("pos") match {                                                 // handles "pos"
         case Some(pos) =>
           if (args.nonEmpty) errorMixPos()
           if (argsOrd.contains(pos)) {
@@ -316,7 +358,7 @@ private[synth] object UGenSpecParser {
       }
     }
 
-    UGenSpec(name = uName, attr = attrB.result(), rates = Rates.Set(Set.empty),
+    UGenSpec(name = uName, attr = uAttr, rates = Rates.Set(Set.empty),
       args = args, inputs = inputs, outputs = IIdxSeq.empty)
   }
 
