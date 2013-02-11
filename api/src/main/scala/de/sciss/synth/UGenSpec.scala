@@ -90,8 +90,8 @@ object UGenSpec {
 
   object ArgumentType {
     case object Int extends ArgumentType
-    sealed trait GELike extends ArgumentType { def shape: SignalShape }
-    case object GEWithDoneFlag extends GELike { def shape: SignalShape = SignalShape.Generic }
+//    sealed trait GELike extends ArgumentType { def shape: SignalShape }
+//    case object GEWithDoneFlag extends GELike { def shape: SignalShape = SignalShape.Generic }
 //    final case class GE(shape: SignalShape) extends GELike
   }
   sealed trait ArgumentType
@@ -120,7 +120,7 @@ object UGenSpec {
     case object DoneAction  extends SignalShape
     case object DoneFlag    extends SignalShape
   }
-  sealed trait SignalShape extends ArgumentType.GELike { def shape = this }
+  sealed trait SignalShape extends ArgumentType // .GELike { def shape = this }
 
   object ArgumentValue {
     final case class Int(value: scala.Int) extends ArgumentValue {

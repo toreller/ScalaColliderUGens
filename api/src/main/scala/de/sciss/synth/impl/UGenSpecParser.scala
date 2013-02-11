@@ -31,9 +31,7 @@ private[synth] object UGenSpecParser {
   private implicit final class RichAttrMap(val map: Map[String, String]) extends AnyVal {
     def string (key: String): String = map.getOrElse(key, sys.error(s"Missing required attribute '${key}'"))
     def boolean(key: String, default: Boolean = false): Boolean = map.get(key).map(_.toBoolean).getOrElse(default)
-
-//    private def getIntAttr(n: xml.Node, name: String, default: Int) =
-//      (n \ ("@" + name)).headOption.map(_.text.toInt).getOrElse(default)
+    def intOption(key: String): Option[Int] = map.get(key).map(_.toInt)
   }
 
   private object IsFloat {
@@ -252,10 +250,11 @@ private[synth] object UGenSpecParser {
 
     // ---- arguments ----
 
-    val argsB         = IIdxSeq.newBuilder[Argument]
-    val argMapB       = Map.newBuilder[String, Argument]
-    val inputsB       = IIdxSeq.newBuilder[Input]
-    val inputMap      = Map.newBuilder[String, Input]
+    var args          = IIdxSeq.empty[Argument]
+    var argsOrd       = Map.empty[Int, Argument]
+    var argMap        = Map.empty[String, Argument]
+    var inputs        = IIdxSeq.empty[Input]
+    var inputMap      = Map.empty[String, Input]
 
     (node \ "arg").foreach { aNode =>
       val aAttrs      = aNode.attributes.asAttrMap
@@ -266,20 +265,59 @@ private[synth] object UGenSpecParser {
       val aName       = aAttrs.string("name")
 
       // have to deal with:
-      // "type" (ok), "init", "default" (ok), "rate", "ugenin", "pos", "variadic"
-      val (aType, aDefaultOpt) = inferArgType(uName = uName, aName = aName, aAttrs)  // handles "type" and "default"
+      // "type" (ok), "init", "default" (ok), "rate", "ugenin" (ok), "pos" (ok), "variadic" (ok)
+      val (aType, aDefaultOpt) = inferArgType(uName = uName, aName = aName, aAttrs)   // handles "type" and "default"
+
+      val isInput = aType.isInstanceOf[SignalShape] ||
+        (aType == ArgumentType.Int && aAttrs.boolean("ugenin"))                       // handles "ugenin"
+
+      if (isInput) {
+        val variadic = aAttrs.boolean("variadic")                                     // handles "variadic"
+        val in = Input(aName, variadic = variadic)
+        inputMap += aName -> in
+        inputs :+= in
+      }
 
       val aDefaultsB  = Map.newBuilder[MaybeRate, ArgumentValue]
       aDefaultOpt.foreach { df => aDefaultsB += UndefinedRate -> df }
       val aRatesB     = Map.newBuilder[MaybeRate, RateConstraint]
 
-      val arg  = Argument(aName, aType, aDefaultsB.result(), aRatesB.result())
-      argsB   += arg
-      argMapB += aName -> arg
+      def errorMixPos() {
+        sys.error(s"Cannot mix positional and non-positional arguments, in ugen ${uName}, argument ${aName}")
+      }
+
+      val arg = Argument(aName, aType, aDefaultsB.result(), aRatesB.result())
+      aAttrs.intOption("pos") match {                                               // handles "pos"
+        case Some(pos) =>
+          if (args.nonEmpty) errorMixPos()
+          if (argsOrd.contains(pos)) {
+            sys.error(s"Duplicate argument input position, in ugen ${uName}, argument ${aName}")
+          }
+          argsOrd += pos -> arg
+
+        case _ =>
+          if (argsOrd.nonEmpty) errorMixPos()
+          args :+= arg
+      }
+      argMap += aName -> arg
+    }
+
+    if (argsOrd.nonEmpty) {
+      val sq = argsOrd.keys.toIndexedSeq.sorted
+      if (sq != (0 until sq.size)) sys.error(s"Non contiguous argument positions, in ugen ${uName}: ${sq.mkString(",")}")
+      args = sq.map(argsOrd)
+    }
+
+    if (verify) {
+      val hasV = inputs.filter(_.variadic)
+      if (hasV.nonEmpty) {
+        if (hasV.size > 1) sys.error(s"Can only have one variadic argument, in ugen ${uName}: ${hasV.map(_.arg).mkString(",")}")
+        if (hasV.head != inputs.last) sys.error(s"Variadic input must come last, in ugen ${uName}, argument ${hasV.head.arg}")
+      }
     }
 
     UGenSpec(name = uName, attr = attrB.result(), rates = Rates.Set(Set.empty),
-      args = argsB.result(), inputs = inputsB.result(), outputs = IIdxSeq.empty)
+      args = args, inputs = inputs, outputs = IIdxSeq.empty)
   }
 
 //  private def booleanAttr(n: xml.Node, name: String, default: Boolean = false) =

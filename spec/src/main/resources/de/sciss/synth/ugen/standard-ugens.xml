@@ -2114,10 +2114,10 @@
             <outputs num="0"/>   <!-- XXX zero outputs? -->
             <rate name="audio"/>
             <rate name="control"/>
-            <arg name="buf" type="buf"/>
-            <arg name="in" variadic="true" pos="3"/>
-            <arg name="maxFrames" default="4096" init="true" pos="1"/>
-            <arg name="frames" pos="2"/>
+            <arg name="buf" type="buf" pos="0"/>
+            <arg name="maxFrames" default="4096" init="true" pos="2"/>
+            <arg name="frames" pos="3"/>
+            <arg name="in" variadic="true" pos="1"/>
         </ugen>
         <ugen name="Pluck">
             <rate name="audio" implied="true"/>
