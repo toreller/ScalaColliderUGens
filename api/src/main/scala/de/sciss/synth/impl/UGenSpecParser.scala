@@ -299,7 +299,7 @@ private[synth] object UGenSpecParser {
   def parse(node: xml.Node, docs: Boolean = false, verify: Boolean = false): UGenSpec = {
     if (node.label != "ugen") throw new IllegalArgumentException(s"Not a 'ugen' node: ${node}")
 
-    import UGenSpec._
+    import UGenSpec.{SignalShape => Sig, _}
 
     val attrs = node.attributes.asAttrMap
     val uName = attrs.string ("name")
@@ -311,7 +311,6 @@ private[synth] object UGenSpecParser {
       val unknownN = (node.child.collect({ case e: xml.Elem => e.label })(breakOut): Set[String]) -- nodeChildKeys
       require(unknownN.isEmpty, s"Unsupported ugen child nodes in ${uName}: ${unknownN.mkString(",")}")
     }
-
 
     // ---- attributes ----
 
@@ -433,7 +432,7 @@ private[synth] object UGenSpecParser {
     val zeroOut = (node \ "no-outputs").nonEmpty
     if (zeroOut && oNodes.nonEmpty) sys.error(s"Cannot mix no-outputs and output nodes, in ugen ${uName}")
 
-    if (zeroOut) {
+    if (!zeroOut && oNodes.isEmpty) {
       outputs = DEFAULT_OUTPUTS
     } else oNodes.foreach { oNode =>
       val oAttrs = oNode.attributes.asAttrMap
@@ -442,6 +441,52 @@ private[synth] object UGenSpecParser {
         require(unknown.isEmpty, s"Unsupported ugen outputs attributes: ${unknown.mkString(",")}")
       }
 
+      val oName   = oAttrs.get("name")
+      val oShape0 = oAttrs.get("type").map {
+        case "ge"       => Sig.Generic
+        case "gint"     => Sig.Int
+        case "bus"      => Sig.Bus
+        case "buf"      => Sig.Buffer
+        case "fft"      => Sig.FFT
+        case "trig"     => Sig.Trigger
+        case "switch"   => Sig.Switch
+        case "gate"     => Sig.Gate
+        case other      =>
+          sys.error(s"Unsupported type, in ugen ${uName}, output ${oName}: ${other}")
+      }
+      val oShape  = oShape0 getOrElse Sig.Generic
+
+      val variadic  = oAttrs.get("variadic")
+      variadic.foreach { id =>
+        if (!argMap.contains(id))
+          sys.error(s"Variadic output refers to unknown argument, in ugen ${uName}, output ${oName}, ref ${id}")
+      }
+
+      if (variadic.isDefined) oShape match {
+        case Sig.Generic  =>
+        case Sig.Int      =>
+        case Sig.Trigger  =>
+        case Sig.Switch   =>
+        case Sig.Gate     =>
+        case other        =>
+          sys.error(s"Variadic output has unsupported type, in ugen ${uName}, output ${oName}: ${other}")
+      }
+
+      val out = Output(oName, shape = oShape, variadic = variadic)
+      outputs :+= out
+
+      if (docs) {
+        val oDoc  = (oNode \ "doc").text
+        if (!oDoc.isEmpty) {
+          oName match {
+            case Some(n) =>
+              val oDocT = trimDoc(oDoc)
+              if (oDocT .nonEmpty) outputDocs += n -> oDocT
+            case _ =>
+              sys.error(s"Documented outputs must be named, in ${uName}")
+          }
+        }
+      }
     }
 
     // ---- wrap up ----

@@ -197,7 +197,16 @@ object UGenSpec {
 //  }
 //  sealed trait Outputs
 
-  final case class Output(name: Option[String], shape: SignalShape, variadic: Option[String])
+  final case class Output(name: Option[String], shape: SignalShape, variadic: Option[String]) {
+    override def toString = {
+      val base  = name getOrElse "<out>"
+      val s1    = if (shape != SignalShape.Generic) s"${base}: ${shape}" else base
+      variadic match {
+        case Some(id) => s"${s1}... (${id})"
+        case _ => s1
+      }
+    }
+  }
 
   final case class Doc(body: List[String], args: Map[String, List[String]], outputs: Map[String, List[String]],
                        links: List[String], warnPos: Boolean)
