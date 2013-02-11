@@ -17,7 +17,7 @@ retrieveManaged in ThisBuild := true
 
 scalacOptions in ThisBuild ++= Seq("-deprecation", "-unchecked", "-feature")
 
-initialCommands in Console := """import de.sciss.synth._"""
+initialCommands in console in ThisBuild := """import de.sciss.synth._"""
 
 // ---- publishing ----
 

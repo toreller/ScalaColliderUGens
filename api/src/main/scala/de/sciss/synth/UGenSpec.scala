@@ -23,7 +23,8 @@
  *  contact@sciss.de
  */
 
-package de.sciss.synth
+package de.sciss
+package synth
 
 import collection.immutable
 import immutable.{IndexedSeq => IIdxSeq}
@@ -70,19 +71,38 @@ object UGenSpec {
 
   final case class Argument(name: String, tpe: ArgumentType,
                             defaults: Map[MaybeRate, ArgumentValue],
-                            rates: Map[MaybeRate, RateConstraint])
+                            rates: Map[MaybeRate, RateConstraint]) {
+    override def toString = {
+      val base = s"${name}: ${tpe}"
+      val s1 = defaults.get(UndefinedRate) match {
+        case Some(v) => s"${base} = ${v}"
+        case _ => base
+      }
+      val m = defaults - UndefinedRate
+      val s2 = if (m.isEmpty) s1 else {
+        s"${s1} ${m.mkString("[", ", ", "]")}"
+      }
+      if (rates.isEmpty) s2 else {
+        s"${s2} -> ${rates.mkString("[", ", ", "]")}"
+      }
+    }
+  }
 
   object ArgumentType {
     case object Int extends ArgumentType
     sealed trait GELike extends ArgumentType { def shape: SignalShape }
     case object GEWithDoneFlag extends GELike { def shape: SignalShape = SignalShape.Generic }
-    final case class GE(shape: SignalShape) extends GELike
+//    final case class GE(shape: SignalShape) extends GELike
   }
   sealed trait ArgumentType
 
   object RateConstraint {
-    case object SameAsUGen extends RateConstraint
-    final case class Fixed(rate: Rate) extends RateConstraint
+    case object SameAsUGen extends RateConstraint {
+      override def toString = "same-rate-as-ugen"
+    }
+    final case class Fixed(rate: Rate) extends RateConstraint {
+      override def toString = "fixed-rate=" + rate
+    }
   }
   sealed trait RateConstraint
 
@@ -90,29 +110,72 @@ object UGenSpec {
     case object Generic     extends SignalShape // aka Float
     case object Int         extends SignalShape
     case object String      extends SignalShape
+    case object Bus         extends SignalShape
+    case object Buffer      extends SignalShape
+    case object FFT         extends SignalShape
     case object Trigger     extends SignalShape // with values `low` and `high`
     case object Switch      extends SignalShape // with values `false` and `true`
     case object Gate        extends SignalShape // with values `closed` and `open`
+    case object Mul         extends SignalShape
     case object DoneAction  extends SignalShape
-    case object Buffer      extends SignalShape
-    case object FFT         extends SignalShape
+    case object DoneFlag    extends SignalShape
   }
-  sealed trait SignalShape
+  sealed trait SignalShape extends ArgumentType.GELike { def shape = this }
 
   object ArgumentValue {
-    final case class Int  (value: scala.Int  ) extends ArgumentValue
-    final case class Float(value: scala.Float) extends ArgumentValue
-    case object Nyquist extends ArgumentValue
+    final case class Int(value: scala.Int) extends ArgumentValue {
+      def toGE = /* if (value == scala.Int.MaxValue) Constant(scala.Float.PositiveInfinity) else */ Constant(value)
+      override def toString = value.toString
+    }
+    final case class Float(value: scala.Float) extends ArgumentValue {
+      def toGE = Constant(value)
+      override def toString = {
+        val s = value.toString
+        if (s.contains('.')) s else s + ".0"
+      }
+    }
+    final case class Boolean(value: scala.Boolean) extends ArgumentValue {
+      def toGE = Constant(if (value) 1f else 0f)
+      override def toString = value.toString
+    }
+    final case class String(value: java.lang.String) extends ArgumentValue {
+      def toGE = ???
+      override def toString = s""""${value}""""
+    }
+    case object Inf extends ArgumentValue {
+      def toGE = Constant(scala.Float.PositiveInfinity)
+      override def toString = productPrefix.toLowerCase
+    }
+    final case class DoneAction(peer: synth.DoneAction) extends ArgumentValue {
+      def toGE = Constant(peer.id)
+      override def toString = peer.toString
+    }
+    case object Nyquist extends ArgumentValue {
+      def toGE = ???
+      override def toString = productPrefix.toLowerCase
+    }
   }
-  sealed trait ArgumentValue
+  sealed trait ArgumentValue {
+    def toGE: GE
+  }
 
   final case class Input(arg: String, variadic: Boolean)
 
   // ---- Supported rates ----
 
   object Rates {
-    final case class Implied(rate: Rate, method: Option[String]) extends Rates
-    final case class Set(rates: immutable.Set[Rate]) extends Rates
+    final case class Implied(rate: Rate, method: Option[String]) extends Rates {
+      override def toString = {
+        val base = "implied: " + rate
+        method match {
+          case Some(m) => s"${base} (method = ${m})"
+          case _ => base
+        }
+      }
+    }
+    final case class Set(rates: immutable.Set[Rate]) extends Rates {
+      override def toString = rates.mkString("[", ", ", "]")
+    }
   }
   sealed trait Rates
 
@@ -133,4 +196,8 @@ final case class UGenSpec(name: String, attr: Set[UGenSpec.Attribute], rates: UG
                           outputs: IIdxSeq[UGenSpec.Output  ]) {
   lazy val argMap:   Map[String, UGenSpec.Argument] = args.map  (a => a.name -> a)(breakOut)
   lazy val inputMap: Map[String, UGenSpec.Input   ] = inputs.map(i => i.arg  -> i)(breakOut)
+
+  override def toString = s"${productPrefix}(${name}, attr = ${attr.mkString("[", ", ", "]")}, rates = ${rates}, " +
+                          s"args = ${args.mkString("[", ", ", "]")}, inputs = ${inputs.mkString("[", ", ", "]")}, " +
+                          s"outputs = ${outputs.mkString("[", ", ", "]")})"
 }

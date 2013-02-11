@@ -1271,7 +1271,7 @@
             <arg name="loop" default="true" pos="6"/>
             <arg name="trig" default="high" pos="7"/>
             <arg name="doneAction" default="doNothing" pos="8"/>
-            <arg name="in" multi="true" pos="0"/>
+            <arg name="in" variadic="true" pos="0"/>
         </ugen>
         <ugen name="BufRd" readsbuf="true" doneflag="true">
             <rate name="control"/>
@@ -1334,7 +1334,7 @@
             <arg name="buf" type="buf" pos="1"/>
             <arg name="index" default="0.0" pos="2"/>
             <arg name="loop" default="true" pos="3"/>
-            <arg name="in" multi="true" pos="0"/>
+            <arg name="in" variadic="true" pos="0"/>
         </ugen>
         <ugen name="Pitch">
             <rate name="control"/>
@@ -2108,14 +2108,14 @@
             <rate name="audio"/>
             <rate name="control"/>
             <arg name="buf" type="buf"/>
-            <arg name="in" multi="true"/>
+            <arg name="in" variadic="true"/>
         </ugen>
         <ugen name="ScopeOut2" writesbuf="true">
             <outputs num="0"/>   <!-- XXX zero outputs? -->
             <rate name="audio"/>
             <rate name="control"/>
             <arg name="buf" type="buf"/>
-            <arg name="in" multi="true" pos="3"/>
+            <arg name="in" variadic="true" pos="3"/>
             <arg name="maxFrames" default="4096" init="true" pos="1"/>
             <arg name="frames" pos="2"/>
         </ugen>
@@ -2238,7 +2238,7 @@
                     trigger. Resets the list of ugens (`in`) when triggered.
                 </doc>
             </arg>
-            <arg name="in" multi="true" pos="1">
+            <arg name="in" variadic="true" pos="1">
                 <doc>
                     a demand-rate signal (possibly multi-channel) which is read at each trigger
                 </doc>
@@ -2482,12 +2482,12 @@
         <ugen name="Dseq" indiv="true">
             <rate name="demand" implied="true" method="apply"/>
             <arg name="repeats" default="1" pos="1"/>
-            <arg name="seq" multi="true" pos="0"/>
+            <arg name="seq" variadic="true" pos="0"/>
         </ugen>
         <ugen name="Dser" indiv="true">
             <rate name="demand" implied="true" method="apply"/>
             <arg name="repeats" default="1" pos="1"/>
-            <arg name="seq" multi="true" pos="0"/>
+            <arg name="seq" variadic="true" pos="0"/>
         </ugen>
         <ugen name="Dbufrd" indiv="true" readsbuf="true" doneflag="true">
             <rate name="demand" implied="true" method="apply"/>
@@ -2524,27 +2524,27 @@
         <ugen name="Drand" indiv="true" random="true">
             <rate name="demand" implied="true" method="apply"/>
             <arg name="repeats" default="1" pos="1"/>
-            <arg name="seq" multi="true" pos="0"/>
+            <arg name="seq" variadic="true" pos="0"/>
         </ugen>
         <ugen name="Dxrand" indiv="true" random="true">
             <rate name="demand" implied="true" method="apply"/>
             <arg name="repeats" default="1" pos="1"/>
-            <arg name="seq" multi="true" pos="0"/>
+            <arg name="seq" variadic="true" pos="0"/>
         </ugen>
         <ugen name="Dshuf" indiv="true" random="true">
             <rate name="demand" implied="true" method="apply"/>
             <arg name="repeats" default="1" pos="1"/>
-            <arg name="seq" multi="true" pos="0"/>
+            <arg name="seq" variadic="true" pos="0"/>
         </ugen>
         <ugen name="Dswitch1" indiv="true">
             <rate name="demand" implied="true" method="apply"/>
             <arg name="index" pos="1"/>
-            <arg name="seq" multi="true" pos="0"/>
+            <arg name="seq" variadic="true" pos="0"/>
         </ugen>
         <ugen name="Dswitch" indiv="true">
             <rate name="demand" implied="true" method="apply"/>
             <arg name="index" pos="1"/>
-            <arg name="seq" multi="true" pos="0"/>
+            <arg name="seq" variadic="true" pos="0"/>
         </ugen>
         <ugen name="Dstutter" indiv="true">
             <rate name="demand" implied="true" method="apply"/>
@@ -2641,7 +2641,7 @@
                     (and not write anything to the file).
                 </doc>
             </arg>
-            <arg name="in" multi="true">
+            <arg name="in" variadic="true">
                 <doc>
                     the signal to be recorded
                 </doc>
@@ -4928,7 +4928,7 @@
                 <arg name="in" rate="ugen"/>
             </rate>
             <arg name="bus" type="bus"/>
-            <arg name="in" multi="true"/>
+            <arg name="in" variadic="true"/>
         </ugen>
         <ugen name="LocalIn">
             <outputs num="numChannels"/>
@@ -4944,7 +4944,7 @@
             <rate name="control"/>
             <arg name="bus" type="bus" pos="0"/>
             <arg name="xfade" pos="2"/>
-            <arg name="in" multi="true" pos="1"/>
+            <arg name="in" variadic="true" pos="1"/>
             <doc warnpos="true"/>
         </ugen>
 
@@ -4961,7 +4961,7 @@
                 <arg name="in" rate="ugen"/>
             </rate>
             <arg name="bus" type="bus"/>
-            <arg name="in" multi="true"/>
+            <arg name="in" variadic="true"/>
         </ugen>
         <ugen name="Out" writesbus="true">
             <outputs num="0"/>
@@ -4971,7 +4971,7 @@
             <rate name="control"/>
             <rate name="scalar"/>
             <arg name="bus" type="bus"/>
-            <arg name="in" multi="true"/>
+            <arg name="in" variadic="true"/>
         </ugen>
         <ugen name="LocalOut">
             <outputs num="0"/>
@@ -4979,7 +4979,7 @@
             <rate name="audio">
                 <arg name="in" rate="ugen"/>
             </rate>
-            <arg name="in" multi="true"/>
+            <arg name="in" variadic="true"/>
         </ugen>
         <ugen name="In" readsbus="true">
             <outputs num="numChannels"/>
@@ -5245,7 +5245,7 @@
             <rate name="control"/>
             <rate name="audio"/>
             <outputs num="in"/>
-            <arg name="in" multi="true"/>
+            <arg name="in" variadic="true"/>
         </ugen>
 <!--        <ugen name="Silent">
             <rate name="audio" implied="true"/>
@@ -5469,7 +5469,7 @@
             <arg name="levelBias" default="0.0" pos="3"/>
             <arg name="timeScale" default="1.0" pos="4"/>
             <arg name="doneAction" default="doNothing" pos="5"/>
-            <arg name="envelope" multi="true" pos="0"/>
+            <arg name="envelope" variadic="true" pos="0"/>
         </ugen>
         <ugen name="Linen" sideeffect="true" doneflag="true">
             <rate name="control"/>
@@ -5484,7 +5484,7 @@
             <rate name="control"/>
             <rate name="audio"/>
             <arg name="index" pos="1"/>  <!-- default="1.0" -->
-            <arg name="envelope" multi="true" pos="0"/>
+            <arg name="envelope" variadic="true" pos="0"/>
         </ugen>
     </file>
 
@@ -5843,7 +5843,7 @@
         </ugen>
         <ugen name="SpecCentroid" readsfft="true">
             <rate name="control" implied="true"/>
-            <arg name="chain" fftbuf="true">
+            <arg name="chain" type="fft">
                 <doc>
                     the fft signal (buffer) to analyze
                 </doc>
@@ -5895,27 +5895,27 @@
         <ugen name="WhiteNoise" random="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="mul" default="1.0" expandbin="*"/>
+            <arg name="mul" default="1.0" type="mul"/>
         </ugen>
         <ugen name="GrayNoise" random="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="mul" default="1.0" expandbin="*"/>
+            <arg name="mul" default="1.0" type="mul"/>
         </ugen>
         <ugen name="ClipNoise" random="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="mul" default="1.0" expandbin="*"/>
+            <arg name="mul" default="1.0" type="mul"/>
         </ugen>
         <ugen name="PinkNoise" random="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="mul" default="1.0" expandbin="*"/>
+            <arg name="mul" default="1.0" type="mul"/>
         </ugen>
         <ugen name="BrownNoise" random="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="mul" default="1.0" expandbin="*"/>
+            <arg name="mul" default="1.0" type="mul"/>
         </ugen>
         <ugen name="Dust" random="true">
             <rate name="control"/>
@@ -6085,7 +6085,7 @@
                     index of `0.9` will still be interpreted as index `0`.
                 </doc>
             </arg>
-            <arg name="in" multi="true">
+            <arg name="in" variadic="true">
                 <doc>
                     a graph element which is composed of the channels to be indexed.
                 </doc>
@@ -6270,7 +6270,7 @@
             <rate name="audio" implied="true"/>
             <arg name="freqScale" default="1.0" init="true" pos="1"/>
             <arg name="freqOffset" default="0.0" init="true" pos="2"/>
-            <arg name="specs" multi="true" init="true" pos="0"/>
+            <arg name="specs" variadic="true" init="true" pos="0"/>
         </ugen>
         <ugen name="Klank">
             <rate name="audio" implied="true"/>
@@ -6278,7 +6278,7 @@
             <arg name="freqScale" default="1.0" init="true" pos="2"/>
             <arg name="freqOffset" default="0.0" init="true" pos="3"/>
             <arg name="decayScale" default="1.0" init="true" pos="4"/>
-            <arg name="specs" multi="true" init="true" pos="0"/>
+            <arg name="specs" variadic="true" init="true" pos="0"/>
         </ugen>
     </file>
 
@@ -6724,7 +6724,7 @@
                     start with a forward slash and contain only 7-bit ascii characters.
                 </doc>
             </arg>
-            <arg name="values" multi="true" pos="1">
+            <arg name="values" variadic="true" pos="1">
                 <doc>
                     a graph element comprising the signal channels to be polled
                 </doc>
@@ -6877,7 +6877,7 @@
             <rate name="control"/>
             <rate name="audio"/>
             <arg name="trig" type="trig" rate="ugen"/>
-            <arg name="reset" type="trig" default="0"/>
+            <arg name="reset" type="trig" default="low"/>
         </ugen>
         <ugen name="Stepper">
             <rate name="control"/>
@@ -6893,7 +6893,7 @@
                     the sequence 0, 1, 2, 4, 0, ...
                 </doc>
             </arg>
-            <arg name="reset" type="trig" default="0">
+            <arg name="reset" type="trig" default="low">
                 <doc>
                     A trigger which resets the counter to `resetVal` immediately.
                 </doc>
@@ -7073,7 +7073,7 @@
         </ugen>
         <ugen name="Done" sideeffect="true">
             <rate name="control" implied="true"/>
-            <arg name="src" doneflag="true">
+            <arg name="src" type="doneflag">
                 <doc>
                     the UGen to track
                 </doc>
@@ -7178,7 +7178,7 @@
         </ugen>
         <ugen name="FreeSelfWhenDone" sideeffect="true">
             <rate name="control" implied="true"/>
-            <arg name="src" doneflag="true">
+            <arg name="src" type="doneflag">
                 <doc>
                     the input UGen which when finished will trigger the action.
                 </doc>
@@ -7200,7 +7200,7 @@
         </ugen>
         <ugen name="PauseSelfWhenDone" sideeffect="true">
             <rate name="control" implied="true"/>
-            <arg name="src" doneflag="true">
+            <arg name="src" type="doneflag">
                 <doc>
                     the input UGen which when finished will trigger the action.
                 </doc>

@@ -23,12 +23,185 @@ private[synth] object UGenSpecParser {
     "doneflag"
   )
 
+  private val argAttrKeys = Set(
+    "name",
+    "type", "init", "default", "rate", "ugenin", "pos", "variadic"
+  )
+
   private implicit final class RichAttrMap(val map: Map[String, String]) extends AnyVal {
     def string (key: String): String = map.getOrElse(key, sys.error(s"Missing required attribute '${key}'"))
     def boolean(key: String, default: Boolean = false): Boolean = map.get(key).map(_.toBoolean).getOrElse(default)
 
 //    private def getIntAttr(n: xml.Node, name: String, default: Int) =
 //      (n \ ("@" + name)).headOption.map(_.text.toInt).getOrElse(default)
+  }
+
+  private object IsFloat {
+    private val re = """\-?\d+.\d+""".r.pattern
+    def unapply(s: String): Option[Float] = {
+      if (re.matcher(s).matches()) Some(s.toFloat) else None
+    }
+  }
+
+  private object IsInt {
+    private val re = """\-?\d+""".r.pattern
+    def unapply(s: String): Option[Int] = {
+      if (re.matcher(s).matches()) Some(s.toInt) else None
+    }
+  }
+
+  private object IsBoolean {
+    def unapply(s: String): Option[Boolean]= s match {
+      case "true"   => Some(true)
+      case "false"  => Some(false)
+      case _        => None
+    }
+  }
+
+  private object IsDoneAction {
+    def unapply(s: String): Option[DoneAction] = PartialFunction.condOpt(s) {
+      case doNothing.name         => doNothing
+      case pauseSelf.name         => pauseSelf
+      case freeSelf.name          => freeSelf
+      case freeSelfPred.name      => freeSelfPred
+      case freeSelfSucc.name      => freeSelfSucc
+      case freeSelfPredAll.name   => freeSelfPredAll
+      case freeSelfSuccAll.name   => freeSelfSuccAll
+      case freeSelfToHead.name    => freeSelfToHead
+      case freeSelfToTail.name    => freeSelfToTail
+      case freeSelfPausePred.name => freeSelfPausePred
+      case freeSelfPauseSucc.name => freeSelfPauseSucc
+      case freeSelfPredDeep.name  => freeSelfPredDeep
+      case freeSelfSuccDeep.name  => freeSelfSuccDeep
+      case freeAllInGroup.name    => freeAllInGroup
+      case freeGroup.name         => freeGroup
+    }
+  }
+
+  private object IsGate {
+    def unapply(s: String): Option[Boolean] = s match {
+      case "open"   => Some(true)
+      case "closed" => Some(false)
+      case _        => None
+    }
+  }
+
+  private object IsTrigger {
+    def unapply(s: String): Option[Boolean] = s match {
+      case "high"   => Some(true)
+      case "low"    => Some(false)
+      case _        => None
+    }
+  }
+
+  // poor man's type inference
+  private def inferArgType(uName: String, aName: String,
+                           aAttrs: Map[String, String]): (UGenSpec.ArgumentType, Option[UGenSpec.ArgumentValue]) = {
+    import UGenSpec._
+
+    def incompatibleTypeDefault(tpe: Any, df: Any) {
+      sys.error(s"Mismatch between argument type and default value for ugen ${uName}, argument ${aName}, type is ${tpe}, default is ${df}")
+    }
+
+    val aTypeExp  = aAttrs.get("type").map {
+      case "ge"       => SignalShape.Generic
+      case "gint"     => SignalShape.Int
+      case "gstring"  => SignalShape.String
+      case "bus"      => SignalShape.Bus
+      case "buf"      => SignalShape.Buffer
+      case "fft"      => SignalShape.FFT
+      case "trig"     => SignalShape.Trigger
+      case "switch"   => SignalShape.Switch
+      case "gate"     => SignalShape.Gate
+      case "mul"      => SignalShape.Mul
+      case "action"   => SignalShape.DoneAction
+      case "doneflag" => SignalShape.DoneFlag
+      case "int"      => ArgumentType.Int
+      case other      => sys.error(s"Unsupported type for ugen ${uName}, argument ${aName}: ${other}")
+    }
+
+    aAttrs.get("default") match {
+      case Some(default) =>
+        val (tpe, df) = default match {
+          case IsFloat(f)       =>
+            // ---- check correctness ----
+            aTypeExp.foreach {
+              case SignalShape.Generic =>
+              case SignalShape.Mul =>
+              case other => incompatibleTypeDefault(other, default)
+            }
+            aTypeExp.getOrElse(SignalShape.Generic) -> ArgumentValue.Float(f)
+
+          case IsInt(i)         =>
+            // ---- check correctness ----
+            aTypeExp.foreach {
+              case SignalShape.Int =>
+              case ArgumentType.Int =>
+              case other => incompatibleTypeDefault(other, default)
+            }
+            aTypeExp.getOrElse(SignalShape.Generic) -> ArgumentValue.Int(i)
+
+          case IsTrigger(b)     =>
+            // ---- check correctness ----
+            aTypeExp.foreach {
+              case SignalShape.Trigger =>
+              case other => incompatibleTypeDefault(other, default)
+            }
+            SignalShape.Trigger -> ArgumentValue.Boolean(value = true)
+
+          case IsBoolean(b)     =>
+            // ---- check correctness ----
+            aTypeExp.foreach {
+              case SignalShape.Switch =>
+              case other => incompatibleTypeDefault(other, default)
+            }
+            SignalShape.Switch -> ArgumentValue.Boolean(value = true)
+
+          case IsGate(b)        =>
+            // ---- check correctness ----
+            aTypeExp.foreach {
+              case SignalShape.Gate =>
+              case other => incompatibleTypeDefault(other, default)
+            }
+            SignalShape.Gate -> ArgumentValue.Boolean(value = true)
+
+          case IsDoneAction(a)  =>
+            // ---- check correctness ----
+            aTypeExp.foreach {
+              case SignalShape.DoneAction =>
+              case other => incompatibleTypeDefault(other, default)
+            }
+            SignalShape.DoneAction -> ArgumentValue.DoneAction(a)
+
+          case "nyquist"        =>
+            // ---- check correctness ----
+            aTypeExp.foreach {
+              case SignalShape.Generic =>
+              case SignalShape.Int =>
+              case other => incompatibleTypeDefault(other, default)
+            }
+            aTypeExp.getOrElse(SignalShape.Generic) -> ArgumentValue.Nyquist
+
+          case "inf" =>
+            // ---- check correctness ----
+            aTypeExp.foreach {
+              case SignalShape.Generic =>
+              case SignalShape.Int =>
+              case other => incompatibleTypeDefault(other, default)
+            }
+            aTypeExp.getOrElse(SignalShape.Generic) -> ArgumentValue.Inf
+
+          case _ =>
+            if (aTypeExp != Some(SignalShape.String)) {
+              sys.error(s"Unsupported default value for ugen ${uName}, argument ${aName}: ${default}")
+            }
+            SignalShape.String -> ArgumentValue.String(default)
+        }
+        tpe -> Some(df)
+
+      case _ => // no default
+        aTypeExp.getOrElse(SignalShape.Generic) -> None
+    }
   }
 
   def parse(node: xml.Node, verify: Boolean = false): UGenSpec = {
@@ -42,7 +215,9 @@ private[synth] object UGenSpecParser {
       require(unknown.isEmpty, s"Unsupported ugen attributes: ${unknown.mkString(",")}")
     }
 
-    val name          = attrs.string ("name")
+    val uName         = attrs.string ("name")
+
+    // ---- attributes ----
 
     val readsBus      = attrs.boolean("readsbus")
     val readsBuffer   = attrs.boolean("readsbuf")
@@ -58,24 +233,53 @@ private[synth] object UGenSpecParser {
     val indiv         = attrs.boolean("indiv")
 
     var attrB         = Set.newBuilder[Attribute]
-    if (readsBus)     attrB += Attribute.ReadsBus
-    if (readsBuffer)  attrB += Attribute.ReadsBuffer
-    if (readsFFT)     attrB += Attribute.ReadsFFT
-    if (random)       attrB += Attribute.UsesRandSeed
-    if (indiv)        attrB += Attribute.IsIndividual
+    import Attribute._
+    if (readsBus)     attrB += ReadsBus
+    if (readsBuffer)  attrB += ReadsBuffer
+    if (readsFFT)     attrB += ReadsFFT
+    if (random)       attrB += UsesRandSeed
+    if (indiv)        attrB += IsIndividual
 
-    if (writesBus)    attrB += Attribute.WritesBus
-    if (writesBuffer) attrB += Attribute.WritesBuffer
-    if (writesFFT)    attrB += Attribute.WritesFFT
-    if (sideEffect)   attrB += Attribute.HasSideEffect
+    if (writesBus)    attrB += WritesBus
+    if (writesBuffer) attrB += WritesBuffer
+    if (writesFFT)    attrB += WritesFFT
+    if (sideEffect)   attrB += HasSideEffect
 
-    if (doneFlag)     attrB += Attribute.HasDoneFlag
+    if (doneFlag)     attrB += HasDoneFlag
 
-    val indSideEffect = writesBuffer || writesFFT || writesBus
-    val indIndiv      = indSideEffect || readsBus || readsBuffer || readsFFT || random
+    val indSideEffect = writesBus || writesBuffer || writesFFT
+    val indIndiv      = readsBus  || readsBuffer  || readsFFT || indSideEffect || random
 
-    UGenSpec(name = name, attr = attrB.result(), rates = Rates.Set(Set.empty),
-      args = IIdxSeq.empty, inputs = IIdxSeq.empty, outputs = IIdxSeq.empty)
+    // ---- arguments ----
+
+    val argsB         = IIdxSeq.newBuilder[Argument]
+    val argMapB       = Map.newBuilder[String, Argument]
+    val inputsB       = IIdxSeq.newBuilder[Input]
+    val inputMap      = Map.newBuilder[String, Input]
+
+    (node \ "arg").foreach { aNode =>
+      val aAttrs      = aNode.attributes.asAttrMap
+      if (verify) {
+        val unknown = aAttrs.keySet -- argAttrKeys
+        require(unknown.isEmpty, s"Unsupported ugen argument attributes: ${unknown.mkString(",")}")
+      }
+      val aName       = aAttrs.string("name")
+
+      // have to deal with:
+      // "type" (ok), "init", "default" (ok), "rate", "ugenin", "pos", "variadic"
+      val (aType, aDefaultOpt) = inferArgType(uName = uName, aName = aName, aAttrs)  // handles "type" and "default"
+
+      val aDefaultsB  = Map.newBuilder[MaybeRate, ArgumentValue]
+      aDefaultOpt.foreach { df => aDefaultsB += UndefinedRate -> df }
+      val aRatesB     = Map.newBuilder[MaybeRate, RateConstraint]
+
+      val arg  = Argument(aName, aType, aDefaultsB.result(), aRatesB.result())
+      argsB   += arg
+      argMapB += aName -> arg
+    }
+
+    UGenSpec(name = uName, attr = attrB.result(), rates = Rates.Set(Set.empty),
+      args = argsB.result(), inputs = inputsB.result(), outputs = IIdxSeq.empty)
   }
 
 //  private def booleanAttr(n: xml.Node, name: String, default: Boolean = false) =

@@ -29,7 +29,8 @@ object DoneAction {
   import language.implicitConversions
   implicit def toGE(action: DoneAction): Constant = new Constant(action.id)
 }
-sealed abstract class DoneAction(final val id: Int) {
+sealed abstract class DoneAction(final val id: Int) extends Product {
+  final val name: String = productPrefix
 //  implicit final def toGE: Constant = new Constant(id)
 }
 
