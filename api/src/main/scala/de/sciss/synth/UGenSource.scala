@@ -28,48 +28,49 @@ package de.sciss.synth
 import collection.immutable.{IndexedSeq => IIdxSeq}
 
 object UGenSource {
-   abstract class ZeroOut( val name: String ) extends UGenSource[ Unit ] {
-//      protected def makeUGens : Unit
-
-      final protected def rewrap( args: IIdxSeq[ UGenInLike ], exp: Int ) {
-         var i = 0; while( i < exp ) {
-            unwrap( args.map( _.unwrap( i )))
-            i += 1
-         }
+  trait ZeroOut extends UGenSource[Unit] {
+    final protected def rewrap(args: IIdxSeq[UGenInLike], exp: Int) {
+      var i = 0;
+      while (i < exp) {
+        unwrap(args.map(_.unwrap(i)))
+        i += 1
       }
-   }
+    }
+  }
 
-   @SerialVersionUID(5726777539636001639L) abstract class SingleOut( val name: String ) extends SomeOut
-   abstract class MultiOut( val name: String /*, val numOutputs: Int */) extends SomeOut // , UGen.MultiOut ]
+  @SerialVersionUID(5726777539636001639L) trait SingleOut extends SomeOut
 
-   protected sealed trait SomeOut extends UGenSource[ UGenInLike ] with GE.Lazy {
-//      protected def makeUGens : UGenInLike
+  trait MultiOut extends SomeOut
 
-      final protected def rewrap( args: IIdxSeq[ UGenInLike ], exp: Int ) : UGenInLike =
-         UGenInGroup( IIdxSeq.tabulate( exp )( i => unwrap( args.map( _.unwrap( i )))))
-   }
+  protected sealed trait SomeOut extends UGenSource[UGenInLike] with GE.Lazy {
+    final protected def rewrap(args: IIdxSeq[UGenInLike], exp: Int): UGenInLike =
+      UGenInGroup(IIdxSeq.tabulate(exp)(i => unwrap(args.map(_.unwrap(i)))))
+  }
+
 }
-sealed trait UGenSource[ U ] extends Lazy.Expander[ U ] {
-   protected def makeUGen( args: IIdxSeq[ UGenIn ]) : U
 
-   def name: String
+sealed trait UGenSource[U] extends Lazy.Expander[U] with Product {
+  protected def makeUGen(args: IIdxSeq[UGenIn]): U
 
-   final protected def unwrap( args: IIdxSeq[ UGenInLike ]) : U = {
-      var uins    = IIdxSeq.empty[ UGenIn ]
-      var uinsOk  = true
-      var exp     = 0
-      args.foreach( _.unbubble match {
-         case u: UGenIn => if( uinsOk ) uins :+= u
-         case g: UGenInGroup =>
-            exp      = math.max( exp, g.numOutputs )
-            uinsOk   = false // don't bother adding further UGenIns to uins
-      })
-      if( uinsOk ) { // aka uins.size == args.size
-         makeUGen( uins )
-      } else {
-         rewrap( args, exp )
-      }
-   }
+  final def name: String = productPrefix
 
-   protected def rewrap( args: IIdxSeq[ UGenInLike ], exp: Int ) : U
+  final protected def unwrap(args: IIdxSeq[UGenInLike]): U = {
+    var uins = IIdxSeq.empty[UGenIn]
+    var uinsOk = true
+    var exp = 0
+    args.foreach(_.unbubble match {
+      case u: UGenIn => if (uinsOk) uins :+= u
+      case g: UGenInGroup =>
+        exp = math.max(exp, g.numOutputs)
+        uinsOk = false // don't bother adding further UGenIns to uins
+    })
+    if (uinsOk) {
+      // aka uins.size == args.size
+      makeUGen(uins)
+    } else {
+      rewrap(args, exp)
+    }
+  }
+
+  protected def rewrap(args: IIdxSeq[UGenInLike], exp: Int): U
 }

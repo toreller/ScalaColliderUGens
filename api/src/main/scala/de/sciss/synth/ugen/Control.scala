@@ -48,7 +48,7 @@ object Control {
    extends UGen.MultiOut( "Control", rate, IIdxSeq.fill( numChannels )( rate ), IIdxSeq.empty, false, true )
 }
 final case class Control( rate: Rate, values: IIdxSeq[ Float ], ctrlName: Option[ String ])
-extends UGenSource.MultiOut( "Control" /*, values.size */) /* with IsControl */ {
+extends UGenSource.MultiOut {
 //def numOutputs = values.size
    protected def makeUGens : UGenInLike = makeUGen( IIdxSeq.empty )
 
@@ -75,7 +75,7 @@ object TrigControl {
    extends UGen.MultiOut( "TrigControl", control, IIdxSeq.fill( numChannels )( control ), IIdxSeq.empty, false, true )
 }
 final case class TrigControl( values: IIdxSeq[ Float ], ctrlName: Option[ String ])
-extends UGenSource.MultiOut( "TrigControl" /*, values.size */) with ControlRated /* with IsControl */ {
+extends UGenSource.MultiOut with ControlRated /* with IsControl */ {
 //def numOutputs = values.size
    protected def makeUGens : UGenInLike = makeUGen( IIdxSeq.empty )
 
@@ -104,7 +104,7 @@ object AudioControl {
    extends UGen.MultiOut( "AudioControl", audio, IIdxSeq.fill( numChannels )( audio ), IIdxSeq.empty, false, true )
 }
 final case class AudioControl( values: IIdxSeq[ Float ], ctrlName: Option[ String ])
-extends UGenSource.MultiOut( "AudioControl" /*, values.size */) with AudioRated /* with IsControl */ {
+extends UGenSource.MultiOut with AudioRated /* with IsControl */ {
 //def numOutputs = values.size
    protected def makeUGens : UGenInLike = makeUGen( IIdxSeq.empty )
    protected def makeUGen( args: IIdxSeq[ UGenIn ]) : UGenInLike = {

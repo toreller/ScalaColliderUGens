@@ -567,7 +567,7 @@ val caseClassMethods = Nil
         caseClassConstrArgs :: Nil,
         caseClassMethods,
         TypeDef(NoMods, outputsTypeString, Nil, EmptyTree) :: caseClassMixins,  // parents
-        Literal(Constant(name)) :: Nil // super args
+        Nil // -- do not pass the name any more: Literal(Constant(name)) :: Nil // super args
       )
       wrapDoc(spec, plain, body = true, args = true)
     }

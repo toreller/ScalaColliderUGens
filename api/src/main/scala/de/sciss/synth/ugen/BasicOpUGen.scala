@@ -29,6 +29,7 @@ package ugen
 
 import collection.immutable.{IndexedSeq => IIdxSeq}
 import de.sciss.synth.{Constant => c}
+import annotation.switch
 
 //object MulAdd {
 //   def ar( in: GE, mul: GE, add: GE ) : MulAdd = apply( audio, in, mul, add )
@@ -37,7 +38,7 @@ import de.sciss.synth.{Constant => c}
 //}
 
 final case class MulAdd( /* rate: MaybeRate, */ in: GE, mul: GE, add: GE )
-extends UGenSource.SingleOut( "MulAdd" ) {
+extends UGenSource.SingleOut {
    protected def makeUGens : UGenInLike = unwrap( IIdxSeq( in.expand, mul.expand, add.expand ))
 
    def rate: MaybeRate = in.rate // XXX correct?
@@ -232,7 +233,9 @@ object UnaryOp {
 }
 
 final case class UnaryOp(/* rate: MaybeRate, */ selector: UnaryOp.Op, a: GE)
-  extends UGenSource.SingleOut("UnaryOpUGen") {
+  extends UGenSource.SingleOut {
+
+  override def productPrefix = "UnaryOpUGen"
 
   def rate: MaybeRate = a.rate
 
@@ -483,10 +486,17 @@ object BinaryOp {
 }
 
 // XXX this could become private once the op's make method return type is changed to GE
-abstract sealed class BinaryOpLike extends UGenSource.SingleOut( "BinaryOpUGen" ) {
+abstract sealed class BinaryOpLike extends UGenSource.SingleOut {
    def selector: BinaryOp.Op
    def a: GE
    def b: GE
+
+  override final def productPrefix = "BinaryOpUGen"
+  final def productElement(n: Int): Any = (n: @switch) match {
+    case 0 => selector
+    case 1 => a
+    case 2 => b
+  }
 
    final def rate: MaybeRate = MaybeRate.max_?( a.rate, b.rate )
 
