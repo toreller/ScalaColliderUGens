@@ -102,7 +102,7 @@ final class ClassGenerator
     b.result()
   }
 
-  private def wrapDoc(spec: UGenSpec, tree: Tree, /* indent: Int, */ body: Boolean, args: Boolean): Tree = {
+  private def wrapDoc(spec: UGenSpec, tree: Tree, body: Boolean, args: Boolean): Tree = {
     if (spec.doc.isEmpty) return tree
     val doc     = spec.doc.get
     val bodyDoc = if (body) doc.body  else Nil
@@ -138,16 +138,6 @@ final class ClassGenerator
     DocDef(DocComment(all.mkString("/**\n * ", "\n * ", "\n */\n"), NoPosition), tree)
   }
 
-//  private def joinParagraphs(paragraphs: List[String], wrap: Int = 40): String = {
-//    val sb = new StringBuilder
-//    @tailrec def loop(xs: List[String]) {
-//      xs match {
-//        case Nil =>
-//        case para :: tail =>
-//
-//      }
-//  }
-
   /*
    * Collects argument documentation in the form of a list of tuples argName -> joinedDoc. If there aren't
    * docs, returns `Nil`.
@@ -166,6 +156,10 @@ final class ClassGenerator
     ???
   }
 
+  private implicit final class RichRate(val peer: Rate) {
+    def traitTypeString = peer.name.capitalize + "Rated"
+  }
+
   private implicit final class RichArgumentValue(val peer: ArgumentValue) /* extends AnyVal */ {
     import ArgumentValue._
 
@@ -173,8 +167,7 @@ final class ClassGenerator
       case Int(i)         => Literal(Constant(i))
       case Float(f)       => Literal(Constant(f))
       case Boolean(b)     => Literal(Constant(if (b) 1 else 0)) // currently no type class for GE | Switch
-//      case String(s)      => Apply(Ident("stringArg"), Literal(Constant(s)) :: Nil)
-      case String(s)      => Literal(Constant(s))
+      case String(s)      => Literal(Constant(s))               // currently no type class for GE | String
       case Inf            => Ident("inf")
       case DoneAction(a)  => Ident(a.name)
       case Nyquist        => Ident("nyquist")
@@ -194,13 +187,11 @@ final class ClassGenerator
     }
 
     def defaultTree(rate: MaybeRate = UndefinedRate): Tree = peer.defaults.getWithDefault(rate) match {
-      case Some(df) =>
-        df.toTree
-      case _ => EmptyTree
+      case Some(df) => df.toTree
+      case _        => EmptyTree
     }
   }
 
-   // filter gets applied with filename (without extension) and ugen name
   def perform1(spec: UGenSpec) {
     import spec._
 
@@ -224,7 +215,8 @@ final class ClassGenerator
     val identUArgs = ident(strUArgs)
     val identUnwrap = ident("unwrap")
     val strRatePlaceholder = "Rate" // "R"
-    val strMaybeRate = "MaybeRate"
+    val identMaybeRate  = Ident("MaybeRate")
+    val identRate       = Ident("Rate")
     val strMaybeResolve = "?|"
 
     val identName = ident("name")
@@ -236,13 +228,6 @@ final class ClassGenerator
     val impliedRate = rates match {
       case Rates.Implied(r, _) => Some(r)
       case _                   => None
-    }
-
-    // whether the case class should contain default values or not
-    val hasApply = rates.method match {
-      case RateMethod.Custom(`strApply`) => true
-      case RateMethod.Alias (`strApply`) => true
-      case _                             => false
     }
 
     // option for a binary operator expansion (synthetic mul-input)
@@ -328,10 +313,10 @@ final class ClassGenerator
           val overloadedMethod  = DefDef(
             NoMods withPosition(Flags.METHOD, NoPosition),
             mName: TermName,
-            Nil, // tparams
-            Nil, // vparams
+            Nil,            // tparams
+            Nil,            // vparams
             TypeDef(NoMods, name: TypeName, Nil, EmptyTree),
-            overloadedBody // rhs
+            overloadedBody  // rhs
           )
           overloadedMethod :: fullMethod :: Nil
         }
@@ -340,7 +325,8 @@ final class ClassGenerator
       }
     }
 
-    // the complete companion object
+    // the complete companion object. this is given as a List[Tree],
+    // because there might be no object (in that case objectDef is Nil).
     val objectDef = if (objectMethodDefs.nonEmpty) {
       val mod = ModuleDef(
         NoMods,
@@ -354,8 +340,12 @@ final class ClassGenerator
       wrapDoc(spec, mod, /* indent = 0, */ body = true, args = false) :: Nil
     } else Nil
 
-    val testDef = PackageDef(Select(Select(ident("de"), "sciss"), "synth"), PackageDef(Ident("ugen"), objectDef) :: Nil)
-    println(createText(testDef))
+    // whether the case class should contain default values or not
+    val hasApply = rates.method match {
+      case RateMethod.Custom(`strApply`) => true
+      case RateMethod.Alias (`strApply`) => true
+      case _                             => false
+    }
 
     // a `MaybeRate` is used when no rate is implied and an input generally uses a same-as-ugen constraint.
     // `maybeRateRef` contains the arguments which resolve the undefined rate at expansion time
@@ -363,37 +353,55 @@ final class ClassGenerator
       argsIn.filter(_.rates.get(UndefinedRate) == Some(RateConstraint.SameAsUGen))
     } else IIdxSeq.empty
 
-//
-//     val caseClassConstrArgs = {
-//       val args0 = argsInS map {
-//         uArgInfo => (NoMods, uArgInfo.name, {
-//           val typ0 = Ident(uArgInfo.argDefault.typ.toString)
-//           if (hasApply) uArgInfo.defaultTree() match {
-//             case EmptyTree => typ0
-//             case t => Assign(typ0, t)
-//           } else typ0
-//         })
-//       }
-//       if (impliedRate.isDefined) args0
-//       else {
-//         (NoMods, strRateArg + ": " + (/*if( rateTypes ) (*/
-//           /* if( expandBin.isDefined ) "T" else */
-//           if (maybeRateRef.nonEmpty) strMaybeRate else strRatePlaceholder /*) else "Rate" */), EmptyTree) :: args0
-//       }
-//     }
-//
-//     val caseClassTypeParam = Nil // if( expandBin.isDefined ) ugenCaseClassTypeParam ::: typExpandBinDf else ugenCaseClassTypeParam
-//
-//     val caseCommonParents: List[TypeDef] = {
-//       val p1 = if (doneFlag) (traitDoneFlag :: Nil) else Nil
-//       val p2 = if (random) (traitRandom :: p1) else p1
-//       val p3 = if (writesBus) (traitWritesBus :: p2) else p2
-//       val p4 = if (writesBuffer) (traitWritesBuffer :: p3) else p3
-//       val p5 = if (writesFFT) (traitWritesFFT :: p4) else p4
-//       val p6 = if (indiv && !indIndiv) (traitIndiv :: p5) else p5
-//
-//       impliedRate.map(r => TypeDef(NoMods, typeName(r.traitTyp), Nil, EmptyTree) :: p6).getOrElse(p6)
-//     }
+    val caseClassConstrArgs = {
+      // for each argument the tuple (NoMods, argName, type or type-and-default)
+      val argTuples = argsIn map { arg =>
+        val tpe     = Ident(arg.typeString)
+        val tpeRHS  = if (!hasApply) tpe else arg.defaultTree() match {
+          case EmptyTree  => tpe
+          case t          => Assign(tpe, t)
+        }
+        (NoMods, arg.name, tpe)
+      }
+
+      // if a rate is implied, we're done, otherwise prepend the rate argument
+      if (impliedRate.isDefined) argTuples else {
+        val tpe = if (maybeRateRef.nonEmpty) identMaybeRate else identRate
+        (NoMods, strRateArg, tpe) :: argTuples
+      }
+    }
+
+    // generates the mixins such as `HasDoneFlag`, `IsIndividual`, and in the
+    // case of an implied rate `AudioRated` etc.
+    val caseClassMixins: List[TypeDef] = {
+      val a = spec.attr
+      import Attribute._
+
+      val readsBus      = a contains ReadsBus
+      val readsBuf      = a contains ReadsBuffer
+      val readsFFT      = a contains ReadsFFT
+      val random        = a contains UsesRandSeed
+      val indiv         = a contains IsIndividual
+
+      val writesBus     = a contains WritesBus
+      val writesBuf     = a contains WritesBuffer
+      val writesFFT     = a contains WritesFFT
+      val sideEffect    = a contains HasSideEffect
+
+      val doneFlag      = a.contains(HasDoneFlag)
+
+      val indSideEffect = writesBus || writesBuf || writesFFT
+      val indIndiv      = readsBus  || readsBuf  || readsFFT || random || indSideEffect
+
+      val mixin1 = if (doneFlag)                    (traitDoneFlag   :: Nil)    else Nil
+      val mixin2 = if (indiv      || indIndiv)      (traitIndiv      :: mixin1) else mixin1
+      val mixin3 = if (sideEffect || indSideEffect) (traitSideEffect :: mixin2) else mixin2
+
+      impliedRate match {
+        case Some(r)  => TypeDef(NoMods, r.traitTypeString: TypeName, Nil, EmptyTree) :: mixin3
+        case _        => mixin3
+      }
+    }
 //
 //     /*
 //      * `protected def makeUGens: UGenInLike = ...`
@@ -540,30 +548,33 @@ final class ClassGenerator
 //       val m1 = makeUGensDef :: makeUGenDef :: Nil
 //       m1
 //     }
-//
-//     val caseClassSuperArgs = Nil
-//
-//     val caseClassDef0 = mkCaseClass(
-//       NoMods withPosition(Flags.FINAL, NoPosition),
-//       name,
-//
-//       caseClassTypeParam, // tparams
-//       caseClassConstrArgs :: (
-//         Nil),
-//       caseClassMethods, {
-//         // parents
-//         val p4 = if (sideEffect && !indSideEffect) (traitSideEffect :: caseCommonParents) else caseCommonParents
-//         TypeDef(NoMods, typeName(outputs.sourceName), {
-//           Nil
-//         }, EmptyTree) :: p4
-//
-//       },
-//       Literal(Constant(name)) :: caseClassSuperArgs // super args
-//     )
-//     val caseClassDef = wrapDoc(caseClassDef0, 0, docText, docSees, docWarnPos, collectMethodDocs(argsIn))
-//
-//     val classes0 = objectDef ::: (caseClassDef :: Nil)
-//
-//     classes0
+val caseClassMethods = Nil
+
+    val caseClassDef: Tree = {
+      val outputsPrefix = if (outputs.isEmpty)
+        "Zero"
+      else if (outputs.size > 1 || outputs.exists(_.variadic.isDefined))
+        "Multi"
+      else
+        "Single"
+      val outputsTypeString = s"UGenSource.${outputsPrefix}Out"
+
+      val plain = mkCaseClass(
+        NoMods withPosition(Flags.FINAL, NoPosition),
+        name,
+
+        Nil, // tparams
+        caseClassConstrArgs :: Nil,
+        caseClassMethods,
+        TypeDef(NoMods, outputsTypeString, Nil, EmptyTree) :: caseClassMixins,  // parents
+        Literal(Constant(name)) :: Nil // super args
+      )
+      wrapDoc(spec, plain, body = true, args = true)
+    }
+
+    val classes = objectDef ::: (caseClassDef :: Nil)
+
+    val testDef = PackageDef(Select(Select(ident("de"), "sciss"), "synth"), PackageDef(Ident("ugen"), classes) :: Nil)
+    println(createText(testDef))
   }
 }
