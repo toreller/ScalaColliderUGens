@@ -136,39 +136,39 @@ object UGenSpec {
 
   object ArgumentValue {
     final case class Int(value: scala.Int) extends ArgumentValue {
-      def toGE = /* if (value == scala.Int.MaxValue) Constant(scala.Float.PositiveInfinity) else */ Constant(value)
+//      def toGE = /* if (value == scala.Int.MaxValue) Constant(scala.Float.PositiveInfinity) else */ Constant(value)
       override def toString = value.toString
     }
     final case class Float(value: scala.Float) extends ArgumentValue {
-      def toGE = Constant(value)
+//      def toGE = Constant(value)
       override def toString = {
         val s = value.toString
         if (s.contains('.')) s else s + ".0"
       }
     }
     final case class Boolean(value: scala.Boolean) extends ArgumentValue {
-      def toGE = Constant(if (value) 1f else 0f)
+//      def toGE = Constant(if (value) 1f else 0f)
       override def toString = value.toString
     }
     final case class String(value: java.lang.String) extends ArgumentValue {
-      def toGE = ???
+//      def toGE = ???
       override def toString = s""""${value}""""
     }
     case object Inf extends ArgumentValue {
-      def toGE = Constant(scala.Float.PositiveInfinity)
+//      def toGE = Constant(scala.Float.PositiveInfinity)
       override def toString = productPrefix.toLowerCase
     }
     final case class DoneAction(peer: synth.DoneAction) extends ArgumentValue {
-      def toGE = Constant(peer.id)
+//      def toGE = Constant(peer.id)
       override def toString = peer.toString
     }
     case object Nyquist extends ArgumentValue {
-      def toGE = ???
+//      def toGE = ???
       override def toString = productPrefix.toLowerCase
     }
   }
   sealed trait ArgumentValue {
-    def toGE: GE
+//    def toGE: GE
   }
 
   final case class Input(arg: String, variadic: Boolean) {
@@ -187,6 +187,8 @@ object UGenSpec {
 
   object Rates {
     final case class Implied(rate: Rate, method: RateMethod) extends Rates {
+      def set = immutable.Set(rate)
+
       override def toString = {
         val base = "implied: " + rate
         method match {
@@ -195,12 +197,15 @@ object UGenSpec {
         }
       }
     }
-    final case class Set(rates: immutable.Set[Rate]) extends Rates {
-      override def toString = rates.mkString("[", ", ", "]")
+    final case class Set(set: immutable.Set[Rate]) extends Rates {
+      override def toString = set.mkString("[", ", ", "]")
       def method = RateMethod.Default
     }
   }
-  sealed trait Rates { def method: RateMethod }
+  sealed trait Rates {
+    def method: RateMethod
+    def set: Set[Rate]
+  }
 
   // ---- Outputs ----
 
