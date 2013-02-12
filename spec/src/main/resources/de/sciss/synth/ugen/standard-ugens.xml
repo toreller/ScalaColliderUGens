@@ -5014,7 +5014,7 @@
             </arg>
             <doc>
                 <text>
-                    A UGen which reads a signal from an audio bus with a current or one cycle old timestamp
+                    A UGen which reads a signal from an audio bus with a current or one cycle old timestamp.
 
                     Audio buses adhere to the concept of a cycle timestamp, which increases for each audio block
                     calculated. When the various output ugens (`Out`, `OffsetOut`, `XOut`) write data to a bus,

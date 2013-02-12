@@ -1,3 +1,28 @@
+/*
+ *  ClassGenerator.scala
+ *  (ScalaColliderUGens)
+ *
+ *  Copyright (c) 2008-2013 Hanns Holger Rutz. All rights reserved.
+ *
+ *  This software is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License
+ *  as published by the Free Software Foundation; either
+ *  version 2, june 1991 of the License, or (at your option) any later version.
+ *
+ *  This software is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ *  General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public
+ *  License (gpl.txt) along with this software; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ *
+ *  For further information, please contact Hanns Holger Rutz at
+ *  contact@sciss.de
+ */
+
 package de.sciss.synth
 package ugen
 
@@ -57,22 +82,27 @@ final class ClassGenerator
 
   private def linesFromParagraphs(paras: List[String], width: Int = 80): List[String] = {
     val b = List.newBuilder[String]
-    @tailrec def loop(xs: List[String], first: Boolean) {
+    @tailrec def loop(xs: List[String], feed: Boolean) {
       xs match {
         case head :: tail =>
-          val headL = linesWrap(head, width)
-          if (!first) b += ""
+          val isPre = head.startsWith("{{{")
+          val headL = if (isPre) {
+            head.split('\n').toList
+          } else {
+            if (feed) b += ""
+            linesWrap(head, width)
+          }
           b ++= headL
-          loop(tail, first = false)
+          loop(tail, feed = !isPre)
 
         case Nil =>
       }
     }
-    loop(paras, first = true)
+    loop(paras, feed = false)
     b.result()
   }
 
-  private def wrapDoc(spec: UGenSpec, tree: Tree, indent: Int, body: Boolean, args: Boolean): Tree = {
+  private def wrapDoc(spec: UGenSpec, tree: Tree, /* indent: Int, */ body: Boolean, args: Boolean): Tree = {
     if (spec.doc.isEmpty) return tree
     val doc     = spec.doc.get
     val bodyDoc = if (body) doc.body  else Nil
@@ -91,7 +121,7 @@ final class ClassGenerator
 
     val bodyAndArgs = if (argDocs.isEmpty) bodyAndWarn else {
       val argLines = argDocs.flatMap { case (aName, aDoc) =>
-        val aDocL = linesWrap(aDoc, 40)
+        val aDocL = linesWrap(aDoc, 57) // 80 - 23 = 57 columns
         aDocL.zipWithIndex.map { case (ln, idx) =>
           val pre = if (idx == 0) ("@param " + aName).take(21) else ""
           val tab = pre + (" " * (23 - pre.length))
@@ -108,7 +138,7 @@ final class ClassGenerator
     DocDef(DocComment(all.mkString("/**\n * ", "\n * ", "\n */\n"), NoPosition), tree)
   }
 
-  //  private def joinParagraphs(paragraphs: List[String], wrap: Int = 40): String = {
+//  private def joinParagraphs(paragraphs: List[String], wrap: Int = 40): String = {
 //    val sb = new StringBuilder
 //    @tailrec def loop(xs: List[String]) {
 //      xs match {
@@ -233,13 +263,8 @@ final class ClassGenerator
     // XXX TODO: correct?
     val argsIn: List[Argument] = args.collect({ case a if inputMap.contains(a.name) => a })(breakOut)
 
-    // a `MaybeRate` is used when no rate is implied and an input generally uses a same-as-ugen constraint.
-    // `maybeRateRef` contains the arguments which resolve the undefined rate at expansion time
-    val maybeRateRef = if (impliedRate.isEmpty) {
-      argsIn.filter(_.rates.get(UndefinedRate) == Some(RateConstraint.SameAsUGen))
-    } else IIdxSeq.empty
-
     val sortedRates = rates.set.toList.sorted
+    // the companion object's methods
     val objectMethodDefs = sortedRates.flatMap { rate =>
       // e.g. `freq: GE, phase: GE = 0f`
       val objectMethodArgs: List[ValDef] = argsIn.map { uArgInfo =>
@@ -267,7 +292,6 @@ final class ClassGenerator
         Apply(identApply, applyArgs)
       }
 
-//      val argDocs = collectMethodDocs(spec, argsIn)
       val methodNames = rates.method match {
         case RateMethod.Default     => rate.methodName :: Nil
         case RateMethod.Custom(m)   => m :: Nil
@@ -289,7 +313,7 @@ final class ClassGenerator
             TypeDef(NoMods, name: TypeName, Nil, EmptyTree),
           methodBody             // rhs
         )
-        wrapDoc(spec, df, indent = 1, body = false, args = true)
+        wrapDoc(spec, df, /* indent = 1, */ body = false, args = true)
       }
 
       // whether the number of arguments is non-zero and there are defaults for all of them
@@ -316,21 +340,29 @@ final class ClassGenerator
       }
     }
 
-    val testDef = PackageDef(Select(Select(ident("de"), "sciss"), "synth"), PackageDef(Ident("ugen"), objectMethodDefs) :: Nil)
+    // the complete companion object
+    val objectDef = if (objectMethodDefs.nonEmpty) {
+      val mod = ModuleDef(
+        NoMods,
+        name,
+        Template(
+          EmptyTree :: Nil, // parents
+          emptyValDef,      // self
+          objectMethodDefs  // body
+        )
+      )
+      wrapDoc(spec, mod, /* indent = 0, */ body = true, args = false) :: Nil
+    } else Nil
+
+    val testDef = PackageDef(Select(Select(ident("de"), "sciss"), "synth"), PackageDef(Ident("ugen"), objectDef) :: Nil)
     println(createText(testDef))
 
-//     val objectDef = if (objectMethodDefs.nonEmpty) {
-//       val mod = ModuleDef(
-//         NoMods,
-//         name,
-//         Template(
-//           EmptyTree :: Nil, // parents
-//           emptyValDef, // self
-//           objectMethodDefs // body
-//         )
-//       )
-//       wrapDoc(mod, 0, docText, docSees, docWarnPos) :: Nil
-//     } else Nil
+    // a `MaybeRate` is used when no rate is implied and an input generally uses a same-as-ugen constraint.
+    // `maybeRateRef` contains the arguments which resolve the undefined rate at expansion time
+    val maybeRateRef = if (impliedRate.isEmpty) {
+      argsIn.filter(_.rates.get(UndefinedRate) == Some(RateConstraint.SameAsUGen))
+    } else IIdxSeq.empty
+
 //
 //     val caseClassConstrArgs = {
 //       val args0 = argsInS map {
@@ -533,5 +565,5 @@ final class ClassGenerator
 //     val classes0 = objectDef ::: (caseClassDef :: Nil)
 //
 //     classes0
-   }
+  }
 }
