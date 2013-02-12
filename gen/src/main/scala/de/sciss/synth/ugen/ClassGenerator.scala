@@ -25,16 +25,6 @@ final class ClassGenerator
 
   def compilationUnitOfFile(f: AbstractFile) = global.unitOfFile.get(f)
 
-//  private def trimDoc(docText: String): List[String] = {
-//
-////    val trim0 = docText.lines.map(_.trim).toIndexedSeq
-////    val trim1 = trim0.dropWhile(_.isEmpty)
-////    val idx = trim1.lastIndexWhere(_.isEmpty) // why the fuck there's no dropRightWhile?
-////    if (idx >= 0) trim1.dropRight(trim1.size - idx) else trim1
-//  }
-
-//  private def ensureEmptyTail(text: List[String]): List[String] = if (text.nonEmpty) text :+ "" else text
-
   private def linesWrap(para: String, width: Int): List[String] = {
     val sz = para.length
     if (sz <= width ) return para :: Nil
@@ -82,34 +72,40 @@ final class ClassGenerator
     b.result()
   }
 
-  private def wrapDoc(tree: Tree, indent: Int, docText: List[String] = Nil, sees: List[String] = Nil,
-                      docWarnPos: Boolean = false, argDocs: List[(String, String)] = Nil): Tree = {
-    val hasAny = docText != "" || sees.nonEmpty || docWarnPos || argDocs.nonEmpty
+  private def wrapDoc(spec: UGenSpec, tree: Tree, indent: Int, body: Boolean, args: Boolean): Tree = {
+    if (spec.doc.isEmpty) return tree
+    val doc     = spec.doc.get
+    val bodyDoc = if (body) doc.body  else Nil
+    val linkDocs= if (body) doc.links else Nil
+    val argDocs = if (args) collectMethodDocs(spec) else Nil
+    val warnPos = body && doc.warnPos
+
+    val hasAny = doc.body.nonEmpty || doc.links.nonEmpty || argDocs.nonEmpty || warnPos
     if (!hasAny) return tree
 
-    val docLines = linesFromParagraphs(docText)
+    val bodyLines = linesFromParagraphs(bodyDoc)
 
-    val app1 = if (!docWarnPos) docLines else {
-      docLines ++ List("", "'''Warning''': The argument order is different from its sclang counterpart.")
+    val bodyAndWarn = if (!warnPos) bodyLines else {
+      bodyLines ++ List("", "'''Warning''': The argument order is different from its sclang counterpart.")
     }
 
-    val app2: List[String] = if (argDocs.isEmpty) app1 else {
+    val bodyAndArgs = if (argDocs.isEmpty) bodyAndWarn else {
       val argLines = argDocs.flatMap { case (aName, aDoc) =>
         val aDocL = linesWrap(aDoc, 40)
         aDocL.zipWithIndex.map { case (ln, idx) =>
-          val pre = if (idx == 0) ("@param " + aName).substring(0, 21) else ""
+          val pre = if (idx == 0) ("@param " + aName).take(21) else ""
           val tab = pre + (" " * (23 - pre.length))
           tab + ln
         }
       }
-      app1 ++ argLines
+      bodyAndWarn ++ argLines
     }
 
-    val app3 = if (sees.isEmpty) app2 else {
-      app2 ++ ("" :: sees.map(link => s"@see [[de.sciss.synth.${link}]]"))
+    val all = if (linkDocs.isEmpty) bodyAndArgs else {
+      bodyAndArgs ++ ("" :: linkDocs.map(link => s"@see [[de.sciss.synth.${link}]]"))
     }
 
-    DocDef(DocComment(app3.mkString("/**\n * ", "\n * ", "\n */\n"), NoPosition), tree)
+    DocDef(DocComment(all.mkString("/**\n * ", "\n * ", "\n */\n"), NoPosition), tree)
   }
 
   //  private def joinParagraphs(paragraphs: List[String], wrap: Int = 40): String = {
@@ -126,16 +122,18 @@ final class ClassGenerator
    * Collects argument documentation in the form of a list of tuples argName -> joinedDoc. If there aren't
    * docs, returns `Nil`.
    */
-  private def collectMethodDocs(spec: UGenSpec, args: List[Argument]): List[(String, String)] =
-    for {
-      a     <- args
-      doc   <- spec.doc
-      aDoc  <- doc.args.get(a.name)
-    } yield
-      a.name -> aDoc.mkString(" ")
+  private def collectMethodDocs(spec: UGenSpec): List[(String, String)] = spec.doc match {
+    case Some(doc) =>
+      spec.args.flatMap( a => {
+        val aDoc = doc.args.get(a.name)
+        aDoc.map(d => a.name -> d.mkString(" "))
+      })(breakOut)
+
+    case _ => Nil
+  }
 
   def perform( specs: Seq[UGenSpec], dir: File) {
-
+    ???
   }
 
   private implicit final class RichArgumentValue(val peer: ArgumentValue) /* extends AnyVal */ {
@@ -145,7 +143,8 @@ final class ClassGenerator
       case Int(i)         => Literal(Constant(i))
       case Float(f)       => Literal(Constant(f))
       case Boolean(b)     => Literal(Constant(if (b) 1 else 0)) // currently no type class for GE | Switch
-      case String(s)      => Apply(Ident("stringArg"), Literal(Constant(s)) :: Nil)
+//      case String(s)      => Apply(Ident("stringArg"), Literal(Constant(s)) :: Nil)
+      case String(s)      => Literal(Constant(s))
       case Inf            => Ident("inf")
       case DoneAction(a)  => Ident(a.name)
       case Nyquist        => Ident("nyquist")
@@ -268,7 +267,7 @@ final class ClassGenerator
         Apply(identApply, applyArgs)
       }
 
-      val argDocs = collectMethodDocs(spec, argsIn)
+//      val argDocs = collectMethodDocs(spec, argsIn)
       val methodNames = rates.method match {
         case RateMethod.Default     => rate.methodName :: Nil
         case RateMethod.Custom(m)   => m :: Nil
@@ -290,7 +289,7 @@ final class ClassGenerator
             TypeDef(NoMods, name: TypeName, Nil, EmptyTree),
           methodBody             // rhs
         )
-        wrapDoc(df, 1, argDocs = argDocs)
+        wrapDoc(spec, df, indent = 1, body = false, args = true)
       }
 
       // whether the number of arguments is non-zero and there are defaults for all of them

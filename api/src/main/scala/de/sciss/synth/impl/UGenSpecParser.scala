@@ -292,12 +292,24 @@ private[synth] object UGenSpecParser {
       }
     }
 
+    var inPre = false
     trim.foreach { line =>
-      if (line.isEmpty) flush() else {
-        sb.append(' ')
+      if (inPre) {
+        if (!sb.isEmpty) sb.append('\n')
         sb.append(line)
+        if (line == "}}}") inPre = false
+      } else {
+        if (line.isEmpty) flush() else {
+          if (line == "{{{") {
+            flush()
+            inPre = true
+          }
+          if (!sb.isEmpty) sb.append(' ')
+          sb.append(line)
+        }
       }
     }
+    flush()
     b.result()
   }
 
