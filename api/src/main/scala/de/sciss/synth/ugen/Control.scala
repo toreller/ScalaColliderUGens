@@ -31,94 +31,99 @@ import collection.immutable.{ IndexedSeq => IIdxSeq }
 // ---------- Control ----------
 
 object Control {
-   /**
-    *    Note: we are not providing further convenience methods,
-    *    as that is the task of ControlProxyFactory...
-    */
-   def ir( values: IIdxSeq[ Float ], name: Option[ String ] = None ) = apply(  scalar,  values, name )
-   def kr( values: IIdxSeq[ Float ], name: Option[ String ] = None ) = apply( control, values, name )
+  /**
+   * Note: we are not providing further convenience methods,
+   * as that is the task of ControlProxyFactory...
+   */
+  def ir(values: IIdxSeq[Float], name: Option[String] = None) = apply(scalar, values, name)
+  def kr(values: IIdxSeq[Float], name: Option[String] = None) = apply(control, values, name)
 
-   def ir( values: Float* ) : Control = ir( IIdxSeq( values: _* ))
-   def kr( values: Float* ) : Control = kr( IIdxSeq( values: _* ))
+  def ir(values: Float*): Control = ir(IIdxSeq(values: _*))
+  def kr(values: Float*): Control = kr(IIdxSeq(values: _*))
 
-   // side-effect: receiving messages from clients!
-   // and more importantly: control ugens created from proxies are not wired, so they would
-   // be eliminated if side-effect was false!!!
-   final class UGen private[ugen]( rate: Rate, numChannels: Int, override val specialIndex: Int )
-   extends UGen.MultiOut( "Control", rate, IIdxSeq.fill( numChannels )( rate ), IIdxSeq.empty, false, true )
-}
-final case class Control( rate: Rate, values: IIdxSeq[ Float ], ctrlName: Option[ String ])
-extends UGenSource.MultiOut {
-//def numOutputs = values.size
-   protected def makeUGens : UGenInLike = makeUGen( IIdxSeq.empty )
-
-   protected def makeUGen( args: IIdxSeq[ UGenIn ]) : UGenInLike = {
-      val specialIndex = UGenGraph.builder.addControl( values, ctrlName )
-      new Control.UGen( rate, values.size, specialIndex )
-   }
+  // side-effect: receiving messages from clients!
+  // and more importantly: control ugens created from proxies are not wired, so they would
+  // be eliminated if side-effect was false!!!
+  final class UGen private[ugen](rate: Rate, numChannels: Int, override val specialIndex: Int)
+    extends UGen.MultiOut("Control", rate, IIdxSeq.fill(numChannels)(rate), IIdxSeq.empty, false, true)
 }
 
-final case class ControlProxy( rate: Rate, values: IIdxSeq[ Float ], name: Option[ String ])( val factory: ControlFactory )
-extends AbstractControlProxy[ ControlProxy ] // IIdxSeq.fill( values.size )( rate )
+final case class Control(rate: Rate, values: IIdxSeq[Float], ctrlName: Option[String])
+  extends UGenSource.MultiOut {
 
-final class ControlFactory( rate: Rate ) extends AbstractControlFactory[ ControlProxy ] {
-   protected def makeUGen( numChannels: Int, specialIndex: Int ) : UGen = new Control.UGen( rate, numChannels, specialIndex )
+  protected def makeUGens: UGenInLike = makeUGen(IIdxSeq.empty)
+
+  protected def makeUGen(args: IIdxSeq[UGenIn]): UGenInLike = {
+    val specialIndex = UGenGraph.builder.addControl(values, ctrlName)
+    new Control.UGen(rate, values.size, specialIndex)
+  }
+}
+
+final case class ControlProxy(rate: Rate, values: IIdxSeq[Float], name: Option[String])(val factory: ControlFactory)
+  extends AbstractControlProxy[ControlProxy]
+
+final class ControlFactory(rate: Rate) extends AbstractControlFactory[ControlProxy] {
+  protected def makeUGen(numChannels: Int, specialIndex: Int): UGen = new Control.UGen(rate, numChannels, specialIndex)
 }
 
 // ---------- TrigControl ----------
 
 object TrigControl {
-   def kr( values: IIdxSeq[ Float ], name: Option[ String ] = None ) = TrigControl( values, name )
-   def kr( values: Float* ) : TrigControl = kr( IIdxSeq( values: _* ))
+  def kr(values: IIdxSeq[Float], name: Option[String] = None) = TrigControl(values, name)
 
-   final class UGen private[ugen]( numChannels: Int, override val specialIndex: Int )
-   extends UGen.MultiOut( "TrigControl", control, IIdxSeq.fill( numChannels )( control ), IIdxSeq.empty, false, true )
-}
-final case class TrigControl( values: IIdxSeq[ Float ], ctrlName: Option[ String ])
-extends UGenSource.MultiOut with ControlRated /* with IsControl */ {
-//def numOutputs = values.size
-   protected def makeUGens : UGenInLike = makeUGen( IIdxSeq.empty )
+  def kr(values: Float*): TrigControl = kr(IIdxSeq(values: _*))
 
-   protected def makeUGen( args: IIdxSeq[ UGenIn ]) : UGenInLike = {
-      val specialIndex = UGenGraph.builder.addControl( values, ctrlName )
-      new TrigControl.UGen( values.size, specialIndex )
-   }
+  final class UGen private[ugen](numChannels: Int, override val specialIndex: Int)
+    extends UGen.MultiOut("TrigControl", control, IIdxSeq.fill(numChannels)(control), IIdxSeq.empty, false, true)
+
 }
 
-final case class TrigControlProxy( values: IIdxSeq[ Float ], name: Option[ String ])
-extends AbstractControlProxy[ TrigControlProxy ] /* ( IIdxSeq.fill( values.size )( control )) */ with ControlRated {
-   def factory = TrigControlFactory
+final case class TrigControl(values: IIdxSeq[Float], ctrlName: Option[String])
+  extends UGenSource.MultiOut with ControlRated /* with IsControl */ {
+
+  protected def makeUGens: UGenInLike = makeUGen(IIdxSeq.empty)
+
+  protected def makeUGen(args: IIdxSeq[UGenIn]): UGenInLike = {
+    val specialIndex = UGenGraph.builder.addControl(values, ctrlName)
+    new TrigControl.UGen(values.size, specialIndex)
+  }
 }
 
-object TrigControlFactory extends AbstractControlFactory[ TrigControlProxy ] {
-   protected def makeUGen( numChannels: Int, specialIndex: Int ) : UGen = new TrigControl.UGen( numChannels, specialIndex )
+final case class TrigControlProxy(values: IIdxSeq[Float], name: Option[String])
+  extends AbstractControlProxy[TrigControlProxy] /* ( IIdxSeq.fill( values.size )( control )) */ with ControlRated {
+  def factory = TrigControlFactory
+}
+
+object TrigControlFactory extends AbstractControlFactory[TrigControlProxy] {
+  protected def makeUGen(numChannels: Int, specialIndex: Int): UGen = new TrigControl.UGen(numChannels, specialIndex)
 }
 
 // ---------- AudioControl ----------
 
 object AudioControl {
-   def ar( values: IIdxSeq[ Float ], name: Option[ String ] = None ) = AudioControl( values, name )
-   def ar( values: Float* ) : AudioControl = ar( IIdxSeq( values: _* ))
+  def ar(values: IIdxSeq[Float], name: Option[String] = None) = AudioControl(values, name)
+  def ar(values: Float*): AudioControl                        = ar(IIdxSeq(values: _*))
 
-   final class UGen private[ugen]( numChannels: Int, override val specialIndex: Int )
-   extends UGen.MultiOut( "AudioControl", audio, IIdxSeq.fill( numChannels )( audio ), IIdxSeq.empty, false, true )
-}
-final case class AudioControl( values: IIdxSeq[ Float ], ctrlName: Option[ String ])
-extends UGenSource.MultiOut with AudioRated /* with IsControl */ {
-//def numOutputs = values.size
-   protected def makeUGens : UGenInLike = makeUGen( IIdxSeq.empty )
-   protected def makeUGen( args: IIdxSeq[ UGenIn ]) : UGenInLike = {
-      val specialIndex = UGenGraph.builder.addControl( values, ctrlName )
-      new AudioControl.UGen( values.size, specialIndex )
-   }
+  final class UGen private[ugen](numChannels: Int, override val specialIndex: Int)
+    extends UGen.MultiOut("AudioControl", audio, IIdxSeq.fill(numChannels)(audio), IIdxSeq.empty, false, true)
 }
 
+final case class AudioControl(values: IIdxSeq[Float], ctrlName: Option[String])
+  extends UGenSource.MultiOut with AudioRated /* with IsControl */ {
 
-final case class AudioControlProxy( values: IIdxSeq[ Float ], name: Option[ String ])
-extends AbstractControlProxy[ AudioControlProxy ] /* ( IIdxSeq.fill( values.size )( audio )) */ with AudioRated {
-   def factory = AudioControlFactory
+  protected def makeUGens: UGenInLike = makeUGen(IIdxSeq.empty)
+
+  protected def makeUGen(args: IIdxSeq[UGenIn]): UGenInLike = {
+    val specialIndex = UGenGraph.builder.addControl(values, ctrlName)
+    new AudioControl.UGen(values.size, specialIndex)
+  }
 }
 
-object AudioControlFactory extends AbstractControlFactory[ AudioControlProxy ] {
-   protected def makeUGen( numChannels: Int, specialIndex: Int ) : UGen = new AudioControl.UGen( numChannels, specialIndex )
+final case class AudioControlProxy(values: IIdxSeq[Float], name: Option[String])
+  extends AbstractControlProxy[AudioControlProxy] /* ( IIdxSeq.fill( values.size )( audio )) */ with AudioRated {
+  def factory = AudioControlFactory
+}
+
+object AudioControlFactory extends AbstractControlFactory[AudioControlProxy] {
+  protected def makeUGen(numChannels: Int, specialIndex: Int): UGen = new AudioControl.UGen(numChannels, specialIndex)
 }

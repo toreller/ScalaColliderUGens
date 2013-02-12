@@ -116,7 +116,9 @@ final class ClassGenerator
     val bodyLines = linesFromParagraphs(bodyDoc)
 
     val bodyAndWarn = if (!warnPos) bodyLines else {
-      bodyLines ++ List("", "'''Warning''': The argument order is different from its sclang counterpart.")
+      val t  = "'''Warning''': The argument order is different from its sclang counterpart." :: Nil
+      val tf = if (bodyLines.isEmpty) t else "" :: t
+      bodyLines ++ tf
     }
 
     val bodyAndArgs = if (argDocs.isEmpty) bodyAndWarn else {
@@ -128,11 +130,14 @@ final class ClassGenerator
           tab + ln
         }
       }
-      bodyAndWarn ++ argLines
+      val tf = if (bodyAndWarn.isEmpty) argLines else "" :: argLines
+      bodyAndWarn ++ tf
     }
 
     val all = if (linkDocs.isEmpty) bodyAndArgs else {
-      bodyAndArgs ++ ("" :: linkDocs.map(link => s"@see [[de.sciss.synth.${link}]]"))
+      val t   = linkDocs.map(link => s"@see [[de.sciss.synth.${link}]]")
+      val tf  = if (bodyAndArgs.isEmpty) t else "" :: t
+      bodyAndArgs ++ tf
     }
 
     DocDef(DocComment(all.mkString("/**\n * ", "\n * ", "\n */\n"), NoPosition), tree)
@@ -190,6 +195,11 @@ final class ClassGenerator
       case Some(df) => df.toTree
       case _        => EmptyTree
     }
+
+    def typeIsString: Boolean = peer.tpe match {
+      case GE(Sig.String,_) => true
+      case _                => false
+    }
   }
 
   def perform1(spec: UGenSpec) {
@@ -207,6 +217,7 @@ final class ClassGenerator
     val traitWritesBus = TypeDef(Modifiers(Flags.TRAIT), typeName("WritesBus"), Nil, EmptyTree)
     val strIIdxSeq = "IIdxSeq"
     val identIIdxSeq = ident(strIIdxSeq)
+    val identVector = ident("Vector")
     val strMakeUGens = "makeUGens"
     val strMakeUGen = "makeUGen"
     val identMakeUGen = ident(strMakeUGen)
@@ -218,12 +229,17 @@ final class ClassGenerator
     val identMaybeRate  = Ident("MaybeRate")
     val identRate       = Ident("Rate")
     val strMaybeResolve = "?|"
+    val identConstant = Ident("Constant")
+    val strOutputs  = "outputs"
 
     val identName = ident("name")
 
     val strRateArg = "rate"
     val strRateMethod = "rate"
     val identRateArg = ident(strRateArg)
+    val identStringArg = Ident("stringArg")
+    val strEmpty      = "empty"
+    val strPlusPlus   = "++"
 
     val impliedRate = rates match {
       case Rates.Implied(r, _) => Some(r)
@@ -245,8 +261,9 @@ final class ClassGenerator
     // which corresponds to expandBin!
     require(expandBin.isEmpty || inputs.size == 1, s"Currently `mul` input must be sole input (${name})")
 
-    // XXX TODO: correct?
-    val argsIn: List[Argument] = args.collect({ case a if inputMap.contains(a.name) => a })(breakOut)
+    val argsIn  = args.toList
+    // val argsOut = args.filter(a => inputMap.contains(a.name))
+    val argsOut = inputs.flatMap(i => argMap.get(i.arg)) // important: must be sorted according to `inputs`
 
     val sortedRates = rates.set.toList.sorted
     // the companion object's methods
@@ -402,61 +419,68 @@ final class ClassGenerator
         case _        => mixin3
       }
     }
-//
-//     /*
-//      * `protected def makeUGens: UGenInLike = ...`
-//      */
-//     val makeUGensDef = {
-//       val methodBody: Tree = {
-//         val args0 = argsOut // .filterNot( _.expandBin.isDefined )
-//         val argsApp = args0.map(a => {
-//             val id = Ident(a.name)
-//             if (a.isGE) {
-//               val sel = Select(id, strExpand)
-//               if (a.multi) Select(sel, "outputs") else sel
-//             } else if (a.isString) {
-//               Apply(Ident("stringArg"), id :: Nil)
-//             } else if (a.isInt) {
-//               Apply(Ident("Constant"), id :: Nil) // e.g. MFCC numCoeffs
-//             } else id
-//           })
-//
-//         def split(as: IIdxSeq[UGenArgInfo], ts: IIdxSeq[Tree]): IIdxSeq[Tree] = {
-//           require(as.size == ts.size)
-//           var from = 0
-//           var keep = false
-//           var res = IIdxSeq.empty[Tree]
-//           while (from < as.size) {
-//             val n = as.segmentLength(u => (u.multi || u.isString) == keep, from)
-//             if (n > 0) {
-//               val slice = ts.slice(from, from + n)
-//               res = if (keep) res ++ slice else res :+ Apply(identIIdxSeq, slice.toList)
-//               from += n
-//             }
-//             keep = !keep
-//           }
-//           res
-//         }
-//
-//         val argsApp2 = split(args0.toIndexedSeq, argsApp.toIndexedSeq)
-//         argsApp2.lastOption match {
-//           case None =>
-//             Apply(identMakeUGen, Select(identIIdxSeq, "empty") :: Nil) // shortcut, works because we do not use type apply
-//           case Some(l) =>
-//             Apply(identUnwrap, argsApp2.init.foldRight(l)((a, t) => Apply(Select(a, "++"), t :: Nil)) :: Nil)
-//         }
-//       }
-//
-//       DefDef(
-//         NoMods withPosition(Flags.PROTECTED, NoPosition) withPosition(Flags.METHOD, NoPosition),
-//         stringToTermName(strMakeUGens),
-//         Nil, // tparams
-//         Nil, // vparamss
-//         TypeDef(NoMods, typeName(outputs.resName), Nil, EmptyTree), // TypeTree( NoType ), // tpt -- empty for testing
-//         methodBody // rhs
-//       )
-//     }
-//
+
+    /*
+     * `protected def makeUGens: UGenInLike = ...`
+     */
+    val makeUGensDef = {
+      val methodBody: Tree = {
+        val argsApp = argsOut.map { a =>
+          val id = Ident(a.name)
+          a.tpe match {
+            case GE(Sig.String,_) => Apply(identStringArg, id :: Nil)
+            case GE(_,_) =>
+              val sel = Select(id, strExpand)
+              if (inputMap(a.name).variadic) Select(sel, strOutputs) else sel
+
+            case ArgumentType.Int => id // Apply(identConstant, id:: Nil)
+          }
+        }
+
+        def split(as: IIdxSeq[Argument], ts: IIdxSeq[Tree]): IIdxSeq[Tree] = {
+          var from  = 0
+          var keep  = false
+          var b     = Vector.empty[Tree]
+          val sz    = as.size
+          while (from < sz) {
+            val n = as.segmentLength(u => {
+              val isMulti = inputMap(u.name).variadic || u.typeIsString
+              isMulti == keep
+            }, from)
+            if (n > 0) {
+              val slice = ts.slice(from, from + n)
+              if (keep)
+                b ++= slice
+              else
+                b :+= Apply(identVector, slice.toList)
+              from += n
+            }
+            keep = !keep
+          }
+          b
+        }
+
+        val argsApp2 = split(argsOut, argsApp)
+        argsApp2.lastOption match {
+          case None =>
+            Apply(identMakeUGen, Select(identIIdxSeq, strEmpty) :: Nil) // shortcut, works because we do not use type apply
+          case Some(l) =>
+            Apply(identUnwrap, argsApp2.init.foldRight(l)((a, t) => Apply(Select(a, strPlusPlus), t :: Nil)) :: Nil)
+        }
+      }
+
+      val expandResultStr = if (outputs.isEmpty) "Unit" else "UGenInLike"
+
+      DefDef(
+        NoMods withPosition(Flags.PROTECTED, NoPosition) withPosition(Flags.METHOD, NoPosition),
+        stringToTermName(strMakeUGens),
+        Nil, // tparams
+        Nil, // vparamss
+        TypeDef(NoMods, expandResultStr: TypeName, Nil, EmptyTree), // tpt
+        methodBody // rhs
+      )
+    }
+
 //     /*
 //      * `protected def makeUGen(_args: IIdxSeq[UGenIn]): UGenInLike = ...`
 //      */
@@ -544,11 +568,10 @@ final class ClassGenerator
 //       )
 //     }
 //
-//     val caseClassMethods = {
-//       val m1 = makeUGensDef :: makeUGenDef :: Nil
-//       m1
-//     }
-val caseClassMethods = Nil
+     val caseClassMethods = {
+       val m1 = makeUGensDef /* :: makeUGenDef */ :: Nil
+       m1
+     }
 
     val caseClassDef: Tree = {
       val outputsPrefix = if (outputs.isEmpty)
@@ -567,7 +590,7 @@ val caseClassMethods = Nil
         caseClassConstrArgs :: Nil,
         caseClassMethods,
         TypeDef(NoMods, outputsTypeString, Nil, EmptyTree) :: caseClassMixins,  // parents
-        Nil // -- do not pass the name any more: Literal(Constant(name)) :: Nil // super args
+        Nil // super args
       )
       wrapDoc(spec, plain, body = true, args = true)
     }
