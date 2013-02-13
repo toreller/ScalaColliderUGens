@@ -290,6 +290,13 @@ final class ClassGenerator
     // val argsOut = args.filter(a => inputMap.contains(a.name))
     val argsOut = inputs.flatMap(i => argMap.get(i.arg)) // important: must be sorted according to `inputs`
 
+    // whether the case class should contain default values or not
+    val hasApply = rates.method match {
+      case RateMethod.Custom(`strApply`) => true
+      case RateMethod.Alias (`strApply`) => true
+      case _                             => false
+    }
+
     val sortedRates = rates.set.toList.sorted
     // the companion object's methods
     val objectMethodDefs = sortedRates.flatMap { rate =>
@@ -328,7 +335,7 @@ final class ClassGenerator
 
       // e.g. `def ar(freq: GE, phase: GE = 0f): SinOsc`
       // e.g. `def apply(chain: GE, winType: GE = 0.0f, winSize: GE = 0.0f): IFFT`
-      val fullMethods = methodNames.map { mName =>
+      val fullMethods: List[(String, Tree)] = methodNames.map { mName =>
         val df = DefDef(
           NoMods withPosition(Flags.METHOD, NoPosition),
           mName: TermName,
@@ -340,15 +347,17 @@ final class ClassGenerator
             TypeDef(NoMods, name: TypeName, Nil, EmptyTree),
           methodBody             // rhs
         )
-        wrapDoc(spec, df, /* indent = 1, */ body = false, args = true)
+        mName -> wrapDoc(spec, df, /* indent = 1, */ body = false, args = true)
       }
 
       // whether the number of arguments is non-zero and there are defaults for all of them
       val allArgsHaveDefaults = objectMethodArgs.nonEmpty && !objectMethodArgs.exists(_.rhs.isEmpty)
 
+      val fullButApply = if (!hasApply) fullMethods else fullMethods.filterNot(_._1 == strApply)
+
       // ...in that case, we generate overloaded methods without parentheses
       if (allArgsHaveDefaults && methodNames.nonEmpty) {
-        fullMethods.zip(methodNames).flatMap { case (fullMethod, mName) =>
+        fullButApply.flatMap { case (mName, fullMethod) =>
           // e.g. `kr()`
           val overloadedBody    = Apply(Ident(mName), Nil)
           // e.g. `def kr: SinOsc = kr()
@@ -363,7 +372,7 @@ final class ClassGenerator
           overloadedMethod :: fullMethod :: Nil
         }
       } else {
-        fullMethods
+        fullButApply.map(_._2)
       }
     }
 
@@ -382,25 +391,17 @@ final class ClassGenerator
       wrapDoc(spec, mod, /* indent = 0, */ body = true, args = false) :: Nil
     } else Nil
 
-    // whether the case class should contain default values or not
-    val hasApply = rates.method match {
-      case RateMethod.Custom(`strApply`) => true
-      case RateMethod.Alias (`strApply`) => true
-      case _                             => false
-    }
-
     // a `MaybeRate` is used when no rate is implied and an input generally uses a same-as-ugen constraint.
     // `maybeRateRef` contains the arguments which resolve the undefined rate at expansion time
     val maybeRateRef = if (impliedRate.isEmpty) {
       argsIn.filter(_.rates.get(UndefinedRate) == Some(RateConstraint.SameAsUGen))
-    } else IIdxSeq.empty
+    } else Vector.empty
 
     val caseClassConstrArgs = {
       // for each argument the tuple (NoMods, argName, type or type-and-default)
       val argTuples = argsIn map { arg =>
         val tpe     = Ident(arg.typeString)
-        // do not repeat default args if companion object has already overloaded apply method
-        val tpeRHS  = if (hasApply) tpe else arg.defaultTree() match {
+        val tpeRHS  = arg.defaultTree() match {
           case EmptyTree  => tpe
           case t          => Assign(tpe, t)
         }
