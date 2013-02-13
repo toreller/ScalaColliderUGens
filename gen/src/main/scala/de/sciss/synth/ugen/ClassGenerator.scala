@@ -45,8 +45,7 @@ final class ClassGenerator
 
   import global._
 
-  def typeName(name: String) = newTypeName(name)
-  def ident   (name: String) = new Ident(newTermName(name))
+//  def typeName(name: String) = newTypeName(name)
 
   def compilationUnitOfFile(f: AbstractFile) = global.unitOfFile.get(f)
 
@@ -199,49 +198,56 @@ final class ClassGenerator
       case GE(Sig.String,_) => true
       case _                => false
     }
+
+    def typeIsGE: Boolean = peer.tpe match {
+      case GE(_,_) => true
+      case _       => false
+    }
   }
 
   def perform1(spec: UGenSpec) {
     import spec._
 
     val strApply   = "apply"
-    val identApply = ident(strApply)
+    val identApply = Ident(strApply)
 
-    val traitSideEffect = TypeDef(Modifiers(Flags.TRAIT), typeName("HasSideEffect"), Nil, EmptyTree)
-    val traitDoneFlag = TypeDef(Modifiers(Flags.TRAIT), typeName("HasDoneFlag"), Nil, EmptyTree)
-    val traitRandom = TypeDef(Modifiers(Flags.TRAIT), typeName("UsesRandSeed"), Nil, EmptyTree)
-    val traitIndiv = TypeDef(Modifiers(Flags.TRAIT), typeName("IsIndividual"), Nil, EmptyTree)
-    val traitWritesBuffer = TypeDef(Modifiers(Flags.TRAIT), typeName("WritesBuffer"), Nil, EmptyTree)
-    val traitWritesFFT = TypeDef(Modifiers(Flags.TRAIT), typeName("WritesFFT"), Nil, EmptyTree)
-    val traitWritesBus = TypeDef(Modifiers(Flags.TRAIT), typeName("WritesBus"), Nil, EmptyTree)
-    val strIIdxSeq = "IIdxSeq"
-    val identIIdxSeq = ident(strIIdxSeq)
-    val identVector = ident("Vector")
-    val strMakeUGens = "makeUGens"
-    val strMakeUGen = "makeUGen"
-    val identMakeUGen = ident(strMakeUGen)
-    val strExpand = "expand"
-    val strUArgs = "_args"
-    val identUArgs = ident(strUArgs)
-    val identUnwrap = ident("unwrap")
+    val traitSideEffect   = TypeDef(Modifiers(Flags.TRAIT), "HasSideEffect": TypeName, Nil, EmptyTree)
+    val traitDoneFlag     = TypeDef(Modifiers(Flags.TRAIT), "HasDoneFlag":   TypeName, Nil, EmptyTree)
+    val traitRandom       = TypeDef(Modifiers(Flags.TRAIT), "UsesRandSeed":  TypeName, Nil, EmptyTree)
+    val traitIndiv        = TypeDef(Modifiers(Flags.TRAIT), "IsIndividual":  TypeName, Nil, EmptyTree)
+    val traitWritesBuffer = TypeDef(Modifiers(Flags.TRAIT), "WritesBuffer":  TypeName, Nil, EmptyTree)
+    val traitWritesFFT    = TypeDef(Modifiers(Flags.TRAIT), "WritesFFT":     TypeName, Nil, EmptyTree)
+    val traitWritesBus    = TypeDef(Modifiers(Flags.TRAIT), "WritesBus":     TypeName, Nil, EmptyTree)
+
+    val strIIdxSeq        = "IIdxSeq"
+    val identIIdxSeq      = Ident(strIIdxSeq)
+    val identVector       = Ident("Vector")
+    val strMakeUGens      = "makeUGens"
+    val strMakeUGen       = "makeUGen"
+    val identMakeUGen     = Ident(strMakeUGen)
+    val strExpand         = "expand"
+    val strUArgs          = "_args"
+    val identUArgs        = Ident(strUArgs)
+    val identUnwrap       = Ident("unwrap")
     val strRatePlaceholder = "Rate" // "R"
-    val identMaybeRate  = Ident("MaybeRate")
-    val identRate       = Ident("Rate")
-    val strMaybeResolve = "?|"
-    val identConstant = Ident("Constant")
-    val strOutputs  = "outputs"
+    val identMaybeRate    = Ident("MaybeRate")
+    val identRate         = Ident("Rate")
+    val strMaybeResolve   = "?|"
+    val identConstant     = Ident("Constant")
+    val strOutputs        = "outputs"
+    val strUGenIn         = "UGenIn"
 
-    val identName = ident("name")
+    val identName         = Ident("name")
 
-    val strRateArg = "rate"
-    val strRateMethod = "rate"
-    val identRateArg = ident(strRateArg)
-    val identStringArg = Ident("stringArg")
-    val strEmpty      = "empty"
-    val strPlusPlus   = "++"
-    val strMinus      = "-"
-    val strSize       = "size"
-    val strFill       = "fill"
+    val strRateArg        = "rate"
+    val strRateMethod     = "rate"
+    val identRateArg      = Ident(strRateArg)
+    val identStringArg    = Ident("stringArg")
+    val strEmpty          = "empty"
+    val strPlusPlus       = "++"
+    val strMinus          = "-"
+    val strSize           = "size"
+    val strFill           = "fill"
 
     val impliedRate = rates match {
       case Rates.Implied(r, _) => Some(r)
@@ -275,7 +281,7 @@ final class ClassGenerator
         ValDef(
           Modifiers(Flags.PARAM),
           uArgInfo.name,
-          ident(uArgInfo.typeString),
+          Ident(uArgInfo.typeString),
           uArgInfo.defaultTree(rate)
         )
       }
@@ -490,11 +496,6 @@ final class ClassGenerator
     val makeUGenDef = {
       val methodBody: Tree = {
         val (preBody, outUGenArgs) = {
-          // if the rate is of type `MaybeRate`, it will be resolved in the begining of
-          // the body and stored in local variable `_rate`. Otherwise we can use
-          // `rate` straight away.
-          val strResolvedRateArg = if (maybeRateRef.nonEmpty) "_rate" else strRateArg
-
           // args1 are the last two args (isIndividual, hasSideEffect)
           val args1 = {
             // the last argument to UGen.SingleOut and UGen.MultiOut is `hasSideEffect`.
@@ -511,6 +512,12 @@ final class ClassGenerator
               Literal(Constant(false)) :: args0
             } else args0
           }
+
+          // if the rate is of type `MaybeRate`, it will be resolved in the begining of
+          // the body and stored in local variable `_rate`. Otherwise we can use
+          // `rate` straight away.
+          val strResolvedRateArg = if (maybeRateRef.nonEmpty) "_rate" else strRateArg
+          val identResolvedRate = Ident(impliedRate.map(_.name).getOrElse(strResolvedRateArg))
 
           // for a UGen.MultiOut the next preceeding arg is `outputRates: IIdxSeq[Rate]`
           val args2 = if (!multiOut) Nil else {
@@ -546,30 +553,39 @@ final class ClassGenerator
             }
 
             // `Vector.fill(<numOuts>)(<resolvedRate>)
-            Apply(Apply(Select(identVector, strFill), numOutsTree :: Nil),
-              Ident(impliedRate.map(_.name).getOrElse(strResolvedRateArg)) :: Nil) :: Nil
+            Apply(Apply(Select(identVector, strFill), numOutsTree :: Nil), identResolvedRate :: Nil) :: Nil
           }
 
-          // might need some more intelligent filtering eventually
+          // might support Mul besides other args in the future
+          val inArg = if (expandBin.isDefined) {
+            require(argsOut.size == 1, s"At present, Mul input must be only input, in ${name}")
+            Select(identVector, strEmpty) // `inputs = Vector.empty`
+          } else {
+            identUArgs  // `inputs = _args`
+          }
 
-          // CONTINUE HERE: require that argsOut.size == 1 if any is of type Mul
+          // args3 = (outputRates, inputs, isIndividual, [hasSideEffect])
+          val args3 = args2 ::: inArg :: args1
+          // args = (name, rate, outputRates, inputs, isIndividual, [hasSideEffect]) = complete list
+          val args4 = identName :: identResolvedRate :: args3
 
-          val args3 = (args2 :+ (if (expandBin.isDefined) Select(identVector, strEmpty) else identUArgs)) ::: args1
-          val args4 = identName :: Ident(impliedRate.map(_.typ).getOrElse(strResolvedRateArg)) :: args3
+          // when using a MaybeRate, the preBody is the code that resolves that rate
+          val preBody = if (maybeRateRef.isEmpty) Nil else {
+            // XXX TODO: deal with multiple refs!
+            maybeRateRef.headOption.map { ua =>
+              val aPos = argsOut.indexOf(ua)
+              require(argsOut.take(aPos).forall(a => a.typeIsGE && !inputMap(a.name).variadic), "Cannot resolve MaybeRate ref after multi args")
+              // val _rate = rate |? _args(<pos>).rate
+              ValDef(
+                NoMods,
+                strResolvedRateArg,
+                EmptyTree,
+                Apply(Select(identRateArg, strMaybeResolve), Select(Apply(identUArgs, Literal(Constant(aPos)) :: Nil), strRateMethod) :: Nil)
+              )
+            }
+          }
 
-          val preBody = maybeRate.map(ua => {
-            val aPos = argsOut.indexOf(ua)
-            require(argsOut.take(aPos).forall(a => a.isGE && !a.multi), "Cannot resolve MaybeRate ref after multi args")
-            // val _rate = rate |? _args(<pos>).rate
-            ValDef(
-              NoMods,
-              strResolvedRateArg,
-              EmptyTree,
-              Apply(Select(identRateArg, strMaybeResolve), Select(Apply(identUArgs, Literal(Constant(aPos)) :: Nil), strRateMethod) :: Nil)
-            )
-          })
-
-          (preBody, args4 :: Nil) // no currying
+          (preBody, args4 :: Nil) // only single argument list
         }
 //        val app0a = TypeDef(NoMods, typeName(outputs.typ), Nil, EmptyTree)
 //        val app1 = New(app0a, outUGenArgs)
@@ -591,7 +607,7 @@ final class ClassGenerator
       val methodArgs = List(List(ValDef(
         Modifiers(Flags.PARAM),
         strUArgs,
-        TypeDef(NoMods, typeName(strIIdxSeq), TypeDef(NoMods, typeName("UGenIn"), Nil, EmptyTree) :: Nil, EmptyTree),
+        TypeDef(NoMods, strIIdxSeq: TypeName, TypeDef(NoMods, strUGenIn: TypeName, Nil, EmptyTree) :: Nil, EmptyTree),
         EmptyTree
       )))
 
@@ -634,7 +650,7 @@ final class ClassGenerator
 
     val classes = objectDef ::: (caseClassDef :: Nil)
 
-    val testDef = PackageDef(Select(Select(ident("de"), "sciss"), "synth"), PackageDef(Ident("ugen"), classes) :: Nil)
+    val testDef = PackageDef(Select(Select(Ident("de"), "sciss"), "synth"), PackageDef(Ident("ugen"), classes) :: Nil)
     println(createText(testDef))
   }
 }
