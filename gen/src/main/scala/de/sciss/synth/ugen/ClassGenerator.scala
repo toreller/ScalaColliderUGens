@@ -239,6 +239,9 @@ final class ClassGenerator
     val identStringArg = Ident("stringArg")
     val strEmpty      = "empty"
     val strPlusPlus   = "++"
+    val strMinus      = "-"
+    val strSize       = "size"
+    val strFill       = "fill"
 
     val impliedRate = rates match {
       case Rates.Implied(r, _) => Some(r)
@@ -487,6 +490,9 @@ final class ClassGenerator
     val makeUGenDef = {
       val methodBody: Tree = {
         val (preBody, outUGenArgs) = {
+          // if the rate is of type `MaybeRate`, it will be resolved in the begining of
+          // the body and stored in local variable `_rate`. Otherwise we can use
+          // `rate` straight away.
           val strResolvedRateArg = if (maybeRateRef.nonEmpty) "_rate" else strRateArg
 
           // args1 are the last two args (isIndividual, hasSideEffect)
@@ -506,43 +512,64 @@ final class ClassGenerator
             } else args0
           }
 
-//          val args2 = if (multiOut) {
-//            val tree = {
-//              outputs match {
-//                case fm: FixedMultiOutput => fm.tree
-//                case am@ArgMultiOutput(a) => if (a.isGE) {
-//                  require(!argsOut.exists(_.isString), "Currently strings not supported for arg-multioutput")
-//                  val numFixedArgs = argsOut.size - 1
-//                  val selSz = Select(identUArgs, "size")
-//                  if (numFixedArgs == 0) selSz else Apply(Select(selSz, "-"), Literal(Constant(numFixedArgs)) :: Nil)
-//                } else am.tree
-//              }
-//            }
-//            Apply(Apply(Select(identIIdxSeq, "fill"), tree :: Nil),
-//              Ident(impliedRate.map(_.typ).getOrElse(strResolvedRateArg)) :: Nil) :: Nil
-//
-//          } else {
-//            Nil
-//          }
-//
-//          // might need some more intelligent filtering eventually
-//          val args3 = (args2 :+ (if (expandBin.isDefined) Select(identIIdxSeq, "empty") else identUArgs)) ::: args1
-//          val args4 = identName :: Ident(impliedRate.map(_.typ).getOrElse(strResolvedRateArg)) :: args3
-//
-//          val preBody = maybeRate.map(ua => {
-//            val aPos = argsOut.indexOf(ua)
-//            require(argsOut.take(aPos).forall(a => a.isGE && !a.multi), "Cannot resolve MaybeRate ref after multi args")
-//            // val _rate = rate |? _args(<pos>).rate
-//            ValDef(
-//              NoMods,
-//              strResolvedRateArg,
-//              EmptyTree,
-//              Apply(Select(identRateArg, strMaybeResolve), Select(Apply(identUArgs, Literal(Constant(aPos)) :: Nil), strRateMethod) :: Nil)
-//            )
-//          })
-//
-//          (preBody, args4 :: Nil) // no currying
-          ???
+          // for a UGen.MultiOut the next preceeding arg is `outputRates: IIdxSeq[Rate]`
+          val args2 = if (!multiOut) Nil else {
+            val numFixed  = outputs.count(_.variadic.isEmpty)
+            val variadic  = outputs.collect {
+              case Output(oName, _, Some(v)) => v
+            }
+            if (numFixed > 0 && variadic.nonEmpty) {
+              sys.error(s"Mixed variadic / non-variadic outputs not supported, in ${name}")
+            }
+            if (variadic.size > 1) {
+              sys.error(s"Multiple variadic outputs not supported, in ${name}")
+            }
+
+            // tree that defines the number of outputs
+            val numOutsTree = variadic.headOption match {
+              case Some(v) =>
+                val refArg = argMap(v)
+                refArg.tpe match {
+                  case GE(Sig.String,_) => sys.error(s"Strings not supported for variadic outputs, in ${name}")
+                  case GE(_,_) =>
+                    val numFixedArgs = argsOut.size - 1       // we ensured above that there is only one variadic argument
+                    val selSz = Select(identUArgs, strSize)   // `_args.size`
+                    if (numFixedArgs == 0) selSz else {
+                      // `_args.size.-(<numFixedArgs>)`
+                      Apply(Select(selSz, strMinus), Literal(Constant(numFixedArgs)) :: Nil)
+                    }
+                  case ArgumentType.Int =>
+                    Ident(refArg.name)
+                }
+
+              case _ => Literal(Constant(numFixed))
+            }
+
+            // `Vector.fill(<numOuts>)(<resolvedRate>)
+            Apply(Apply(Select(identVector, strFill), numOutsTree :: Nil),
+              Ident(impliedRate.map(_.name).getOrElse(strResolvedRateArg)) :: Nil) :: Nil
+          }
+
+          // might need some more intelligent filtering eventually
+
+          // CONTINUE HERE: require that argsOut.size == 1 if any is of type Mul
+
+          val args3 = (args2 :+ (if (expandBin.isDefined) Select(identVector, strEmpty) else identUArgs)) ::: args1
+          val args4 = identName :: Ident(impliedRate.map(_.typ).getOrElse(strResolvedRateArg)) :: args3
+
+          val preBody = maybeRate.map(ua => {
+            val aPos = argsOut.indexOf(ua)
+            require(argsOut.take(aPos).forall(a => a.isGE && !a.multi), "Cannot resolve MaybeRate ref after multi args")
+            // val _rate = rate |? _args(<pos>).rate
+            ValDef(
+              NoMods,
+              strResolvedRateArg,
+              EmptyTree,
+              Apply(Select(identRateArg, strMaybeResolve), Select(Apply(identUArgs, Literal(Constant(aPos)) :: Nil), strRateMethod) :: Nil)
+            )
+          })
+
+          (preBody, args4 :: Nil) // no currying
         }
 //        val app0a = TypeDef(NoMods, typeName(outputs.typ), Nil, EmptyTree)
 //        val app1 = New(app0a, outUGenArgs)
