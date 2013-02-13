@@ -6,6 +6,8 @@ import collection.breakOut
 package object ugen {
   import language.implicitConversions
 
+  type IIdxSeq[A] = collection.immutable.IndexedSeq[A]
+
 //   private[ugen] def maxInt( is: Int* ) : Int = is.reduceLeft( math.max( _, _ ))
   private[ugen] def stringArg(s: String): IIdxSeq[UGenIn] = {
     val bs = s.getBytes
@@ -15,7 +17,8 @@ package object ugen {
   //  private[ugen] implicit def mkConst(f: Float): Constant = new Constant(f)
 
   /* private[ugen] */ final val inf = Float.PositiveInfinity
-  private[ugen] def nyquist: GE = BinaryOp.Times.make(SampleRate.ir, 0.5f)
+//  private[ugen] def nyquist: GE = BinaryOp.Times.make(SampleRate.ir, 0.5f)
+  private[ugen] def nyquist: GE = Constant(44100) // XXX TODO BinaryOp.Times.make(SampleRate(), 0.5f)
 
   private[ugen] def replaceZeroesWithSilence(ins: IIdxSeq[UGenIn]): IIdxSeq[UGenIn] = {
     val numZeroes = ins.foldLeft(0)((sum, in) => in match {

@@ -2,7 +2,7 @@ package de.sciss.synth
 package ugen
 
 object GenTest extends App {
-  val cusp  = UGenSpec.standardUGens("CuspN")
+  val cusp  = UGenSpec.standardUGens("Dseries")
   val gen   = new ClassGenerator
-  gen.perform1(cusp)
+  gen.performSpec(cusp)
 }

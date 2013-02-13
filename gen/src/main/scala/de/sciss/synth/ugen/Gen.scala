@@ -32,54 +32,44 @@ import java.io.{IOException, File}
 import org.xml.sax.InputSource
 
 object Gen extends App {
-//   val name          = "ScalaCollider-UGens"
-//   val version       = 0.15
-//   val copyright     = "(C)opyright 2008-2012 Hanns Holger Rutz"
-//   val isSnapshot    = false
-//
-//   def versionString = {
-//      val s = (version + 0.001).toString.substring( 0, 4 )
-//      if( isSnapshot ) s + "-SNAPSHOT" else s
-//   }
+  var inFiles   = IndexedSeq.empty[String]
+  var docs       = true
+  var resources   = false
+  var outDirOption  = Option.empty[String]
+  val parser     = new OptionParser( "ScalaCollider-UGens" ) {
+    opt("r", "resources", "Use resources as input", action = { resources = true })
+    opt( "d", "dir", "<directory>", "Source output root directory", (s: String) => outDirOption = Some(s))
+  //         doubleOpt( "in-start", "Punch in begin (secs)", (d: Double) => punchInStart  = Some( d ))
+  //         intOpt( "num-per-file", "Maximum matches per single file (default 1)", numPerFile = _ )
+  //         doubleOpt( "spacing", "Minimum spacing between matches within one file (default 0.5)", minSpacing = _ )
+  //         arg( "input", "UGen description file (XML) to process", (i: String) => xmlPath = i )
+    arglistOpt( "inputs...", "List of UGen description files (XML) to process", action = { inFiles +:= _ })
 
-//      var xmlPath    = ""
-    var inFiles   = IndexedSeq.empty[String]
-    var docs       = true
-    var resources   = false
-    var outDirOption  = Option.empty[String]
-    val parser     = new OptionParser( "ScalaCollider-UGens" ) {
-       opt("r", "resources", "Use resources as input", action = { resources = true })
-       opt( "d", "dir", "<directory>", "Source output root directory", (s: String) => outDirOption = Some(s))
-//         doubleOpt( "in-start", "Punch in begin (secs)", (d: Double) => punchInStart  = Some( d ))
-//         intOpt( "num-per-file", "Maximum matches per single file (default 1)", numPerFile = _ )
-//         doubleOpt( "spacing", "Minimum spacing between matches within one file (default 0.5)", minSpacing = _ )
-//         arg( "input", "UGen description file (XML) to process", (i: String) => xmlPath = i )
-       arglistOpt( "inputs...", "List of UGen description files (XML) to process", action = { inFiles +:= _ })
+    opt("no-docs", "Do not include scaladoc comments", action = { docs = false })
+  }
 
-      opt("no-docs", "Do not include scaladoc comments", action = { docs = false })
-    }
+  if (!parser.parse(args)) sys.exit(1)
 
-    if (!parser.parse(args)) sys.exit(1)
+  def file(path: String) = new File(path)
 
-    def file(path: String) = new File(path)
-    implicit final class RichFile(val f: File) extends AnyRef { def / (sub: String) = new File(f, sub) }
+  implicit final class RichFile(val f: File) extends AnyRef {
+    def /(sub: String) = new File(f, sub)
+  }
 
-    val outDir = file(outDirOption.getOrElse( "out" )) / "de" / "sciss" / "synth" / "ugen"
-    if( !outDir.isDirectory ) if( !outDir.mkdirs() ) throw new IOException( s"Could not create directory ${outDir}")
+  val outDir = file(outDirOption.getOrElse("out")) / "de" / "sciss" / "synth" / "ugen"
+  if (!outDir.isDirectory) if (!outDir.mkdirs()) throw new IOException(s"Could not create directory ${outDir}")
 
-//      val xml  = XML.load( UGens.getClass.getResourceAsStream( "standard-ugens.xml" ))
-    val synth = new CodeSynthesizer(docs)
+  val synth = new ClassGenerator
 
-    val inputs: Iterator[InputSource] = if (resources) {
-      Iterator.single(xml.Source.fromInputStream(getClass.getResourceAsStream("standard-ugens.xml")))
-    } else {
-      inFiles.iterator.map(xml.Source.fromFile _)
-    }
+  val inputs: Iterator[InputSource] = if (resources) {
+    Iterator.single(xml.Source.fromInputStream(getClass.getResourceAsStream("standard-ugens.xml")))
+  } else {
+    inFiles.iterator.map(xml.Source.fromFile _)
+  }
 
-//      synth.perform( xml, dir )
-    inputs.foreach { source =>
-       val xml = XML.load(source)
-       synth.perform(xml, outDir) //, (f, u) => f == "TriggerUGens" || f == "FilterUGens" )
-    }
-    sys.exit(0)
+  inputs.foreach { source =>
+    val xml = XML.load(source)
+    synth.performFiles(xml, outDir, docs = docs)
+  }
+  sys.exit(0)
 }
