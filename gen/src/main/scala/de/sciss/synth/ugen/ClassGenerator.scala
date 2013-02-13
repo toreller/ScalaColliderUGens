@@ -113,12 +113,13 @@ final class ClassGenerator
     val hasAny = doc.body.nonEmpty || doc.links.nonEmpty || argDocs.nonEmpty || warnPos
     if (!hasAny) return tree
 
+    def feed(pre: List[String], post: List[String]): List[String] =
+      if (pre.isEmpty) post else pre ::: "" :: post
+
     val bodyLines = linesFromParagraphs(bodyDoc)
 
     val bodyAndWarn = if (!warnPos) bodyLines else {
-      val t  = "'''Warning''': The argument order is different from its sclang counterpart." :: Nil
-      val tf = if (bodyLines.isEmpty) t else "" :: t
-      bodyLines ++ tf
+      feed(bodyLines, "'''Warning''': The argument order is different from its sclang counterpart." :: Nil)
     }
 
     val bodyAndArgs = if (argDocs.isEmpty) bodyAndWarn else {
@@ -130,14 +131,12 @@ final class ClassGenerator
           tab + ln
         }
       }
-      val tf = if (bodyAndWarn.isEmpty) argLines else "" :: argLines
-      bodyAndWarn ++ tf
+      feed(bodyAndWarn, argLines)
     }
 
     val all = if (linkDocs.isEmpty) bodyAndArgs else {
-      val t   = linkDocs.map(link => s"@see [[de.sciss.synth.${link}]]")
-      val tf  = if (bodyAndArgs.isEmpty) t else "" :: t
-      bodyAndArgs ++ tf
+      val linkLines = linkDocs.map(link => s"@see [[de.sciss.synth.${link}]]")
+      feed(bodyAndArgs, linkLines)
     }
 
     DocDef(DocComment(all.mkString("/**\n * ", "\n * ", "\n */\n"), NoPosition), tree)
@@ -388,27 +387,30 @@ final class ClassGenerator
       }
     }
 
+    // attributes
+
+    val a = spec.attr
+    import Attribute._
+
+    val readsBus      = a contains ReadsBus
+    val readsBuf      = a contains ReadsBuffer
+    val readsFFT      = a contains ReadsFFT
+    val random        = a contains UsesRandSeed
+    val indiv         = a contains IsIndividual
+
+    val writesBus     = a contains WritesBus
+    val writesBuf     = a contains WritesBuffer
+    val writesFFT     = a contains WritesFFT
+    val sideEffect    = a contains HasSideEffect
+
+    val doneFlag      = a.contains(HasDoneFlag)
+
+    val indSideEffect = writesBus || writesBuf || writesFFT
+    val indIndiv      = readsBus  || readsBuf  || readsFFT || random || indSideEffect
+
     // generates the mixins such as `HasDoneFlag`, `IsIndividual`, and in the
     // case of an implied rate `AudioRated` etc.
     val caseClassMixins: List[TypeDef] = {
-      val a = spec.attr
-      import Attribute._
-
-      val readsBus      = a contains ReadsBus
-      val readsBuf      = a contains ReadsBuffer
-      val readsFFT      = a contains ReadsFFT
-      val random        = a contains UsesRandSeed
-      val indiv         = a contains IsIndividual
-
-      val writesBus     = a contains WritesBus
-      val writesBuf     = a contains WritesBuffer
-      val writesFFT     = a contains WritesFFT
-      val sideEffect    = a contains HasSideEffect
-
-      val doneFlag      = a.contains(HasDoneFlag)
-
-      val indSideEffect = writesBus || writesBuf || writesFFT
-      val indIndiv      = readsBus  || readsBuf  || readsFFT || random || indSideEffect
 
       val mixin1 = if (doneFlag)                    (traitDoneFlag   :: Nil)    else Nil
       val mixin2 = if (indiv      || indIndiv)      (traitIndiv      :: mixin1) else mixin1
@@ -420,9 +422,9 @@ final class ClassGenerator
       }
     }
 
-    /*
-     * `protected def makeUGens: UGenInLike = ...`
-     */
+    val expandResultStr = if (outputs.isEmpty) "Unit" else "UGenInLike"
+
+    // `protected def makeUGens: UGenInLike = ...`
     val makeUGensDef = {
       val methodBody: Tree = {
         val argsApp = argsOut.map { a =>
@@ -469,8 +471,6 @@ final class ClassGenerator
         }
       }
 
-      val expandResultStr = if (outputs.isEmpty) "Unit" else "UGenInLike"
-
       DefDef(
         NoMods withPosition(Flags.PROTECTED, NoPosition) withPosition(Flags.METHOD, NoPosition),
         stringToTermName(strMakeUGens),
@@ -481,102 +481,112 @@ final class ClassGenerator
       )
     }
 
-//     /*
-//      * `protected def makeUGen(_args: IIdxSeq[UGenIn]): UGenInLike = ...`
-//      */
-//     val makeUGenDef = {
-//       val methodBody: Tree = {
-//         val (preBody, outUGenArgs) = {
-//           val strResolvedRateArg = if (maybeRateRef.nonEmpty) "_rate" else strRateArg
-//           val args1 = {
-//             val args0 = if ((sideEffect || indSideEffect) && (outputs != ZeroOutputs)) {
-//               Literal(Constant(true)) :: Nil
-//             } else Nil
+    val multiOut = outputs.size > 1 || outputs.exists(_.variadic.isDefined)
+
+    // `protected def makeUGen(_args: IIdxSeq[UGenIn]): UGenInLike = ...`
+    val makeUGenDef = {
+      val methodBody: Tree = {
+        val (preBody, outUGenArgs) = {
+          val strResolvedRateArg = if (maybeRateRef.nonEmpty) "_rate" else strRateArg
+
+          // args1 are the last two args (isIndividual, hasSideEffect)
+          val args1 = {
+            // the last argument to UGen.SingleOut and UGen.MultiOut is `hasSideEffect`.
+            // it has a default value of `false`, so we need to add this argument only
+            // if there is a side effect and the UGen is not zero-out.
+            val args0 = if ((sideEffect || indSideEffect) && (outputs.nonEmpty)) {
+              Literal(Constant(true)) :: Nil
+            } else Nil
+
+            // the preceeding argument is `isIndividual` for all UGens
+            if (indiv || indIndiv) {
+              Literal(Constant(true)) :: args0
+            } else if (args0.nonEmpty) {
+              Literal(Constant(false)) :: args0
+            } else args0
+          }
+
+//          val args2 = if (multiOut) {
+//            val tree = {
+//              outputs match {
+//                case fm: FixedMultiOutput => fm.tree
+//                case am@ArgMultiOutput(a) => if (a.isGE) {
+//                  require(!argsOut.exists(_.isString), "Currently strings not supported for arg-multioutput")
+//                  val numFixedArgs = argsOut.size - 1
+//                  val selSz = Select(identUArgs, "size")
+//                  if (numFixedArgs == 0) selSz else Apply(Select(selSz, "-"), Literal(Constant(numFixedArgs)) :: Nil)
+//                } else am.tree
+//              }
+//            }
+//            Apply(Apply(Select(identIIdxSeq, "fill"), tree :: Nil),
+//              Ident(impliedRate.map(_.typ).getOrElse(strResolvedRateArg)) :: Nil) :: Nil
 //
-//             if (indiv || indIndiv) {
-//               Literal(Constant(true)) :: args0
-//             } else if (args0.nonEmpty) {
-//               Literal(Constant(false)) :: args0
-//             } else args0
-//           }
+//          } else {
+//            Nil
+//          }
 //
-//           val args2 = outputs match {
-//             case m: MultiOutputLike =>
-//               val tree = {
-//                 m match {
-//                   case fm: FixedMultiOutput => fm.tree
-//                   case am@ArgMultiOutput(a) => if (a.isGE) {
-//                     require(!argsOut.exists(_.isString), "Currently strings not supported for arg-multioutput")
-//                     val numFixedArgs = argsOut.size - 1
-//                     val selSz = Select(identUArgs, "size")
-//                     if (numFixedArgs == 0) selSz else Apply(Select(selSz, "-"), Literal(Constant(numFixedArgs)) :: Nil)
-//                   } else am.tree
-//                 }
-//               }
-//               Apply(Apply(Select(identIIdxSeq, "fill"), tree :: Nil),
-//                 Ident(impliedRate.map(_.typ).getOrElse(strResolvedRateArg)) :: Nil) :: Nil
-//             case _ => Nil
-//           }
-//           // might need some more intelligent filtering eventually
-//           val args3 = (args2 :+ (if (expandBin.isDefined) Select(identIIdxSeq, "empty") else identUArgs)) ++ args1
-//           val args4 = identName /* Literal( Constant( name )) */ :: Ident(impliedRate.map(_.typ).getOrElse(strResolvedRateArg)) :: args3
+//          // might need some more intelligent filtering eventually
+//          val args3 = (args2 :+ (if (expandBin.isDefined) Select(identIIdxSeq, "empty") else identUArgs)) ::: args1
+//          val args4 = identName :: Ident(impliedRate.map(_.typ).getOrElse(strResolvedRateArg)) :: args3
 //
-//           val preBody = maybeRate.map(ua => {
-//             val aPos = argsOut.indexOf(ua)
-//             require(argsOut.take(aPos).forall(a => a.isGE && !a.multi), "Cannot resolve MaybeRate ref after multi args")
-//             // val _rate = rate |? _args(<pos>).rate
-//             ValDef(
-//               NoMods,
-//               strResolvedRateArg,
-//               EmptyTree,
-//               Apply(Select(identRateArg, strMaybeResolve), Select(Apply(identUArgs, Literal(Constant(aPos)) :: Nil), strRateMethod) :: Nil)
-//             )
-//           })
+//          val preBody = maybeRate.map(ua => {
+//            val aPos = argsOut.indexOf(ua)
+//            require(argsOut.take(aPos).forall(a => a.isGE && !a.multi), "Cannot resolve MaybeRate ref after multi args")
+//            // val _rate = rate |? _args(<pos>).rate
+//            ValDef(
+//              NoMods,
+//              strResolvedRateArg,
+//              EmptyTree,
+//              Apply(Select(identRateArg, strMaybeResolve), Select(Apply(identUArgs, Literal(Constant(aPos)) :: Nil), strRateMethod) :: Nil)
+//            )
+//          })
 //
-//           (preBody, args4 :: Nil) // no currying
-//         }
-//         val app0a = TypeDef(NoMods, typeName(outputs.typ), Nil, EmptyTree)
-//         val app1 = New(app0a, outUGenArgs)
+//          (preBody, args4 :: Nil) // no currying
+          ???
+        }
+//        val app0a = TypeDef(NoMods, typeName(outputs.typ), Nil, EmptyTree)
+//        val app1 = New(app0a, outUGenArgs)
 //
-//         val app2 = expandBin.map(binSel => {
-//           val a = argsInS.find(_.expandBin.isDefined).get
-//           require(!argsOut.exists(a => a.multi || a.isString), "Mixing binop with multi args is not yet supported")
-//           val aPos = argsOut.indexOf(a)
-//           assert(aPos >= 0)
-//           Apply(Select(Select(Ident("BinaryOp"), binSel), "make1"), app1 :: Apply(identUArgs, Literal(Constant(aPos)) :: Nil) :: Nil)
-//         }).getOrElse(app1)
-//         preBody match {
-//           case Some(tree) => Block(tree, app2)
-//           case None => app2
-//         }
-//       }
-//
-//       val methodArgs = List(List(ValDef(
-//         Modifiers(Flags.PARAM),
-//         strUArgs,
-//         TypeDef(NoMods, typeName(strIIdxSeq), TypeDef(NoMods, typeName("UGenIn"), Nil, EmptyTree) :: Nil, EmptyTree),
-//         EmptyTree
-//       )))
-//
-//       DefDef(
-//         NoMods withPosition(Flags.PROTECTED, NoPosition) withPosition(Flags.METHOD, NoPosition),
-//         stringToTermName(strMakeUGen),
-//         Nil, // tparams
-//         methodArgs, // vparamss
-//         TypeDef(NoMods, typeName(outputs.resName), Nil, EmptyTree), // TypeTree( NoType ), // tpt -- empty for testing
-//         methodBody // rhs
-//       )
-//     }
-//
-     val caseClassMethods = {
-       val m1 = makeUGensDef /* :: makeUGenDef */ :: Nil
-       m1
-     }
+//        val app2 = expandBin.map(binSel => {
+//          val a = argsIn.find(_.expandBin.isDefined).get
+//          require(!argsOut.exists(a => a.multi || a.isString), "Mixing binop with multi args is not yet supported")
+//          val aPos = argsOut.indexOf(a)
+//          assert(aPos >= 0)
+//          Apply(Select(Select(Ident("BinaryOp"), binSel), "make1"), app1 :: Apply(identUArgs, Literal(Constant(aPos)) :: Nil) :: Nil)
+//        }).getOrElse(app1)
+//        preBody match {
+//          case Some(tree) => Block(tree, app2)
+//          case None => app2
+//        }
+        ???
+      }
+
+      val methodArgs = List(List(ValDef(
+        Modifiers(Flags.PARAM),
+        strUArgs,
+        TypeDef(NoMods, typeName(strIIdxSeq), TypeDef(NoMods, typeName("UGenIn"), Nil, EmptyTree) :: Nil, EmptyTree),
+        EmptyTree
+      )))
+
+      DefDef(
+        NoMods withPosition(Flags.PROTECTED, NoPosition) withPosition(Flags.METHOD, NoPosition),
+        stringToTermName(strMakeUGen),
+        Nil, // tparams
+        methodArgs, // vparamss
+        TypeDef(NoMods, expandResultStr: TypeName, Nil, EmptyTree), // tpt
+        methodBody // rhs
+      )
+    }
+
+    val caseClassMethods = {
+      val m1 = makeUGensDef /* :: makeUGenDef */ :: Nil
+      m1
+    }
 
     val caseClassDef: Tree = {
       val outputsPrefix = if (outputs.isEmpty)
         "Zero"
-      else if (outputs.size > 1 || outputs.exists(_.variadic.isDefined))
+      else if (multiOut)
         "Multi"
       else
         "Single"
