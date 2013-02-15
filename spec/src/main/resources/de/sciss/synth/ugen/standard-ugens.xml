@@ -1,4 +1,4 @@
-<ugens> <!-- list as of 02-sep-10 -->
+<ugens revision="3">    <!-- list as of 02-sep-10 -->
     <file name="ChaosUGens">
         <ugen name="CuspN">
             <rate name="audio"/>
@@ -908,7 +908,7 @@
 
     <file name="DelayUGens">
         <ugen name="ControlRate">
-            <rate name="scalar" implied="true" method=""/>
+            <rate name="scalar" implied="true"/>    <!-- method="" -->
             <doc>
                 <text>
                     A UGen that reports the server's current control rate. This is equivalent to the reciprocal
@@ -919,7 +919,7 @@
             </doc>
         </ugen>
         <ugen name="SampleRate">
-            <rate name="scalar" implied="true" method=""/>
+            <rate name="scalar" implied="true"/>    <!-- method="" -->
             <doc>
                 <text>
                     A UGen that reports the server's current (audio) sample rate. This is equivalent to the reciprocal
@@ -931,7 +931,7 @@
             </doc>
         </ugen>
         <ugen name="SampleDur">
-            <rate name="scalar" implied="true" method=""/>
+            <rate name="scalar" implied="true"/>     <!-- method="" -->
             <doc>
                 <text>
                     A UGen that reports the server's current (audio) sample period in seconds. This is equivalent to the reciprocal
@@ -942,7 +942,7 @@
             </doc>
         </ugen>
         <ugen name="ControlDur">
-            <rate name="scalar" implied="true" method=""/>
+            <rate name="scalar" implied="true"/>     <!-- method="" -->
             <doc>
                 <text>
                     A UGen that reports the server's current control period in seconds. This is equivalent to the reciprocal
@@ -953,7 +953,7 @@
             </doc>
         </ugen>
         <ugen name="SubsampleOffset">
-            <rate name="scalar" implied="true" method=""/>
+            <rate name="scalar" implied="true"/>     <!-- method="" -->
             <doc>
                 <text>
                     A UGen that reports the fractional sample offset of the current Synth from its requested scheduled start.
@@ -973,7 +973,7 @@
             </doc>
         </ugen>
         <ugen name="RadiansPerSample">
-            <rate name="scalar" implied="true" method=""/>
+            <rate name="scalar" implied="true"/>     <!-- method="" -->
             <doc>
                 <text>
                     A UGen that delivers the conversion factor from frequency in Hertz to radians (normalized frequency).
@@ -984,7 +984,7 @@
             </doc>
         </ugen>
         <ugen name="NumInputBuses">
-            <rate name="scalar" implied="true" method=""/>
+            <rate name="scalar" implied="true"/>     <!-- method="" -->
             <doc>
                 <text>Number of input busses.</text>
                 <see>ugen.NumAudioBuses</see>
@@ -995,7 +995,7 @@
             </doc>
         </ugen>
         <ugen name="NumOutputBuses">
-            <rate name="scalar" implied="true" method=""/>
+            <rate name="scalar" implied="true"/>     <!-- method="" -->
             <doc>
                 <text>Number of output busses.</text>
                 <see>ugen.NumAudioBuses</see>
@@ -1006,7 +1006,7 @@
             </doc>
         </ugen>
         <ugen name="NumAudioBuses">
-            <rate name="scalar" implied="true" method=""/>
+            <rate name="scalar" implied="true"/>     <!-- method="" -->
             <doc>
                 <text>Number of audio busses.</text>
                 <see>ugen.NumControlBuses</see>
@@ -1017,7 +1017,7 @@
             </doc>
         </ugen>
         <ugen name="NumControlBuses">
-            <rate name="scalar" implied="true" method=""/>
+            <rate name="scalar" implied="true"/>     <!-- method="" -->
             <doc>
                 <text>Number of control busses.</text>
                 <see>ugen.NumAudioBuses</see>
@@ -1028,7 +1028,7 @@
             </doc>
         </ugen>
         <ugen name="NumBuffers">
-            <rate name="scalar" implied="true" method=""/>
+            <rate name="scalar" implied="true"/>     <!-- method="" -->
             <doc>
                 <text>Number of open buffers.</text>
                 <see>ugen.NumAudioBuses</see>
@@ -1039,7 +1039,7 @@
             </doc>
         </ugen>
         <ugen name="NumRunningSynths">
-            <rate name="scalar" implied="true" method=""/>
+            <rate name="scalar" implied="true"/>     <!-- method="" -->
             <doc>
                 <text>Number of currently running synths.</text>
                 <see>ugen.NumAudioBuses</see>

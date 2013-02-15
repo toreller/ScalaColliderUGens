@@ -32,12 +32,14 @@ import java.io.{IOException, File}
 import org.xml.sax.InputSource
 
 object Gen extends App {
-  var inFiles   = IndexedSeq.empty[String]
-  var docs       = true
-  var resources   = false
-  var outDirOption  = Option.empty[String]
-  val parser     = new OptionParser( "ScalaCollider-UGens" ) {
+  var inFiles         = IndexedSeq.empty[String]
+  var docs            = true
+  var resources       = false
+  var outDirOption    = Option.empty[String]
+  var forceOverwrite  = false
+  val parser          = new OptionParser( "ScalaCollider-UGens" ) {
     opt("r", "resources", "Use resources as input", action = { resources = true })
+    opt("f", "force", "Force overwrite of output files", action = { forceOverwrite = true })
     opt( "d", "dir", "<directory>", "Source output root directory", (s: String) => outDirOption = Some(s))
   //         doubleOpt( "in-start", "Punch in begin (secs)", (d: Double) => punchInStart  = Some( d ))
   //         intOpt( "num-per-file", "Maximum matches per single file (default 1)", numPerFile = _ )
@@ -69,7 +71,7 @@ object Gen extends App {
 
   inputs.foreach { source =>
     val xml = XML.load(source)
-    synth.performFiles(xml, outDir, docs = docs)
+    synth.performFiles(xml, outDir, docs = docs, forceOverwrite = forceOverwrite)
   }
   sys.exit(0)
 }

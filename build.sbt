@@ -1,6 +1,6 @@
 name := "ScalaColliderUGens"
 
-version in ThisBuild := "1.4.0-SNAPSHOT"
+version in ThisBuild := "1.4.0"
 
 organization in ThisBuild := "de.sciss"
 
@@ -21,9 +21,9 @@ initialCommands in console in ThisBuild := """import de.sciss.synth._"""
 
 // ---- publishing ----
 
-publishMavenStyle := true
+publishMavenStyle in ThisBuild := true
 
-publishTo <<= version { (v: String) =>
+publishTo in ThisBuild <<= version { (v: String) =>
    Some(if (v endsWith "-SNAPSHOT")
       "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
    else
@@ -33,9 +33,9 @@ publishTo <<= version { (v: String) =>
 
 publishArtifact in Test := false
 
-pomIncludeRepository := { _ => false }
+pomIncludeRepository in ThisBuild := { _ => false }
 
-pomExtra <<= name { n =>
+pomExtra in ThisBuild <<= name { n =>
 <scm>
   <url>git@github.com:Sciss/{n}.git</url>
   <connection>scm:git:git@github.com:Sciss/{n}.git</connection>

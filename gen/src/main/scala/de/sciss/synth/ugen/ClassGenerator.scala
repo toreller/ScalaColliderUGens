@@ -35,35 +35,80 @@ import collection.immutable.{IndexedSeq => IIdxSeq}
 import refactoring.transformation.TreeFactory
 import refactoring.common.{CompilerAccess, Tracing}
 import tools.nsc.io.AbstractFile
-import java.io.{FileOutputStream, File}
 import UGenSpec.{SignalShape => Sig, _}
 import ArgumentType.GE
 import annotation.tailrec
+import java.io.{FileOutputStream, File}
 
 final class ClassGenerator
   extends Refactoring with Tracing with CompilerProvider with CompilerAccess with TreeFactory {
 
   import global._
 
-  def performFiles(node: xml.Node, dir: File, docs: Boolean = true) {
+  val CHARSET = "UTF-8"
+
+  def performFiles(node: xml.Node, dir: File, docs: Boolean = true, forceOverwrite: Boolean = false) {
+    val revision = (node \ "@revision").text.toInt
     (node \ "file") foreach { fNode =>
-      val fName      = (fNode \ "@name").text + ".scala"
-      val specs = (fNode \ "ugen") map { uNode =>
-        UGenSpec.parse(uNode, docs = docs)
+      val fName   = (fNode \ "@name").text + ".scala"
+      val f       = new File(dir, fName)
+      val write   = forceOverwrite || !f.isFile || {
+        val source = io.Source.fromFile(f, CHARSET)
+        try {
+          val it = source.getLines()
+          !it.hasNext || {
+            val line = it.next()
+            val i = line.indexOf("revision: ")
+            i < 0 || (line.substring(i + 10).toInt < revision)
+          }
+        } catch {
+          case _: NumberFormatException => true
+        } finally {
+          source.close()
+        }
       }
-      val f = new File(dir, fName)
-      performFile(specs, f)
+      if (write) {
+        val specs = (fNode \ "ugen") map { uNode =>
+          UGenSpec.parse(uNode, docs = docs)
+        }
+        performFile(specs, f, revision)
+      }
       println(f.getAbsolutePath)
     }
   }
 
-  def performFile(specs: Seq[UGenSpec], file: File) {
+  def performFile(specs: Seq[UGenSpec], file: File, revision: Int) {
     val out = new FileOutputStream(file)
     try {
+      // create class trees
       val classes: List[Tree] = specs.flatMap(performSpec)(breakOut)
-      val pkg     = PackageDef(Select(Select(Ident("de"), "sciss"), "synth"), PackageDef(Ident("ugen"), classes) :: Nil)
-      val str     = createText(pkg)
-      val bytes   = str.getBytes("UTF-8")
+
+      // figure out whether `inf` is used as default value
+      val importFloat = specs.exists(_.args.exists(_.defaults.exists {
+        case (_, ArgumentValue.Inf) => true
+        case _ => false
+      }))
+
+      // ...if so, include the alias import for `inf`
+      val imports0 = if(importFloat)
+       Import(identFloat, ImportSelector(strPositiveInfinity: TermName, -1, strInf: TermName, -1 ) :: Nil ) :: Nil
+      else
+        Nil
+
+      // the imports always include the `IIdxSeq` alias, and optionally the `inf` alias.
+      val imports = Import(Select(Ident("collection" ),"immutable"),
+        ImportSelector("IndexedSeq": TermName, -1, strIIdxSeq: TypeName, -1) :: Nil) :: imports0
+
+      // the package definition defines the `synth` and `ugen` packages, adds the imports and then the classes
+      val pkg     = PackageDef(Select(Select(Ident("de"), "sciss"), "synth"),
+        PackageDef(Ident("ugen"), imports ::: classes) :: Nil)
+
+      // convert the tree to plain text and write it to the output file
+      val strBody = createText(pkg)
+      // we prepend a revision line comment which reflects the version
+      // of the spec file used
+      val strRev  = s"// revision: ${revision}\n$strBody"
+      val bytes   = strRev.getBytes(CHARSET)
       out.write(bytes)
     } finally {
       out.close()
@@ -126,13 +171,13 @@ final class ClassGenerator
 
   private def wrapDoc(spec: UGenSpec, tree: Tree, body: Boolean, args: Boolean): Tree = {
     if (spec.doc.isEmpty) return tree
-    val doc     = spec.doc.get
-    val bodyDoc = if (body) doc.body  else Nil
-    val linkDocs= if (body) doc.links else Nil
-    val argDocs = if (args) collectMethodDocs(spec) else Nil
-    val warnPos = body && doc.warnPos
+    val doc       = spec.doc.get
+    val bodyDoc   = if (body) doc.body  else Nil
+    val linkDocs  = if (body) doc.links else Nil
+    val argDocs   = if (args) collectMethodDocs(spec) else Nil
+    val warnPos   = body && doc.warnPos
 
-    val hasAny = doc.body.nonEmpty || doc.links.nonEmpty || argDocs.nonEmpty || warnPos
+    val hasAny    = doc.body.nonEmpty || doc.links.nonEmpty || argDocs.nonEmpty || warnPos
     if (!hasAny) return tree
 
     def feed(pre: List[String], post: List[String]): List[String] =
@@ -190,9 +235,9 @@ final class ClassGenerator
       case Float(f)       => Literal(Constant(f))
       case Boolean(b)     => Literal(Constant(if (b) 1 else 0)) // currently no type class for GE | Switch
       case String(s)      => Literal(Constant(s))               // currently no type class for GE | String
-      case Inf            => Ident("inf")
+      case Inf            => Ident(strInf)
       case DoneAction(a)  => Ident(a.name)
-      case Nyquist        => Ident("nyquist")
+      case Nyquist        => Ident(strNyquist)
     }
   }
 
@@ -232,36 +277,39 @@ final class ClassGenerator
 //    val traitWritesFFT    = TypeDef(Modifiers(Flags.TRAIT), "WritesFFT":     TypeName, Nil, EmptyTree)
 //    val traitWritesBus    = TypeDef(Modifiers(Flags.TRAIT), "WritesBus":     TypeName, Nil, EmptyTree)
 
-  private val strApply          = "apply"
-  private val identApply        = Ident(strApply)
-  private val strIIdxSeq        = "IIdxSeq"
-  private val identIIdxSeq      = Ident(strIIdxSeq)
-  private val identVector       = Ident("Vector")
-  private val strMakeUGens      = "makeUGens"
-  private val strMakeUGen       = "makeUGen"
-  private val identMakeUGen     = Ident(strMakeUGen)
-  private val strExpand         = "expand"
-  private val strUArgs          = "_args"
-  private val identUArgs        = Ident(strUArgs)
-  private val identUnwrap       = Ident("unwrap")
-  private val identMaybeRate    = Ident("MaybeRate")
-  private val identRate         = Ident("Rate")
-  private val strMaybeResolve   = "?|"
-  private val strOutputs        = "outputs"
-  private val strUGenIn         = "UGenIn"
-  private val identName         = Ident("name")
-  private val strRateArg        = "rate"
-  private val strRateMethod     = "rate"
-  private val identRateArg      = Ident(strRateArg)
-  private val identStringArg    = Ident("stringArg")
-  private val strEmpty          = "empty"
-  private val strPlusPlus       = "++"
-  private val strMinus          = "-"
-  private val strSize           = "size"
-  private val strFill           = "fill"
-  private val identBinaryOp     = Ident("BinaryOp")
-  private val strMake1          = "make1"
-  private val strTimes          = "Times"
+  private val strApply            = "apply"
+  private val identApply          = Ident(strApply)
+  private val strIIdxSeq          = "IIdxSeq"
+  private val identVector         = Ident("Vector")
+  private val strMakeUGens        = "makeUGens"
+  private val strMakeUGen         = "makeUGen"
+  private val identMakeUGen       = Ident(strMakeUGen)
+  private val strExpand           = "expand"
+  private val strUArgs            = "_args"
+  private val identUArgs          = Ident(strUArgs)
+  private val identUnwrap         = Ident("unwrap")
+  private val identMaybeRate      = Ident("MaybeRate")
+  private val identRate           = Ident("Rate")
+  private val strMaybeResolve     = "?|"
+  private val strOutputs          = "outputs"
+  private val strUGenIn           = "UGenIn"
+  private val identName           = Ident("name")
+  private val strRateArg          = "rate"
+  private val strRateMethod       = "rate"
+  private val identRateArg        = Ident(strRateArg)
+  private val identStringArg      = Ident("stringArg")
+  private val strEmpty            = "empty"
+  private val strPlusPlus         = "++"
+  private val strMinus            = "-"
+  private val strSize             = "size"
+  private val strFill             = "fill"
+  private val identBinaryOp       = Ident("BinaryOp")
+  private val strMake1            = "make1"
+  private val strTimes            = "Times"
+  private val identFloat          = Ident("Float")
+  private val strPositiveInfinity = "PositiveInfinity"
+  private val strInf              = "inf"
+  private val strNyquist          = "nyquist"
 
   def performSpec(spec: UGenSpec): List[Tree] = {
     import spec._
@@ -344,7 +392,7 @@ final class ClassGenerator
 
           // Note: to help faster compilation of use site code, always produce the return type annotation
           // if (mName != strApply) EmptyTree else
-            TypeDef(NoMods, name: TypeName, Nil, EmptyTree),
+          TypeDef(NoMods, name: TypeName, Nil, EmptyTree),
           methodBody             // rhs
         )
         mName -> wrapDoc(spec, df, /* indent = 1, */ body = false, args = true)
@@ -415,7 +463,7 @@ final class ClassGenerator
       }
     }
 
-    // attributes
+    // ---- attributes ----
 
     val a = spec.attr
     import Attribute._
@@ -502,10 +550,10 @@ final class ClassGenerator
       DefDef(
         NoMods withPosition(Flags.PROTECTED, NoPosition) withPosition(Flags.METHOD, NoPosition),
         stringToTermName(strMakeUGens),
-        Nil, // tparams
-        Nil, // vparamss
+        Nil,                                                        // tparams
+        Nil,                                                        // vparamss
         TypeDef(NoMods, expandResultStr: TypeName, Nil, EmptyTree), // tpt
-        methodBody // rhs
+        methodBody                                                  // rhs
       )
     }
 
@@ -600,7 +648,7 @@ final class ClassGenerator
             maybeRateRef.headOption.map { ua =>
               val aPos = argsOut.indexOf(ua)
               require(argsOut.take(aPos).forall(a => a.typeIsGE && !inputMap(a.name).variadic), "Cannot resolve MaybeRate ref after multi args")
-              // val _rate = rate |? _args(<pos>).rate
+              // `val _rate = rate |? _args(<pos>).rate`
               ValDef(
                 NoMods,
                 strResolvedRateArg,
@@ -644,10 +692,10 @@ final class ClassGenerator
       DefDef(
         NoMods withPosition(Flags.PROTECTED, NoPosition) withPosition(Flags.METHOD, NoPosition),
         stringToTermName(strMakeUGen),
-        Nil, // tparams
-        methodArgs, // vparamss
+        Nil,                                                        // tparams
+        methodArgs,                                                 // vparamss
         TypeDef(NoMods, expandResultStr: TypeName, Nil, EmptyTree), // tpt
-        methodBody // rhs
+        methodBody                                                  // rhs
       )
     }
 
@@ -656,26 +704,39 @@ final class ClassGenerator
       m1
     }
 
-    val caseClassDef: Tree = {
-      val outputsTypeString = s"UGenSource.${outputsPrefix}Out"
+    // e.g. `UGenSource.ZeroOut` or `UGenSource.SingleOut`, ...
+    val outputsTypeString = s"UGenSource.${outputsPrefix}Out"
+    // super class and traits
+    val caseClassParents  = TypeDef(NoMods, outputsTypeString, Nil, EmptyTree) :: caseClassMixins
 
-      val plain = mkCaseClass(
+    // if there is a companion object or the UGen is individual or it has arguments, a case class
+    // is constructed (the usual case)....
+    val caseClassDef = if (objectDef.nonEmpty || indiv || indIndiv || caseClassConstrArgs.nonEmpty) {
+      mkCaseClass(
         NoMods withPosition(Flags.FINAL, NoPosition),
         name,
-
         Nil, // tparams
         caseClassConstrArgs :: Nil,
         caseClassMethods,
-        TypeDef(NoMods, outputsTypeString, Nil, EmptyTree) :: caseClassMixins,  // parents
+        caseClassParents,  // parents
         Nil // super args
       )
-      wrapDoc(spec, plain, body = true, args = true)
+
+    // ...but there are no constructor methods and no args,
+    // the UGen is not individual. thus make it a case object
+    } else {
+      ModuleDef(
+        NoMods withPosition(Flags.CASE, NoPosition),
+        name,
+        Template(
+          caseClassParents, // parents
+          emptyValDef,      // self
+          caseClassMethods  // body
+        )
+      )
     }
 
-    val classes = objectDef ::: (caseClassDef :: Nil)
-
-//    val testDef = PackageDef(Select(Select(Ident("de"), "sciss"), "synth"), PackageDef(Ident("ugen"), classes) :: Nil)
-//    println(createText(testDef))
-    classes
+    val caseClassWithDoc = wrapDoc(spec, caseClassDef, body = true, args = true)
+    objectDef ::: (caseClassWithDoc :: Nil)
   }
 }

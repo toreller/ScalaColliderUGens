@@ -62,10 +62,7 @@ object Build extends sbt.Build {
       licenseURL("GPL v2+", "gen"),
       libraryDependencies ++= Seq(
         "com.github.scopt" %% "scopt" % "2.1.0",
-//        "org.scala-refactoring" % "org.scala-refactoring_2.9.1" % "0.4.1"
-        "org.scala-refactoring" % "org.scala-refactoring_2.10.0-SNAPSHOT" % "0.6.1-SNAPSHOT" from
-          "https://oss.sonatype.org/content/repositories/snapshots/org/scala-refactoring/org.scala-refactoring_2.10.0-SNAPSHOT/0.6.1-SNAPSHOT/org.scala-refactoring_2.10.0-SNAPSHOT-0.6.1-20130206.063903-60.jar"
-//        "org.scala-refactoring_2.10.0-SNAPSHOT-0.6.1-20130206.063903-60.jar" from snapshots
+        "org.scala-refactoring" % "org.scala-refactoring.library" % "0.6.1"
       ),
       libraryDependencies <+= scalaVersion { sv =>
         "org.scala-lang" % "scala-compiler" % sv
@@ -84,20 +81,20 @@ object Build extends sbt.Build {
       licenseURL("GPL v2+", "core"),
       sourceGenerators in Compile <+= (ugenGenerator in Compile),
       ugenGenerator in Compile <<=
-        (sourceManaged in Compile, dependencyClasspath in Runtime in gen, streams) map {
-          (src, cp, st) => runUGenGenerator(src, cp.files, st.log)
+        (resourceDirectory   in Compile in spec,
+         sourceManaged       in Compile,
+         dependencyClasspath in Runtime in gen,
+         streams) map {
+          (spec, src, cp, st) => runUGenGenerator(spec, src, cp.files, st.log)
         }
       )
     ) // .dependsOn(gen)
 
-  def runUGenGenerator(outputDir: File, cp: Seq[File], log: Logger): Seq[File] = {
+  def runUGenGenerator(specDir: File, outputDir: File, cp: Seq[File], log: Logger): Seq[File] = {
     val scalaOutput = outputDir / "scala"
-    val testOutFile = scalaOutput / "de" / "sciss" / "synth" / "ugen" / "TriggerUGens.scala"
-    // if (testOutFile is older than resource file) return ...
-
-    val mainClass = "de.sciss.synth.ugen.Gen"
-    val tmp       = java.io.File.createTempFile("sources", ".txt")
-    val os        = new java.io.FileOutputStream(tmp)
+    val mainClass   = "de.sciss.synth.ugen.Gen"
+    val tmp         = java.io.File.createTempFile("sources", ".txt")
+    val os          = new java.io.FileOutputStream(tmp)
 
     log.info("Generating UGen source code...")
 
