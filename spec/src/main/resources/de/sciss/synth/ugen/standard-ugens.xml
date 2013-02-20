@@ -1,4 +1,4 @@
-<ugens revision="3">    <!-- list as of 02-sep-10 -->
+<ugens revision="4">    <!-- list as of 02-sep-10 -->
     <file name="ChaosUGens">
         <ugen name="CuspN">
             <rate name="audio"/>
@@ -2423,26 +2423,26 @@
                     every time a new segment starts.
                 </text>
                 <see>ugen.EnvGen</see>
-                <see>EnvShape</see>
+                <see>Env.Shape</see>
                 <see>DoneAction</see>
             </doc>
         </ugen>
         <ugen name="Dseries" indiv="true">
             <rate name="demand" implied="true" method="apply"/>
-            <arg name="start" default="0.0">
+            <arg name="length" type="gint" default="inf" pos="2">
+                <doc>
+                    the number of elements to produces (maybe be infinite)
+                </doc>
+            </arg>
+            <arg name="start" default="0.0" pos="0">
                 <doc>
                     the start value of the series
                 </doc>
             </arg>
-            <arg name="step" default="1.0">
+            <arg name="step" default="1.0" pos="1">
                 <doc>
                     the incremental step by which the series changes. the step is
                     added to the previous value on each demand.
-                </doc>
-            </arg>
-            <arg name="length" type="gint" default="inf">
-                <doc>
-                    the number of elements to produces (maybe be infinite)
                 </doc>
             </arg>
             <doc>
@@ -2457,28 +2457,35 @@
         </ugen>
         <ugen name="Dgeom" indiv="true">
             <rate name="demand" implied="true" method="apply"/>
-            <arg name="start" default="1.0"/>
-            <arg name="grow" default="2.0"/>
-            <arg name="length" type="gint" default="inf"/>
+            <arg name="length" type="gint" default="inf" pos="2"/>
+            <arg name="start" default="1.0" pos="0"/>
+            <arg name="grow" default="2.0" pos="1"/>
         </ugen>
         <ugen name="Dwhite" indiv="true" random="true">
             <rate name="demand" implied="true" method="apply"/>
-            <arg name="lo" default="0.0"/>
-            <arg name="hi" default="1.0"/>
-            <arg name="length" type="gint" default="inf"/>
-        </ugen>
-        <ugen name="Dbrown" indiv="true" random="true">
-            <rate name="demand" implied="true" method="apply"/>
-            <arg name="lo" default="0.0"/>
-            <arg name="hi" default="1.0"/>
-            <arg name="step" default="0.01"/>
-            <arg name="length" type="gint" default="inf"/>
+            <arg name="length" type="gint" default="inf" pos="2"/>
+            <arg name="lo" default="0.0" pos="0"/>
+            <arg name="hi" default="1.0" pos="1"/>
         </ugen>
         <ugen name="Diwhite" indiv="true" random="true">
             <rate name="demand" implied="true" method="apply"/>
-            <arg name="lo" default="0.0"/>
-            <arg name="hi" default="1.0"/>
-            <arg name="length" type="gint" default="inf"/>
+            <arg name="length" type="gint" default="inf" pos="2"/>
+            <arg name="lo" default="0.0" pos="0"/>
+            <arg name="hi" default="1.0" pos="1"/>
+        </ugen>
+        <ugen name="Dbrown" indiv="true" random="true">
+            <rate name="demand" implied="true" method="apply"/>
+            <arg name="length" type="gint" default="inf" pos="3"/>
+            <arg name="lo" default="0.0" pos="0"/>
+            <arg name="hi" default="1.0" pos="1"/>
+            <arg name="step" default="0.01" pos="2"/>
+        </ugen>
+        <ugen name="Dibrown" indiv="true" random="true">
+            <rate name="demand" implied="true" method="apply"/>
+            <arg name="length" type="gint" default="inf" pos="3"/>
+            <arg name="lo" default="0.0" pos="0"/>
+            <arg name="hi" default="1.0" pos="1"/>
+            <arg name="step" default="0.01" pos="2"/>
         </ugen>
         <ugen name="Dseq" indiv="true">
             <rate name="demand" implied="true" method="apply"/>
@@ -2517,10 +2524,10 @@
         </ugen>
         <ugen name="Dbufwr" indiv="true" writesbuf="true" doneflag="true">
             <rate name="demand" implied="true" method="apply"/>
-            <arg name="in"/>
-            <arg name="buf" type="buf"/>
-            <arg name="index" default="0"/>
-            <arg name="loop" default="true"/>
+            <arg name="buf" type="buf" pos="1"/>
+            <arg name="index" default="0" pos="2"/>
+            <arg name="in" pos="0"/>
+            <arg name="loop" default="true" pos="3"/>
         </ugen>
         <ugen name="Drand" indiv="true" random="true">
             <rate name="demand" implied="true" method="apply"/>

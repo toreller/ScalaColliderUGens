@@ -19,11 +19,11 @@ Big thanks to Mirko Stocker for the [Scala-Refactoring Library](http://scala-ref
 
 All artifacts are published to Maven Central, and are available as follows:
 
-    "de.sciss" %  "scalacolliderugens-spec" % version
-    "de.sciss" %% "scalacolliderugens-api"  % version
-    "de.sciss" %% "scalacolliderugens-core" % version
+    "de.sciss" %  "scalacolliderugens-spec" % v
+    "de.sciss" %% "scalacolliderugens-api"  % v
+    "de.sciss" %% "scalacolliderugens-core" % v
 
-The current `version` is 1.4.0.
+The current version `v` is `"1.4.+"`.
 
 ## building
 
