@@ -1,6 +1,6 @@
 name := "ScalaColliderUGens"
 
-version in ThisBuild := "1.5.0-SNAPSHOT"
+version in ThisBuild := "1.5.0"
 
 organization in ThisBuild := "de.sciss"
 
@@ -11,7 +11,7 @@ homepage in ThisBuild <<= name { n => Some(url("https://github.com/Sciss/" + n))
 // default license - note: does not apply to the -spec sub project
 // licenses in ThisBuild := Seq("GPL v2+" -> url("http://www.gnu.org/licenses/gpl-2.0.txt"))
 
-scalaVersion in ThisBuild := "2.10.+"
+scalaVersion in ThisBuild := "2.10.0"
 
 retrieveManaged in ThisBuild := true
 
