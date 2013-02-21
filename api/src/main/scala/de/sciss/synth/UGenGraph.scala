@@ -29,6 +29,9 @@ import collection.immutable.{IndexedSeq => IIdxSeq}
 import java.io.DataOutputStream
 
 object UGenGraph {
+  trait BuilderFactory {
+    def build(graph: SynthGraph): UGenGraph
+  }
 
   trait Builder {
     def addUGen(ugen: UGen): Unit
@@ -39,18 +42,18 @@ object UGenGraph {
 
   //   def individuate: Int = builder.individuate
 
-  /**
-   * Expands a given `SynthGraph` using the default
-   * `UGenGraph.Builder` class. This method is typically
-   * involved indirectly via the synth graph's `expand` method.
-   *
-   * @param graph   the graph which should be expanded
-   * @return        the expanded ugen graph
-   */
-  def expand(graph: SynthGraph): UGenGraph = {
-    val b = new impl.DefaultUGenGraphBuilder(graph)
-    use(b) { b.build }
-  }
+//  /**
+//   * Expands a given `SynthGraph` using the default
+//   * `UGenGraph.Builder` class. This method is typically
+//   * involved indirectly via the synth graph's `expand` method.
+//   *
+//   * @param graph   the graph which should be expanded
+//   * @return        the expanded ugen graph
+//   */
+//  def expand(graph: SynthGraph): UGenGraph = {
+//    val b = new impl.DefaultUGenGraphBuilder(graph)
+//    use(b) { b.build }
+//  }
 
   /**
    * Installs a custom ugen graph builder on the current thread,
