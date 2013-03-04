@@ -242,7 +242,7 @@ private[synth] object UGenSpecParser {
         }
         val tpe = GE(Sig.Trigger)
         if (isInit) errorScalarType(uName, aName, tpe)
-        tpe -> ArgumentValue.Boolean(value = true)
+        tpe -> ArgumentValue.Boolean(value = b)
 
       case IsBoolean(b)     =>
         // ---- check correctness ----
@@ -250,7 +250,7 @@ private[synth] object UGenSpecParser {
           case GE(Sig.Switch,_) =>
           case other => incompatibleTypeDefault(uName, aName, other, default)
         }
-        GE(Sig.Switch, scalar = isInit) -> ArgumentValue.Boolean(value = true)
+        GE(Sig.Switch, scalar = isInit) -> ArgumentValue.Boolean(value = b)
 
       case IsGate(b) =>
         // ---- check correctness ----
@@ -260,7 +260,7 @@ private[synth] object UGenSpecParser {
         }
         val tpe = GE(Sig.Gate)
         if (isInit) errorScalarType(uName, aName, tpe)
-        tpe -> ArgumentValue.Boolean(value = true)
+        tpe -> ArgumentValue.Boolean(value = b)
 
       case IsDoneAction(a) =>
         // ---- check correctness ----
