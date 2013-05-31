@@ -52,7 +52,8 @@ sealed trait UGen extends Product /* with MaybeIndividual */ {
   def specialIndex = 0
 
   override def toString: String = {
-    name + "." + rate.methodName + inputs.mkString("(", ", ", ")")
+    val ins = inputs.mkString("(", ", ", ")")
+    s"$name.${rate.methodName}$ins"
   }
 
   // the full UGen spec:

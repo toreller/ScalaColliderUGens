@@ -29,13 +29,12 @@ import scala.{Seq => SSeq}
 import collection.breakOut
 import collection.immutable.{IndexedSeq => IIdxSeq}
 
-/**
- *    The UGen graph is constructed from interconnecting graph elements (GE).
- *    Graph elements can be decomposed into a sequence of UGenIn objects.
- *    Graph elements are ordinary UGens, UGen proxies, Control proxies,
- *    Constants, and collections of UGen inputs which result from
- *    multichannel expansion (UGenInSeq). 
- */
+/** The UGen graph is constructed from interconnecting graph elements (GE).
+  * Graph elements can be decomposed into a sequence of UGenIn objects.
+  * Graph elements are ordinary UGens, UGen proxies, Control proxies,
+  * Constants, and collections of UGen inputs which result from
+  * multichannel expansion (UGenInSeq).
+  */
 object GE {
   import language.implicitConversions
 
@@ -44,7 +43,7 @@ object GE {
 
   implicit def expand(ge: GE): UGenInLike = ge.expand
 
-   // XXX don't we expect Multi[ GE[ R ]] ?
+   // XXX don't we expect Multi[GE[R]] ?
    implicit def fromSeq(xs: SSeq[GE]): GE = xs match {
      case SSeq(x) => x
      case _       => SeqImpl(xs.toIndexedSeq)
@@ -105,5 +104,5 @@ object GE {
 trait GE {
   def rate: MaybeRate
   private[synth] def expand: UGenInLike
-//  private[synth] def productPrefix: String
+  //  private[synth] def productPrefix: String
 }

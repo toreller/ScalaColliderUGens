@@ -46,7 +46,7 @@ object SynthGraph {
   def builder: Builder = builders.get
 
   def apply(thunk: => Any): SynthGraph = {
-    val b = new BuilderImpl
+    val b   = new BuilderImpl
     val old = builders.get()
     builders.set(b)
     try {
@@ -125,7 +125,7 @@ object SynthGraph {
 
 @SerialVersionUID(3232544436683817667L)
 final case class SynthGraph(sources: IIdxSeq[Lazy], controlProxies: ISet[ControlProxyLike[_]]) {
-  def isEmpty: Boolean   = sources.isEmpty && controlProxies.isEmpty
+  def isEmpty : Boolean  = sources.isEmpty && controlProxies.isEmpty
   def nonEmpty: Boolean  = !isEmpty
   def expand(implicit factory: UGenGraph.BuilderFactory): UGenGraph = factory.build(this)
 }
