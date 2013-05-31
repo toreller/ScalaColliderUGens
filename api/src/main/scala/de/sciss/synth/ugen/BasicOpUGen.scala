@@ -37,35 +37,35 @@ import annotation.switch
 //   def ir( in: GE, mul: GE, add: GE ) : MulAdd = apply( scalar, in, mul, add )
 //}
 
-final case class MulAdd( /* rate: MaybeRate, */ in: GE, mul: GE, add: GE )
-extends UGenSource.SingleOut {
-   protected def makeUGens : UGenInLike = unwrap( IIdxSeq( in.expand, mul.expand, add.expand ))
+final case class MulAdd(/* rate: MaybeRate, */ in: GE, mul: GE, add: GE)
+  extends UGenSource.SingleOut {
+  protected def makeUGens: UGenInLike = unwrap(IIdxSeq(in.expand, mul.expand, add.expand))
 
-   def rate: MaybeRate = in.rate // XXX correct?
+  def rate: MaybeRate = in.rate // XXX correct?
 
-   protected def makeUGen( args: IIdxSeq[ UGenIn ]) : UGenInLike = {
-      val in0  = args(0)
-      val mul0 = args(1)
-      val add0 = args(2)
-      (mul0, add0) match {
-         case (c(0),  _)    => add0
-         case (c(1),  c(0)) => in0
-         case (c(1),  _)    => BinaryOp.Plus.make1( in0, add0 )
-         case (c(-1), c(0)) => UnaryOp.Neg.make1( in0 )
-         case (_,     c(0)) => BinaryOp.Times.make1( in0,  mul0 )
-         case (c(-1), _)    => BinaryOp.Minus.make1( add0, in0 )
-         case _             =>
-            if( in0.rate == `audio` ||
-               (in0.rate == `control` && (mul0.rate == `control` || mul0.rate == `scalar`) &&
-                                         (add0.rate == `control` || add0.rate == `scalar`)) ) {
-               new UGen.SingleOut( name, in0.rate, args )
-            } else {
-               BinaryOp.Plus.make1( BinaryOp.Times.make1( in0, mul0 ), add0 )
-            }
-      }
-   }
+  protected def makeUGen(args: IIdxSeq[UGenIn]): UGenInLike = {
+    val in0 = args(0)
+    val mul0 = args(1)
+    val add0 = args(2)
+    (mul0, add0) match {
+      case (c(0), _)      => add0
+      case (c(1), c(0))   => in0
+      case (c(1), _)      => BinaryOp.Plus.make1(in0, add0)
+      case (c(-1), c(0))  => UnaryOp.Neg.make1(in0)
+      case (_, c(0))      => BinaryOp.Times.make1(in0, mul0)
+      case (c(-1), _)     => BinaryOp.Minus.make1(add0, in0)
+      case _              =>
+        if (in0.rate == `audio` ||
+          (in0.rate == `control` && (mul0.rate == `control` || mul0.rate == `scalar`) &&
+            (add0.rate == `control` || add0.rate == `scalar`))) {
+          new UGen.SingleOut(name, in0.rate, args)
+        } else {
+          BinaryOp.Plus.make1(BinaryOp.Times.make1(in0, mul0), add0)
+        }
+    }
+  }
 
-   override def toString = in.toString + ".madd(" + mul + ", " + add + ")"
+  override def toString = in.toString + ".madd(" + mul + ", " + add + ")"
 }
 
 /**
@@ -75,161 +75,194 @@ extends UGenSource.SingleOut {
  *    @see  BinaryOpUGen
  */
 object UnaryOp {
-   unop =>
+  unop =>
 
-   import synth.{FloatFun => rf}
+  import synth.{FloatFun => rf}
 
-   sealed abstract class Op( val id: Int ) extends Serializable {
-      op =>
+  sealed abstract class Op(val id: Int) extends Serializable {
+    op =>
 
-      final def make( a: GE ) : GE = a match {
-         case c(f)   => c( make1( f ))
-         case _      => UnaryOp( /* a.rate, */ op, a )
-      }
-      final protected[synth] def make1( a: UGenIn ) : UGenIn = a match {
-         case c(f)   => c( make1( f ))
-         case _      => new UnaryOpUGen( /* a.rate, */ op, a ) // unop.apply( a.rate, this, a )
-      }
+    final def make(a: GE): GE = a match {
+      case c(f) => c(make1(f))
+      case _    => UnaryOp(/* a.rate, */ op, a)
+    }
 
-      protected def make1( a: Float ) : Float
+    final protected[synth] def make1(a: UGenIn): UGenIn = a match {
+      case c(f) => c(make1(f))
+      case _    => new UnaryOpUGen(/* a.rate, */ op, a) // unop.apply( a.rate, this, a )
+    }
 
-      def name = { val cn = getClass.getName
-         val sz   = cn.length
-         val i    = cn.indexOf( '$' ) + 1
-         cn.charAt( i ).toLower + cn.substring( i + 1, if( cn.charAt( sz - 1 ) == '$' ) sz - 1 else sz )
-      }
-   }
+    protected def make1(a: Float): Float
 
-   case object Neg         extends Op(  0 ) {
-      protected def make1( a: Float ) = -a
-   }
-   case object Not         extends Op(  1 ) {
-      protected def make1( a: Float ) = rf.not( a )
-   }
-// case object IsNil       extends Op(  2 )
-// case object NotNil      extends Op(  3 )
-// case object BitNot      extends Op(  4 )
-   case object Abs         extends Op(  5 ) {
-      protected def make1( a: Float ) = rf.abs( a )
-   }
-// case object ToFloat     extends Op(  6 )
-// case object ToInt       extends Op(  7 )
-   case object Ceil        extends Op(  8 ) {
-      protected def make1( a: Float ) = rf.ceil( a )
-   }
-   case object Floor       extends Op(  9 ) {
-      protected def make1( a: Float ) = rf.floor( a )
-   }
-   case object Frac        extends Op( 10 ) {
-      protected def make1( a: Float ) = rf.frac( a )
-   }
-   case object Signum      extends Op( 11 ) {
-      protected def make1( a: Float ) = math.signum( a )
-   }
-   case object Squared     extends Op( 12 ) {
-      protected def make1( a: Float ) = rf.squared( a )
-   }
-   case object Cubed       extends Op( 13 ) {
-      protected def make1( a: Float ) = rf.cubed( a )
-   }
-   case object Sqrt        extends Op( 14 ) {
-      protected def make1( a: Float ) = rf.sqrt( a )
-   }
-   case object Exp         extends Op( 15 ) {
-      protected def make1( a: Float ) = rf.exp( a )
-   }
-   case object Reciprocal  extends Op( 16 ) {
-      protected def make1( a: Float ) = rf.reciprocal( a )
-   }
-   case object Midicps     extends Op( 17 ) {
-      protected def make1( a: Float ) = rf.midicps( a )
-   }
-   case object Cpsmidi     extends Op( 18 ) {
-      protected def make1( a: Float ) = rf.cpsmidi( a )
-   }
-   case object Midiratio   extends Op( 19 ) {
-      protected def make1( a: Float ) = rf.midiratio( a )
-   }
-   case object Ratiomidi   extends Op( 20 ) {
-      protected def make1( a: Float ) = rf.ratiomidi( a )
-   }
-   case object Dbamp       extends Op( 21 ) {
-      protected def make1( a: Float ) = rf.dbamp( a )
-   }
-   case object Ampdb       extends Op( 22 ) {
-      protected def make1( a: Float ) = rf.ampdb( a )
-   }
-   case object Octcps      extends Op( 23 ) {
-      protected def make1( a: Float ) = rf.octcps( a )
-   }
-   case object Cpsoct      extends Op( 24 ) {
-      protected def make1( a: Float ) = rf.cpsoct( a )
-   }
-   case object Log         extends Op( 25 ) {
-      protected def make1( a: Float ) = rf.log( a )
-   }
-   case object Log2        extends Op( 26 ) {
-      protected def make1( a: Float ) = rf.log2( a )
-   }
-   case object Log10       extends Op( 27 ) {
-      protected def make1( a: Float ) = rf.log10( a )
-   }
-   case object Sin         extends Op( 28 ) {
-      protected def make1( a: Float ) = rf.sin( a )
-   }
-   case object Cos         extends Op( 29 ) {
-      protected def make1( a: Float ) = rf.cos( a )
-   }
-   case object Tan         extends Op( 30 ) {
-      protected def make1( a: Float ) = rf.tan( a )
-   }
-   case object Asin        extends Op( 31 ) {
-      protected def make1( a: Float ) = rf.asin( a )
-   }
-   case object Acos        extends Op( 32 ) {
-      protected def make1( a: Float ) = rf.acos( a )
-   }
-   case object Atan        extends Op( 33 ) {
-      protected def make1( a: Float ) = rf.atan( a )
-   }
-   case object Sinh        extends Op( 34 ) {
-      protected def make1( a: Float ) = rf.sinh( a )
-   }
-   case object Cosh        extends Op( 35 ) {
-      protected def make1( a: Float ) = rf.cosh( a )
-   }
-   case object Tanh        extends Op( 36 ) {
-      protected def make1( a: Float ) = rf.tanh( a )
-   }
-// class Rand              extends Op( 37 )
-// class Rand2             extends Op( 38 )
-// class Linrand           extends Op( 39 )
-// class Bilinrand         extends Op( 40 )
-// class Sum3rand          extends Op( 41 )
-   case object Distort     extends Op( 42 ) {
-      protected def make1( a: Float ) = rf.distort( a )
-   }
-   case object Softclip    extends Op( 43 ) {
-      protected def make1( a: Float ) = rf.softclip( a )
-   }
-// class Coin              extends Op( 44 )
-// case object DigitValue  extends Op( 45 )
-// case object Silence     extends Op( 46 )
-// case object Thru        extends Op( 47 )
-// case object RectWindow  extends Op( 48 )
-// case object HanWindow   extends Op( 49 )
-// case object WelWindow   extends Op( 50 )
-// case object TriWindow   extends Op( 51 )
-   case object Ramp        extends Op( 52 ) {
-      protected def make1( a: Float ) = rf.ramp( a )
-   }
-   case object Scurve      extends Op( 53 ) {
-      protected def make1( a: Float ) = rf.scurve( a )
-   }
+    def name = {
+      val cn = getClass.getName
+      val sz = cn.length
+      val i  = cn.indexOf('$') + 1
+      cn.charAt(i).toLower + cn.substring(i + 1, if (cn.charAt(sz - 1) == '$') sz - 1 else sz)
+    }
+  }
 
-//   protected[synth] def make( selector: Op, a: GE ) : GE = {
-//      for( Seq( ai ) <- expand( a )) yield selector.make1( ai )
-//   }
+  case object Neg extends Op(0) {
+    protected def make1(a: Float) = -a
+  }
+
+  case object Not extends Op(1) {
+    protected def make1(a: Float) = rf.not(a)
+  }
+
+  // case object IsNil       extends Op(  2 )
+  // case object NotNil      extends Op(  3 )
+  // case object BitNot      extends Op(  4 )
+  case object Abs extends Op(5) {
+    protected def make1(a: Float) = rf.abs(a)
+  }
+
+  // case object ToFloat     extends Op(  6 )
+  // case object ToInt       extends Op(  7 )
+  case object Ceil extends Op(8) {
+    protected def make1(a: Float) = rf.ceil(a)
+  }
+
+  case object Floor extends Op(9) {
+    protected def make1(a: Float) = rf.floor(a)
+  }
+
+  case object Frac extends Op(10) {
+    protected def make1(a: Float) = rf.frac(a)
+  }
+
+  case object Signum extends Op(11) {
+    protected def make1(a: Float) = math.signum(a)
+  }
+
+  case object Squared extends Op(12) {
+    protected def make1(a: Float) = rf.squared(a)
+  }
+
+  case object Cubed extends Op(13) {
+    protected def make1(a: Float) = rf.cubed(a)
+  }
+
+  case object Sqrt extends Op(14) {
+    protected def make1(a: Float) = rf.sqrt(a)
+  }
+
+  case object Exp extends Op(15) {
+    protected def make1(a: Float) = rf.exp(a)
+  }
+
+  case object Reciprocal extends Op(16) {
+    protected def make1(a: Float) = rf.reciprocal(a)
+  }
+
+  case object Midicps extends Op(17) {
+    protected def make1(a: Float) = rf.midicps(a)
+  }
+
+  case object Cpsmidi extends Op(18) {
+    protected def make1(a: Float) = rf.cpsmidi(a)
+  }
+
+  case object Midiratio extends Op(19) {
+    protected def make1(a: Float) = rf.midiratio(a)
+  }
+
+  case object Ratiomidi extends Op(20) {
+    protected def make1(a: Float) = rf.ratiomidi(a)
+  }
+
+  case object Dbamp extends Op(21) {
+    protected def make1(a: Float) = rf.dbamp(a)
+  }
+
+  case object Ampdb extends Op(22) {
+    protected def make1(a: Float) = rf.ampdb(a)
+  }
+
+  case object Octcps extends Op(23) {
+    protected def make1(a: Float) = rf.octcps(a)
+  }
+
+  case object Cpsoct extends Op(24) {
+    protected def make1(a: Float) = rf.cpsoct(a)
+  }
+
+  case object Log extends Op(25) {
+    protected def make1(a: Float) = rf.log(a)
+  }
+
+  case object Log2 extends Op(26) {
+    protected def make1(a: Float) = rf.log2(a)
+  }
+
+  case object Log10 extends Op(27) {
+    protected def make1(a: Float) = rf.log10(a)
+  }
+
+  case object Sin extends Op(28) {
+    protected def make1(a: Float) = rf.sin(a)
+  }
+
+  case object Cos extends Op(29) {
+    protected def make1(a: Float) = rf.cos(a)
+  }
+
+  case object Tan extends Op(30) {
+    protected def make1(a: Float) = rf.tan(a)
+  }
+
+  case object Asin extends Op(31) {
+    protected def make1(a: Float) = rf.asin(a)
+  }
+
+  case object Acos extends Op(32) {
+    protected def make1(a: Float) = rf.acos(a)
+  }
+
+  case object Atan extends Op(33) {
+    protected def make1(a: Float) = rf.atan(a)
+  }
+
+  case object Sinh extends Op(34) {
+    protected def make1(a: Float) = rf.sinh(a)
+  }
+
+  case object Cosh extends Op(35) {
+    protected def make1(a: Float) = rf.cosh(a)
+  }
+
+  case object Tanh extends Op(36) {
+    protected def make1(a: Float) = rf.tanh(a)
+  }
+
+  // class Rand              extends Op( 37 )
+  // class Rand2             extends Op( 38 )
+  // class Linrand           extends Op( 39 )
+  // class Bilinrand         extends Op( 40 )
+  // class Sum3rand          extends Op( 41 )
+  case object Distort extends Op(42) {
+    protected def make1(a: Float) = rf.distort(a)
+  }
+
+  case object Softclip extends Op(43) {
+    protected def make1(a: Float) = rf.softclip(a)
+  }
+
+  // class Coin              extends Op( 44 )
+  // case object DigitValue  extends Op( 45 )
+  // case object Silence     extends Op( 46 )
+  // case object Thru        extends Op( 47 )
+  // case object RectWindow  extends Op( 48 )
+  // case object HanWindow   extends Op( 49 )
+  // case object WelWindow   extends Op( 50 )
+  // case object TriWindow   extends Op( 51 )
+  case object Ramp extends Op(52) {
+    protected def make1(a: Float) = rf.ramp(a)
+  }
+
+  case object Scurve extends Op(53) {
+    protected def make1(a: Float) = rf.scurve(a)
+  }
 }
 
 final case class UnaryOp(/* rate: MaybeRate, */ selector: UnaryOp.Op, a: GE)
@@ -246,12 +279,13 @@ final case class UnaryOp(/* rate: MaybeRate, */ selector: UnaryOp.Op, a: GE)
     selector.make1(a)
   }
 
-  override def toString = a.toString + "." + selector.name
+  override def toString = s"$a.${selector.name}"
 }
 
 // Note: only deterministic selectors are implemented!!
 final class UnaryOpUGen /**/ (/* rate: Rate, */ selector: UnaryOp.Op, a: UGenIn /*[ R ]*/)
   extends UGen.SingleOut("UnaryOpUGen", a.rate, IIdxSeq(a)) {
+
   override def specialIndex = selector.id
 }
 
@@ -262,265 +296,307 @@ final class UnaryOpUGen /**/ (/* rate: Rate, */ selector: UnaryOp.Op, a: UGenIn 
  *    @see  UnaryOpUGen
  */
 object BinaryOp {
-   binop =>
+  binop =>
 
-   sealed abstract class Op( val id: Int ) extends Serializable {
-      op =>
+  sealed abstract class Op(val id: Int) extends Serializable {
+    op =>
 
-//      def make( rate: R, a: GE[ UGenIn[ R ]]) = UnaryOp[ R ]( rate, this, a )
-      def make( a: GE, b: GE ) : GE = (a, b) match {
-         case (c(af), c(bf))  => c( make1( af, bf ))
-         case _               => BinaryOp( op, a, b )
-      }
+    //      def make( rate: R, a: GE[ UGenIn[ R ]]) = UnaryOp[ R ]( rate, this, a )
+    def make(a: GE, b: GE): GE = (a, b) match {
+      case (c(af), c(bf)) => c(make1(af, bf))
+      case _              => BinaryOp(op, a, b)
+    }
 
-      protected[synth] def make1( a: UGenIn, b: UGenIn ) : UGenIn = (a, b) match {
-         case (c(af), c(bf))  => c( make1( af, bf ))
-         case _               => new BinaryOpUGen( op, a, b)
-      }
+    protected[synth] def make1(a: UGenIn, b: UGenIn): UGenIn = (a, b) match {
+      case (c(af), c(bf)) => c(make1(af, bf))
+      case _              => new BinaryOpUGen(op, a, b)
+    }
 
-      protected def make1( a: Float, b: Float ) : Float
+    protected def make1(a: Float, b: Float): Float
 
-      def name: String = { val cn = getClass.getName
-         val sz   = cn.length
-         val i    = cn.indexOf( '$' ) + 1
-         cn.charAt( i ).toLower + cn.substring( i + 1, if( cn.charAt( sz - 1 ) == '$' ) sz - 1 else sz )
-      }
-   }
-
-   import synth.{FloatFun => rf}
-
-   case object Plus           extends Op(  0 ) {
-      override val name = "+"
-      protected def make1( a: Float, b: Float ) = rf.+( a, b )
-      override protected[synth] def make1( a: UGenIn, b: UGenIn ) : UGenIn = (a, b) match {
-         case (c(0), _)       => b
-         case (_, c(0))       => a
-         case _               => super.make1( a, b )
-      }
-   }
-   case object Minus          extends Op(  1 ) {
-      override val name = "-"
-      protected def make1( a: Float, b: Float ) = rf.-( a, b )
-      override protected[synth] def make1( a: UGenIn, b: UGenIn ) : UGenIn = (a, b) match {
-//         case (c(0), _)       => -b
-         case (c(0), _)       => UnaryOp.Neg.make1( b )
-         case (_, c(0))       => a
-         case _               => super.make1( a, b )
-      }
-   }
-   case object Times          extends Op(  2 ) {
-      override val name = "*"
-      protected def make1( a: Float, b: Float ) = rf.*( a, b )
-      override protected[synth] def make1( a: UGenIn, b: UGenIn ) : UGenIn = (a, b) match {
-         case (c(0), _)       => a
-         case (_, c(0))       => b
-         case (c(1), _)       => b
-         case (_, c(1))       => a
-         case (c(-1), _)      => UnaryOp.Neg.make1( b ) // -b
-         case (_, c(-1))      => UnaryOp.Neg.make1( a ) // -a
-         case _               => super.make1( a, b )
-      }
-   }
-// case object IDiv           extends Op(  3 )
-   case object Div            extends Op(  4 ) {
-      override val name = "/"
-      protected def make1( a: Float, b: Float ) = rf./( a, b )
-      override protected[synth] def make1( a: UGenIn, b: UGenIn ) : UGenIn = (a, b) match {
-         case (_, c(1))       => a
-         case (_, c(-1))      => UnaryOp.Neg.make1( a ) // -a
-         case _               =>
-            if( b.rate == scalar ) {
-//               a * b.reciprocal
-               BinaryOp.Times.make1( a, UnaryOp.Reciprocal.make1( b ))
-            } else {
-               super.make1( a, b )
-            }
-      }
-   }
-   case object Mod            extends Op(  5 ) {
-      override val name = "%"
-      protected def make1( a: Float, b: Float ) = rf.%( a, b )
-   }
-   case object Eq             extends Op(  6 ) {
-      override val name = "==="
-      protected def make1( a: Float, b: Float ) = rf.===( a, b )
-   }
-   case object Neq            extends Op(  7 ) {
-      override val name = "!=="
-      protected def make1( a: Float, b: Float ) = rf.!==( a, b )
-   }
-   case object Lt             extends Op(  8 ) {
-      override val name = "<"
-      protected def make1( a: Float, b: Float ) = if( a < b ) 1f else 0f   // NOT rf.< !
-   }
-   case object Gt             extends Op(  9 ) {
-      override val name = ">"
-      protected def make1( a: Float, b: Float ) = if( a > b ) 1f else 0f   // NOT rf.> !
-   }
-   case object Leq            extends Op( 10 ) {
-      override val name = "<="
-      protected def make1( a: Float, b: Float ) = if( a <= b ) 1f else 0f   // NOT rf.<= !
-   }
-   case object Geq            extends Op( 11 ) {
-      override val name = ">="
-      protected def make1( a: Float, b: Float ) = if( a >= b ) 1f else 0f   // NOT rf.>= !
-   }
-   case object Min            extends Op( 12 ) {
-      protected def make1( a: Float, b: Float ) = rf.min( a, b )
-   }
-   case object Max            extends Op( 13 ) {
-      protected def make1( a: Float, b: Float ) = rf.max( a, b )
-   }
-   case object BitAnd         extends Op( 14 ) {
-      override val name = "&"
-      protected def make1( a: Float, b: Float ) = rf.&( a, b )
-   }
-   case object BitOr          extends Op( 15 ) {
-      override val name = "|"
-      protected def make1( a: Float, b: Float ) = rf.|( a, b )
-   }
-   case object BitXor         extends Op( 16 ) {
-      override val name = "^"
-      protected def make1( a: Float, b: Float ) = rf.^( a, b )
-   }
-// case object Lcm            extends Op( 17 )
-// case object Gcd            extends Op( 18 )
-   case object Round          extends Op( 19 ) {
-      protected def make1( a: Float, b: Float ) = rf.round( a, b )
-   }
-   case object Roundup        extends Op( 20 ) {
-      protected def make1( a: Float, b: Float ) = rf.roundup( a, b )
-   }
-   case object Trunc          extends Op( 21 ) {
-      protected def make1( a: Float, b: Float ) = rf.trunc( a, b )
-   }
-   case object Atan2          extends Op( 22 ) {
-      protected def make1( a: Float, b: Float ) = rf.atan2( a, b )
-   }
-   case object Hypot          extends Op( 23 ) {
-      protected def make1( a: Float, b: Float ) = rf.hypot( a, b )
-   }
-   case object Hypotx         extends Op( 24 ) {
-      protected def make1( a: Float, b: Float ) = rf.hypotx( a, b )
-   }
-   case object Pow            extends Op( 25 ) {
-      protected def make1( a: Float, b: Float ) = rf.pow( a, b )
-   }
-// case object <<             extends Op( 26 )
-// case object >>             extends Op( 27 )
-// case object UnsgnRghtShft  extends Op( 28 )
-// case object Fill           extends Op( 29 )
-   case object Ring1          extends Op( 30 ) {
-      protected def make1( a: Float, b: Float ) = rf.ring1( a, b )
-   }
-   case object Ring2          extends Op( 31 ) {
-      protected def make1( a: Float, b: Float ) = rf.ring2( a, b )
-   }
-   case object Ring3          extends Op( 32 ) {
-      protected def make1( a: Float, b: Float ) = rf.ring3( a, b )
-   }
-   case object Ring4          extends Op( 33 ) {
-      protected def make1( a: Float, b: Float ) = rf.ring4( a, b )
-   }
-   case object Difsqr         extends Op( 34 ) {
-      protected def make1( a: Float, b: Float ) = rf.difsqr( a, b )
-   }
-   case object Sumsqr         extends Op( 35 ) {
-      protected def make1( a: Float, b: Float ) = rf.sumsqr( a, b )
-   }
-   case object Sqrsum         extends Op( 36 ) {
-      protected def make1( a: Float, b: Float ) = rf.sqrsum( a, b )
-   }
-   case object Sqrdif         extends Op( 37 ) {
-      protected def make1( a: Float, b: Float ) = rf.sqrdif( a, b )
-   }
-   case object Absdif         extends Op( 38 ) {
-      protected def make1( a: Float, b: Float ) = rf.absdif( a, b )
-   }
-   case object Thresh         extends Op( 39 ) {
-      protected def make1( a: Float, b: Float ) = rf.thresh( a, b )
-   }
-   case object Amclip         extends Op( 40 ) {
-      protected def make1( a: Float, b: Float ) = rf.amclip( a, b )
-   }
-   case object Scaleneg       extends Op( 41 ) {
-      protected def make1( a: Float, b: Float ) = rf.scaleneg( a, b )
-   }
-   case object Clip2          extends Op( 42 ) {
-      protected def make1( a: Float, b: Float ) = rf.clip2( a, b )
-   }
-   case object Excess         extends Op( 43 ) {
-      protected def make1( a: Float, b: Float ) = rf.excess( a, b )
-   }
-   case object Fold2          extends Op( 44 ) {
-      protected def make1( a: Float, b: Float ) = rf.fold2( a, b )
-   }
-   case object Wrap2          extends Op( 45 ) {
-      protected def make1( a: Float, b: Float ) = rf.wrap2( a, b )
-   }
-   case object Firstarg       extends Op( 46 ) {
-      override def make( /* rate: T, */ a: GE, b: GE ) : GE = new Firstarg( a, b )
-
-      protected def make1( a: Float, b: Float ) = a
-   }
-
-// case object Rrand          extends Op( 47 )
-// case object ExpRRand       extends Op( 48 )
-
-//   protected[synth] def make( selector: Op, a: GE, b: GE ) : GE = {
-//      for( Seq( ai, bi ) <- expand( a, b )) yield selector.make1( ai, bi )
-//   }
-
-/*
-  private def determineRate( a: UGenIn, b: UGenIn ) : Rate = {
-    if( a.rate > b.rate ) a.rate else b.rate
-//    if( a.rate == 'demand ) return 'demand
-//    if( b.rate == 'demand ) return 'demand
-//    if( a.rate == 'audio ) return 'audio
-//    if( b.rate == 'audio ) return 'audio
-//    if( a.rate == 'control ) return 'control
-//    if( b.rate == 'control ) return 'control
-//    'scalar
+    def name: String = {
+      val cn = getClass.getName
+      val sz = cn.length
+      val i  = cn.indexOf('$') + 1
+      cn.charAt(i).toLower + cn.substring(i + 1, if (cn.charAt(sz - 1) == '$') sz - 1 else sz)
+    }
   }
-  */
+
+  import synth.{FloatFun => rf}
+
+  case object Plus extends Op(0) {
+    override val name = "+"
+
+    protected def make1(a: Float, b: Float) = rf.+(a, b)
+
+    override protected[synth] def make1(a: UGenIn, b: UGenIn): UGenIn = (a, b) match {
+      case (c(0), _)  => b
+      case (_, c(0))  => a
+      case _          => super.make1(a, b)
+    }
+  }
+
+  case object Minus extends Op(1) {
+    override val name = "-"
+
+    protected def make1(a: Float, b: Float) = rf.-(a, b)
+
+    override protected[synth] def make1(a: UGenIn, b: UGenIn): UGenIn = (a, b) match {
+      //         case (c(0), _)       => -b
+      case (c(0), _) => UnaryOp.Neg.make1(b)
+      case (_, c(0)) => a
+      case _ => super.make1(a, b)
+    }
+  }
+
+  case object Times extends Op(2) {
+    override val name = "*"
+
+    protected def make1(a: Float, b: Float) = rf.*(a, b)
+
+    override protected[synth] def make1(a: UGenIn, b: UGenIn): UGenIn = (a, b) match {
+      case (c(0), _)  => a
+      case (_, c(0))  => b
+      case (c(1), _)  => b
+      case (_, c(1))  => a
+      case (c(-1), _) => UnaryOp.Neg.make1(b) // -b
+      case (_, c(-1)) => UnaryOp.Neg.make1(a) // -a
+      case _          => super.make1(a, b)
+    }
+  }
+
+  // case object IDiv           extends Op(  3 )
+  case object Div extends Op(4) {
+    override val name = "/"
+
+    protected def make1(a: Float, b: Float) = rf./(a, b)
+
+    override protected[synth] def make1(a: UGenIn, b: UGenIn): UGenIn = (a, b) match {
+      case (_, c(1))  => a
+      case (_, c(-1)) => UnaryOp.Neg.make1(a) // -a
+      case _          =>
+        if (b.rate == scalar) {
+          //               a * b.reciprocal
+          BinaryOp.Times.make1(a, UnaryOp.Reciprocal.make1(b))
+        } else {
+          super.make1(a, b)
+        }
+    }
+  }
+
+  case object Mod extends Op(5) {
+    override val name = "%"
+
+    protected def make1(a: Float, b: Float) = rf.%(a, b)
+  }
+
+  case object Eq extends Op(6) {
+    override val name = "==="
+
+    protected def make1(a: Float, b: Float) = rf.===(a, b)
+  }
+
+  case object Neq extends Op(7) {
+    override val name = "!=="
+
+    protected def make1(a: Float, b: Float) = rf.!==(a, b)
+  }
+
+  case object Lt extends Op(8) {
+    override val name = "<"
+
+    protected def make1(a: Float, b: Float) = if (a < b) 1f else 0f // NOT rf.< !
+  }
+
+  case object Gt extends Op(9) {
+    override val name = ">"
+
+    protected def make1(a: Float, b: Float) = if (a > b) 1f else 0f // NOT rf.> !
+  }
+
+  case object Leq extends Op(10) {
+    override val name = "<="
+
+    protected def make1(a: Float, b: Float) = if (a <= b) 1f else 0f // NOT rf.<= !
+  }
+
+  case object Geq extends Op(11) {
+    override val name = ">="
+
+    protected def make1(a: Float, b: Float) = if (a >= b) 1f else 0f // NOT rf.>= !
+  }
+
+  case object Min extends Op(12) {
+    protected def make1(a: Float, b: Float) = rf.min(a, b)
+  }
+
+  case object Max extends Op(13) {
+    protected def make1(a: Float, b: Float) = rf.max(a, b)
+  }
+
+  case object BitAnd extends Op(14) {
+    override val name = "&"
+
+    protected def make1(a: Float, b: Float) = rf.&(a, b)
+  }
+
+  case object BitOr extends Op(15) {
+    override val name = "|"
+
+    protected def make1(a: Float, b: Float) = rf.|(a, b)
+  }
+
+  case object BitXor extends Op(16) {
+    override val name = "^"
+
+    protected def make1(a: Float, b: Float) = rf.^(a, b)
+  }
+
+  // case object Lcm            extends Op( 17 )
+  // case object Gcd            extends Op( 18 )
+  case object Round extends Op(19) {
+    protected def make1(a: Float, b: Float) = rf.round(a, b)
+  }
+
+  case object Roundup extends Op(20) {
+    protected def make1(a: Float, b: Float) = rf.roundup(a, b)
+  }
+
+  case object Trunc extends Op(21) {
+    protected def make1(a: Float, b: Float) = rf.trunc(a, b)
+  }
+
+  case object Atan2 extends Op(22) {
+    protected def make1(a: Float, b: Float) = rf.atan2(a, b)
+  }
+
+  case object Hypot extends Op(23) {
+    protected def make1(a: Float, b: Float) = rf.hypot(a, b)
+  }
+
+  case object Hypotx extends Op(24) {
+    protected def make1(a: Float, b: Float) = rf.hypotx(a, b)
+  }
+
+  case object Pow extends Op(25) {
+    protected def make1(a: Float, b: Float) = rf.pow(a, b)
+  }
+
+  // case object <<             extends Op( 26 )
+  // case object >>             extends Op( 27 )
+  // case object UnsgnRghtShft  extends Op( 28 )
+  // case object Fill           extends Op( 29 )
+  case object Ring1 extends Op(30) {
+    protected def make1(a: Float, b: Float) = rf.ring1(a, b)
+  }
+
+  case object Ring2 extends Op(31) {
+    protected def make1(a: Float, b: Float) = rf.ring2(a, b)
+  }
+
+  case object Ring3 extends Op(32) {
+    protected def make1(a: Float, b: Float) = rf.ring3(a, b)
+  }
+
+  case object Ring4 extends Op(33) {
+    protected def make1(a: Float, b: Float) = rf.ring4(a, b)
+  }
+
+  case object Difsqr extends Op(34) {
+    protected def make1(a: Float, b: Float) = rf.difsqr(a, b)
+  }
+
+  case object Sumsqr extends Op(35) {
+    protected def make1(a: Float, b: Float) = rf.sumsqr(a, b)
+  }
+
+  case object Sqrsum extends Op(36) {
+    protected def make1(a: Float, b: Float) = rf.sqrsum(a, b)
+  }
+
+  case object Sqrdif extends Op(37) {
+    protected def make1(a: Float, b: Float) = rf.sqrdif(a, b)
+  }
+
+  case object Absdif extends Op(38) {
+    protected def make1(a: Float, b: Float) = rf.absdif(a, b)
+  }
+
+  case object Thresh extends Op(39) {
+    protected def make1(a: Float, b: Float) = rf.thresh(a, b)
+  }
+
+  case object Amclip extends Op(40) {
+    protected def make1(a: Float, b: Float) = rf.amclip(a, b)
+  }
+
+  case object Scaleneg extends Op(41) {
+    protected def make1(a: Float, b: Float) = rf.scaleneg(a, b)
+  }
+
+  case object Clip2 extends Op(42) {
+    protected def make1(a: Float, b: Float) = rf.clip2(a, b)
+  }
+
+  case object Excess extends Op(43) {
+    protected def make1(a: Float, b: Float) = rf.excess(a, b)
+  }
+
+  case object Fold2 extends Op(44) {
+    protected def make1(a: Float, b: Float) = rf.fold2(a, b)
+  }
+
+  case object Wrap2 extends Op(45) {
+    protected def make1(a: Float, b: Float) = rf.wrap2(a, b)
+  }
+
+  case object Firstarg extends Op(46) {
+    override def make(/* rate: T, */ a: GE, b: GE): GE = new Firstarg(a, b)
+
+    protected def make1(a: Float, b: Float) = a
+  }
+
+  // case object Rrand          extends Op( 47 )
+  // case object ExpRRand       extends Op( 48 )
 }
 
 // XXX this could become private once the op's make method return type is changed to GE
 abstract sealed class BinaryOpLike extends UGenSource.SingleOut {
-   def selector: BinaryOp.Op
-   def a: GE
-   def b: GE
+  def selector: BinaryOp.Op
+  def a: GE
+  def b: GE
 
   override final def productPrefix = "BinaryOpUGen"
+
   final def productElement(n: Int): Any = (n: @switch) match {
     case 0 => selector
     case 1 => a
     case 2 => b
   }
 
-   final def rate: MaybeRate = MaybeRate.max_?( a.rate, b.rate )
+  final def rate: MaybeRate = MaybeRate.max_?( a.rate, b.rate )
 
-   protected final def makeUGens : UGenInLike = unwrap( IIdxSeq( a.expand, b.expand ))
+  protected final def makeUGens: UGenInLike = unwrap(IIdxSeq(a.expand, b.expand))
 
-   protected final def makeUGen( args: IIdxSeq[ UGenIn ]) : UGenInLike = {
-      val a0 = args( 0 )
-      val a1 = args( 1 )
-      selector.make1( a0, a1 )
-   }
+  protected final def makeUGen(args: IIdxSeq[UGenIn]): UGenInLike = {
+    val a0 = args(0)
+    val a1 = args(1)
+    selector.make1(a0, a1)
+  }
 
-   override def toString = if( (selector.id <= 11) || ((selector.id >=14) && (selector.id <= 16)) ) {
-      "(" + a + " " + selector.name + " " + b + ")"
-   } else {
-      a.toString + "." + selector.name + "(" + b + ")"
-   }
+  override def toString = if ((selector.id <= 11) || ((selector.id >= 14) && (selector.id <= 16))) {
+    "($a ${selector.name} $b)"
+  } else {
+    s"$a.${selector.name}($b)"
+  }
 }
 
-final case class BinaryOp( /* rate: MaybeRate, */ selector: BinaryOp.Op, a: GE, b: GE )
-extends BinaryOpLike
+final case class BinaryOp(/* rate: MaybeRate, */ selector: BinaryOp.Op, a: GE, b: GE)
+  extends BinaryOpLike
 
-final case class Firstarg( /* rate: MaybeRate, */ a: GE, b: GE )
-extends BinaryOpLike with HasSideEffect {
-   def selector = BinaryOp.Firstarg
+final case class Firstarg(/* rate: MaybeRate, */ a: GE, b: GE)
+  extends BinaryOpLike with HasSideEffect {
+  def selector = BinaryOp.Firstarg
 }
 
 // Note: only deterministic selectors are implemented!!

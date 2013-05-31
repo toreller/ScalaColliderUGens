@@ -26,7 +26,7 @@
 package de.sciss.synth
 package ugen
 
-import collection.immutable.{ IndexedSeq => IIdxSeq }
+import collection.immutable.{IndexedSeq => IIdxSeq}
 
 // ---------- Control ----------
 
@@ -35,7 +35,7 @@ object Control {
    * Note: we are not providing further convenience methods,
    * as that is the task of ControlProxyFactory...
    */
-  def ir(values: IIdxSeq[Float], name: Option[String] = None) = apply(scalar, values, name)
+  def ir(values: IIdxSeq[Float], name: Option[String] = None) = apply(scalar , values, name)
   def kr(values: IIdxSeq[Float], name: Option[String] = None) = apply(control, values, name)
 
   def ir(values: Float*): Control = ir(IIdxSeq(values: _*))
