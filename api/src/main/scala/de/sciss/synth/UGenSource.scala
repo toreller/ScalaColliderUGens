@@ -30,7 +30,7 @@ import collection.immutable.{IndexedSeq => IIdxSeq}
 object UGenSource {
   trait ZeroOut extends UGenSource[Unit] {
     final protected def rewrap(args: IIdxSeq[UGenInLike], exp: Int) {
-      var i = 0;
+      var i = 0
       while (i < exp) {
         unwrap(args.map(_.unwrap(i)))
         i += 1
@@ -38,15 +38,13 @@ object UGenSource {
     }
   }
 
-  @SerialVersionUID(5726777539636001639L) trait SingleOut extends SomeOut
-
-  trait MultiOut extends SomeOut
+  trait SingleOut extends SomeOut
+  trait MultiOut  extends SomeOut
 
   protected sealed trait SomeOut extends UGenSource[UGenInLike] with GE.Lazy {
     final protected def rewrap(args: IIdxSeq[UGenInLike], exp: Int): UGenInLike =
       UGenInGroup(IIdxSeq.tabulate(exp)(i => unwrap(args.map(_.unwrap(i)))))
   }
-
 }
 
 sealed trait UGenSource[U] extends Lazy.Expander[U] with Product {

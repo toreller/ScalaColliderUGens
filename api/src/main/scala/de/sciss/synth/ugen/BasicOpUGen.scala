@@ -79,7 +79,7 @@ object UnaryOp {
 
   import synth.{FloatFun => rf}
 
-  sealed abstract class Op(val id: Int) extends Serializable {
+  sealed abstract class Op(val id: Int) extends Product {
     op =>
 
     final def make(a: GE): GE = a match {
@@ -298,7 +298,7 @@ final class UnaryOpUGen /**/ (/* rate: Rate, */ selector: UnaryOp.Op, a: UGenIn 
 object BinaryOp {
   binop =>
 
-  sealed abstract class Op(val id: Int) extends Serializable {
+  sealed abstract class Op(val id: Int) extends Product {
     op =>
 
     //      def make( rate: R, a: GE[ UGenIn[ R ]]) = UnaryOp[ R ]( rate, this, a )

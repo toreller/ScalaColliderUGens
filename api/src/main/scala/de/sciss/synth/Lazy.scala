@@ -88,7 +88,7 @@ object Lazy {
   *
   * @see [[de.sciss.synth.Lazy.Expander]]
   */
-trait Lazy extends Serializable {
+trait Lazy extends Product {
   /** This method is invoked by the `UGenGraphBuilder` instance when a `SynthGraph`
     * is expanded.
     *

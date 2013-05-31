@@ -66,7 +66,7 @@ object GE {
 
   def fromUGenIns(xs: SSeq[UGenIn]): GE = SeqImpl2(xs.toIndexedSeq)
 
-  @SerialVersionUID(-5589376755121907882L) private final case class SeqImpl(elems: IIdxSeq[GE]) extends GE {
+  private final case class SeqImpl(elems: IIdxSeq[GE]) extends GE {
     def numOutputs            = elems.size
     def expand: UGenInLike    = UGenInGroup(elems.map(_.expand))
     def rate                  = MaybeRate.reduce(elems.map(_.rate): _*)
@@ -101,7 +101,7 @@ object GE {
  *
  * @see [[de.sciss.synth.SynthGraph]]
  */
-trait GE {
+trait GE extends Product {
   def rate: MaybeRate
   private[synth] def expand: UGenInLike
   //  private[synth] def productPrefix: String

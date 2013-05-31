@@ -186,20 +186,21 @@ sealed trait UGenIn extends UGenInLike {
 }
 
 object UGenInGroup {
-  private final val emptyVal = new Impl(IIdxSeq.empty)
+  private final val emptyVal = new Apply(IIdxSeq.empty)
   def empty: UGenInGroup = emptyVal
-  def apply(xs: IIdxSeq[UGenInLike]): UGenInGroup = new Impl(xs)
+  def apply(xs: IIdxSeq[UGenInLike]): UGenInGroup = new Apply(xs)
 
-  private final class Impl(xs: IIdxSeq[UGenInLike]) extends UGenInGroup {
-    private[synth] def outputs: IIdxSeq[UGenInLike] = xs
-    private[synth] def numOutputs: Int = xs.size
-    private[synth] def unwrap(i: Int): UGenInLike = xs(i % xs.size)
+  private final case class Apply(outputs: IIdxSeq[UGenInLike]) extends UGenInGroup {
+    override def productPrefix = "UGenInGroup.Apply"
+
+    private[synth] def numOutputs: Int = outputs.size
+    private[synth] def unwrap(i: Int): UGenInLike = outputs(i % outputs.size)
     private[synth] def unbubble: UGenInLike = this
 
-    override def toString = "UGenInGroup" + xs.mkString("(", ",", ")")
+    override def toString = "UGenInGroup" + outputs.mkString("(", ",", ")")
 
     // ---- GE ----
-    def rate: MaybeRate = MaybeRate.reduce(xs.map(_.rate): _*)
+    def rate: MaybeRate = MaybeRate.reduce(outputs.map(_.rate): _*)
   }
 }
 
@@ -219,7 +220,6 @@ sealed trait UGenProxy extends UGenIn {
  *    These constants are stored in a separate table of
  *    the synth graph.
  */
-@SerialVersionUID(3402358769036617020L)
 final case class Constant(value: Float) extends /* GE with */ UGenIn {
   override def toString = value.toString
   def rate: Rate = scalar

@@ -123,7 +123,6 @@ object SynthGraph {
   }
 }
 
-@SerialVersionUID(3232544436683817667L)
 final case class SynthGraph(sources: IIdxSeq[Lazy], controlProxies: ISet[ControlProxyLike[_]]) {
   def isEmpty : Boolean  = sources.isEmpty && controlProxies.isEmpty
   def nonEmpty: Boolean  = !isEmpty

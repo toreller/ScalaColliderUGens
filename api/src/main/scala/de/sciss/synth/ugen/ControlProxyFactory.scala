@@ -65,7 +65,7 @@ sealed trait ControlFactoryLike[T] {
   def build(b: UGenGraph.Builder, proxies: Proxy*): Map[ControlProxyLike[_], (UGen, Int)]
 }
 
-abstract class AbstractControlFactory[T <: AbstractControlProxy[T]] extends ControlFactoryLike[T] with Serializable {
+abstract class AbstractControlFactory[T <: AbstractControlProxy[T]] extends ControlFactoryLike[T] /* with Serializable */ {
   def build(b: UGenGraph.Builder, proxies: T*): Map[ControlProxyLike[_], (UGen, Int)] = {
     var numChannels = 0
     val specialIndex = proxies.map(p => {
