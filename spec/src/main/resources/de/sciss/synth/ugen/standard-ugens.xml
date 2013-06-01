@@ -1,4 +1,4 @@
-<ugens revision="4">    <!-- list as of 02-sep-10 -->
+<ugens revision="5">    <!-- list as of 02-sep-10 -->
     <file name="ChaosUGens">
         <ugen name="CuspN">
             <rate name="audio"/>

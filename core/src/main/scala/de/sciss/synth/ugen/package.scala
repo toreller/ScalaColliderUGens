@@ -11,7 +11,7 @@ package object ugen {
     Constant(bs.length) +: (bs.map(Constant(_))(breakOut): IIdxSeq[UGenIn])
   }
 
-  private[ugen] def nyquist: GE = BinaryOp.Times.make(SampleRate.ir, 0.5f)
+  private[ugen] def nyquist: GE = BinaryOpUGen.Times.make(SampleRate.ir, 0.5f)
 
   private[ugen] def replaceZeroesWithSilence(ins: IIdxSeq[UGenIn]): IIdxSeq[UGenIn] = {
     val numZeroes = ins.foldLeft(0)((sum, in) => in match {

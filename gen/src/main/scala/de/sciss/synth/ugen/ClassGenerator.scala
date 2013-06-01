@@ -303,7 +303,7 @@ final class ClassGenerator
   private val strMinus            = "-"
   private val strSize             = "size"
   private val strFill             = "fill"
-  private val identBinaryOp       = Ident("BinaryOp")
+  private val identBinaryOp       = Ident("BinaryOpUGen")
   private val strMake1            = "make1"
   private val strTimes            = "Times"
   private val identFloat          = Ident("Float")

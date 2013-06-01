@@ -78,8 +78,8 @@ private[synth] object DoubleFun {
   @inline def /         (a: Double, b: Double): Double = a / b
   @inline def %         (a: Double, b: Double): Double = a % b
 
-  //   @inline def ===
-  //   @inline def !==
+  //   @inline def sig_==
+  //   @inline def sig_!=
   @inline def <         (a: Double, b: Double): Boolean = a < b
   @inline def >         (a: Double, b: Double): Boolean = a > b
   @inline def <=        (a: Double, b: Double): Boolean = a <= b

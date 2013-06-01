@@ -79,8 +79,8 @@ private[synth] object FloatFun {
    @inline def div( a: Float, b: Float ) : Int     = (a / b).toInt
    @inline def /( a: Float, b: Float ) : Float     = a / b
    @inline def %( a: Float, b: Float ) : Float     = a % b
-   @inline def ===( a: Float, b: Float ) : Int     = if( a == b ) 1 else 0
-   @inline def !==( a: Float, b: Float ) : Int     = if( a != b ) 1 else 0
+   // @inline def sig_==( a: Float, b: Float ) : Int  = if( a == b ) 1 else 0
+   // @inline def sig_!=( a: Float, b: Float ) : Int  = if( a != b ) 1 else 0
    @inline def <( a: Float, b: Float ) : Boolean   = a < b
    @inline def >( a: Float, b: Float ) : Boolean   = a > b
    @inline def <=( a: Float, b: Float ) : Boolean  = a <= b
