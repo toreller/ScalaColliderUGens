@@ -382,6 +382,13 @@ final case class UnaryOpUGen(/* rate: MaybeRate, */ selector: UnaryOpUGen.Op, a:
 object BinaryOpUGen {
   binop =>
 
+  // note: this is not optimizing, as would be `op.make(a, b)`, because it guarantees that the return
+  // type is BinaryOpUGen. this is used in deserialization, you should prefer `op.make` instead.
+  def apply(op: Op, a: GE, b: GE): BinaryOpUGen = op match {
+    case Firstarg => new Impure(op, a, b)
+    case _        => new Pure  (op, a, b)
+  }
+
   object Op {
     def apply(id: Int): Op = (id: @switch) match {
       case Plus     .id => Plus
