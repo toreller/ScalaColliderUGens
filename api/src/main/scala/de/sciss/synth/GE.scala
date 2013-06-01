@@ -37,6 +37,7 @@ import collection.immutable.{IndexedSeq => IIdxSeq}
   */
 object GE {
   import language.implicitConversions
+  import ugen.Constant
 
   implicit def const(f: Float ): Constant = new Constant(f)
   implicit def const(d: Double): Constant = new Constant(d.toFloat)
@@ -46,41 +47,25 @@ object GE {
    // XXX don't we expect Multi[GE[R]] ?
    implicit def fromSeq(xs: SSeq[GE]): GE = xs match {
      case SSeq(x) => x
-     case _       => SeqImpl(xs.toIndexedSeq)
+     case _       => ugen.GESeq(xs.toIndexedSeq)
    }
 
   implicit def fromIntSeq(xs: SSeq[Int]): GE = xs match {
     case SSeq(single) => Constant(single)
-    case _            => SeqImpl(xs.map(i => Constant(i.toFloat))(breakOut))
+    case _            => ugen.GESeq(xs.map(i => Constant(i.toFloat))(breakOut))
   }
 
   implicit def fromFloatSeq(xs: SSeq[Float]): GE = xs match {
     case SSeq(x)  => Constant(x)
-    case _        => SeqImpl(xs.map(f => Constant(f))(breakOut))
+    case _        => ugen.GESeq(xs.map(f => Constant(f))(breakOut))
   }
 
   implicit def fromDoubleSeq(xs: SSeq[Double]): GE = xs match {
     case SSeq(x)  => Constant(x.toFloat)
-    case _        => SeqImpl(xs.map(d => Constant(d.toFloat))(breakOut))
+    case _        => ugen.GESeq(xs.map(d => Constant(d.toFloat))(breakOut))
   }
 
-  def fromUGenIns(xs: SSeq[UGenIn]): GE = SeqImpl2(xs.toIndexedSeq)
-
-  private final case class SeqImpl(elems: IIdxSeq[GE]) extends GE {
-    def numOutputs            = elems.size
-    def expand: UGenInLike    = UGenInGroup(elems.map(_.expand))
-    def rate                  = MaybeRate.reduce(elems.map(_.rate): _*)
-
-    override def toString     = "GE.Seq" + elems.mkString("(", ",", ")")
-  }
-
-  private final case class SeqImpl2(elems: IIdxSeq[UGenIn]) extends GE {
-    def numOutputs            = elems.size
-    def expand: UGenInLike    = UGenInGroup(elems)
-    def rate                  = MaybeRate.reduce(elems.map(_.rate): _*)
-
-    override def toString      = "GE.Seq" + elems.mkString("(", ",", ")")
-  }
+  def fromUGenIns(xs: SSeq[UGenIn]): GE = ugen.UGenInSeq(xs.toIndexedSeq)
 
  /**
    * Simply a trait composed of `Lazy.Expander[UGenInLike]` and `GE`
@@ -105,4 +90,22 @@ trait GE extends Product {
   def rate: MaybeRate
   private[synth] def expand: UGenInLike
   //  private[synth] def productPrefix: String
+}
+
+package ugen {
+  private[synth] final case class GESeq(elems: IIdxSeq[GE]) extends GE {
+    def numOutputs            = elems.size
+    def expand: UGenInLike    = UGenInGroup(elems.map(_.expand))
+    def rate                  = MaybeRate.reduce(elems.map(_.rate): _*)
+
+    override def toString     = "GESeq" + elems.mkString("(", ",", ")")
+  }
+
+private[synth] final case class UGenInSeq(elems: IIdxSeq[UGenIn]) extends GE {
+    def numOutputs            = elems.size
+    def expand: UGenInLike    = UGenInGroup(elems)
+    def rate                  = MaybeRate.reduce(elems.map(_.rate): _*)
+
+    override def toString      = "UGenInSeq" + elems.mkString("(", ",", ")")
+  }
 }

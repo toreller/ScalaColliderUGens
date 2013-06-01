@@ -43,7 +43,7 @@ object UGenSource {
 
   protected sealed trait SomeOut extends UGenSource[UGenInLike] with GE.Lazy {
     final protected def rewrap(args: IIdxSeq[UGenInLike], exp: Int): UGenInLike =
-      UGenInGroup(IIdxSeq.tabulate(exp)(i => unwrap(args.map(_.unwrap(i)))))
+      ugen.UGenInGroup(IIdxSeq.tabulate(exp)(i => unwrap(args.map(_.unwrap(i)))))
   }
 }
 
@@ -53,14 +53,14 @@ sealed trait UGenSource[U] extends Lazy.Expander[U] with Product {
   final def name: String = productPrefix
 
   final protected def unwrap(args: IIdxSeq[UGenInLike]): U = {
-    var uins = IIdxSeq.empty[UGenIn]
-    var uinsOk = true
-    var exp = 0
+    var uins    = IIdxSeq.empty[UGenIn]
+    var uinsOk  = true
+    var exp     = 0
     args.foreach(_.unbubble match {
       case u: UGenIn => if (uinsOk) uins :+= u
-      case g: UGenInGroup =>
-        exp = math.max(exp, g.numOutputs)
-        uinsOk = false // don't bother adding further UGenIns to uins
+      case g: ugen.UGenInGroup =>
+        exp     = math.max(exp, g.numOutputs)
+        uinsOk  = false // don't bother adding further UGenIns to uins
     })
     if (uinsOk) {
       // aka uins.size == args.size

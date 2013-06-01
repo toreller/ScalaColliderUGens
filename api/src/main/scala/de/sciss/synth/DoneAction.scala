@@ -25,6 +25,8 @@
 
 package de.sciss.synth
 
+import ugen.Constant
+
 object DoneAction {
   import language.implicitConversions
   implicit def toGE(action: DoneAction): Constant = new Constant(action.id)

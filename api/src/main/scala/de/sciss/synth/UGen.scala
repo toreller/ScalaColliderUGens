@@ -86,46 +86,52 @@ sealed trait UGen extends Product /* with MaybeIndividual */ {
 }
 
 object UGen {
-   /**
-    *    A SingleOutUGen is a UGen which has exactly one output, and
-    *    hence can directly function as input to another UGen without expansion.
-    */
-   class SingleOut( val name: String, val rate: Rate, val inputs: IIdxSeq[ UGenIn ],
-                    val isIndividual: Boolean = false, val hasSideEffect: Boolean = false )
-   extends UGenProxy with UGen {
-final def numOutputs = 1
-      final def outputRates: IIdxSeq[ Rate ] = rate.toIndexedSeq // IIdxSeq( rate )
+  /**
+   * A SingleOutUGen is a UGen which has exactly one output, and
+   * hence can directly function as input to another UGen without expansion.
+   */
+  class SingleOut(val name: String, val rate: Rate, val inputs: IIdxSeq[UGenIn],
+                  val isIndividual: Boolean = false, val hasSideEffect: Boolean = false)
+    extends ugen.UGenProxy with UGen {
+    final def numOutputs = 1
 
-      final def outputIndex = 0
-   }
+    final def outputRates: IIdxSeq[Rate] = rate.toIndexedSeq // IIdxSeq( rate )
 
-   object ZeroOut {
-      private val outputRates: IIdxSeq[ Rate ] = IIdxSeq.empty
-   }
-   class ZeroOut( val name: String, val rate: Rate, val inputs: IIdxSeq[ UGenIn ], val isIndividual: Boolean = false )
-   extends UGen /* with HasSideEffect */ {
-      final /* override */ def numOutputs = 0
-//      final def outputs = IIdxSeq.empty
-      final def outputRates: IIdxSeq[ Rate ] = ZeroOut.outputRates // IIdxSeq.empty
-      final def hasSideEffect = true
-   }
+    final def outputIndex = 0
+  }
 
-   /**
-    * A class for UGens with multiple outputs
-    */
-   class MultiOut( val name: String, val rate: Rate, val outputRates: IIdxSeq[ Rate ], val inputs: IIdxSeq[ UGenIn ],
-                   val isIndividual: Boolean = false, val hasSideEffect: Boolean = false )
-   extends UGen with UGenInGroup {
-      final def numOutputs                      = outputRates.size
-//      final lazy val outputs: IIdxSeq[ UGenIn ] = outputRates.zipWithIndex.map( tup => OutProxy( this, tup._2, tup._1 ))
-      final def unwrap( i: Int ) : UGenInLike   = {
-//         outputs( i % outputRates.size )
-         OutProxy( this, i % numOutputs ) // , outputRates( i )
-      }
+  object ZeroOut {
+    private val outputRates: IIdxSeq[Rate] = IIdxSeq.empty
+  }
 
-      def outputs: IIdxSeq[ UGenIn ] = IIdxSeq.tabulate( numOutputs )( ch => OutProxy( this, ch ))
+  class ZeroOut(val name: String, val rate: Rate, val inputs: IIdxSeq[UGenIn], val isIndividual: Boolean = false)
+    extends UGen /* with HasSideEffect */ {
+    final /* override */ def numOutputs = 0
 
-      /*
+    //      final def outputs = IIdxSeq.empty
+    final def outputRates: IIdxSeq[Rate] = ZeroOut.outputRates
+
+    // IIdxSeq.empty
+    final def hasSideEffect = true
+  }
+
+  /**
+   * A class for UGens with multiple outputs
+   */
+  class MultiOut(val name: String, val rate: Rate, val outputRates: IIdxSeq[Rate], val inputs: IIdxSeq[UGenIn],
+                 val isIndividual: Boolean = false, val hasSideEffect: Boolean = false)
+    extends UGen with ugen.UGenInGroup {
+    final def numOutputs = outputRates.size
+
+    //      final lazy val outputs: IIdxSeq[ UGenIn ] = outputRates.zipWithIndex.map( tup => OutProxy( this, tup._2, tup._1 ))
+    final def unwrap(i: Int): UGenInLike = {
+      //         outputs( i % outputRates.size )
+      ugen.UGenOutProxy(this, i % numOutputs) // , outputRates( i )
+    }
+
+    def outputs: IIdxSeq[UGenIn] = IIdxSeq.tabulate(numOutputs)(ch => ugen.UGenOutProxy(this, ch))
+
+    /*
          This is important: Imagine for example `Out.ar( PanAz.ar( 4, In.ar( 0, 1 ), pos ))`.
          If `isWrapped` would report `true` here, the result would be a rewrapping into four
          `Out` UGens. Obviously we do not want this.
@@ -133,22 +139,8 @@ final def numOutputs = 1
          This corresponds with the following check in method `MultiOutUGen: initOutputs` in sclang:
          `^if( numChannels == 1, { channels.at( 0 )}, channels )`!
        */
-//      private[synth] final def isWrapped = numOutputs != 1
-      private[synth] final def unbubble : UGenInLike = if( numOutputs == 1 ) outputs( 0 ) else this
-   }
-
-  /**
-   * A UGenOutProxy refers to a particular output of a multi-channel UGen.
-   * A sequence of these form the representation of a multi-channel-expanded
-   * UGen.
-   */
-  final case class OutProxy(source: UGen.MultiOut, outputIndex: Int /*, rate: Rate */)
-    extends UGenIn with UGenProxy {
-
-    override def toString =
-      if (source.numOutputs == 1) source.toString else source.toString + ".\\(" + outputIndex + ")"
-
-    def rate: Rate = source.outputRates(outputIndex)
+    //      private[synth] final def isWrapped = numOutputs != 1
+    private[synth] final def unbubble: UGenInLike = if (numOutputs == 1) outputs(0) else this
   }
 }
 
@@ -185,58 +177,73 @@ sealed trait UGenIn extends UGenInLike {
   private[synth] final def unbubble: UGenInLike = this
 }
 
-object UGenInGroup {
-  private final val emptyVal = new Apply(IIdxSeq.empty)
-  def empty: UGenInGroup = emptyVal
-  def apply(xs: IIdxSeq[UGenInLike]): UGenInGroup = new Apply(xs)
+package ugen {
+  object UGenInGroup {
+    private final val emptyVal = new Apply(IIdxSeq.empty)
+    def empty: UGenInGroup = emptyVal
+    def apply(xs: IIdxSeq[UGenInLike]): UGenInGroup = new Apply(xs)
 
-  private final case class Apply(outputs: IIdxSeq[UGenInLike]) extends UGenInGroup {
-    override def productPrefix = "UGenInGroup.Apply"
+    private final case class Apply(outputs: IIdxSeq[UGenInLike]) extends UGenInGroup {
+      override def productPrefix = "UGenInGroup"
 
-    private[synth] def numOutputs: Int = outputs.size
-    private[synth] def unwrap(i: Int): UGenInLike = outputs(i % outputs.size)
-    private[synth] def unbubble: UGenInLike = this
+      private[synth] def numOutputs: Int = outputs.size
+      private[synth] def unwrap(i: Int): UGenInLike = outputs(i % outputs.size)
+      private[synth] def unbubble: UGenInLike = this
 
-    override def toString = "UGenInGroup" + outputs.mkString("(", ",", ")")
+      override def toString = "UGenInGroup" + outputs.mkString("(", ",", ")")
 
-    // ---- GE ----
-    def rate: MaybeRate = MaybeRate.reduce(outputs.map(_.rate): _*)
+      // ---- GE ----
+      def rate: MaybeRate = MaybeRate.reduce(outputs.map(_.rate): _*)
+    }
   }
-}
+  sealed trait UGenInGroup extends UGenInLike {
+    private[synth] def outputs: IIdxSeq[UGenInLike]
+    private[synth] def numOutputs: Int
+    private[synth] final def flatOutputs: IIdxSeq[UGenIn] = outputs.flatMap(_.flatOutputs)
+  }
 
-sealed trait UGenInGroup extends UGenInLike {
-  private[synth] def outputs: IIdxSeq[UGenInLike]
-  private[synth] def numOutputs: Int
-  private[synth] final def flatOutputs: IIdxSeq[UGenIn] = outputs.flatMap(_.flatOutputs)
-}
+  sealed trait UGenProxy extends UGenIn {
+    def source: UGen
+    def outputIndex: Int
+  }
 
-sealed trait UGenProxy extends UGenIn {
-  def source: UGen
-  def outputIndex: Int
-}
+  /**
+   *    A scalar constant used as an input to a UGen.
+   *    These constants are stored in a separate table of
+   *    the synth graph.
+   */
+  final case class Constant(value: Float) extends /* GE with */ UGenIn {
+    override def toString = value.toString
+    def rate: Rate = scalar
+  }
 
-/**
- *    A scalar constant used as an input to a UGen.
- *    These constants are stored in a separate table of
- *    the synth graph.
- */
-final case class Constant(value: Float) extends /* GE with */ UGenIn {
-  override def toString = value.toString
-  def rate: Rate = scalar
-}
+  /**
+   *    A ControlOutProxy is similar to a UGenOutProxy in that it denotes
+   *    an output channel of a control UGen. However it refers to a control-proxy
+   *    instead of a real control ugen, since the proxies are synthesized into
+   *    actual ugens only at the end of a synth graph creation, in order to
+   *    clumb several controls together. ControlOutProxy instance are typically
+   *    returned from the ControlProxyFactory class, that is, using the package
+   *    implicits, from calls such as "myControl".kr.
+   */
+  final case class ControlUGenOutProxy(source: ControlProxyLike[_], outputIndex: Int /*, rate: Rate */)
+    extends UGenIn {
 
-/**
- *    A ControlOutProxy is similar to a UGenOutProxy in that it denotes
- *    an output channel of a control UGen. However it refers to a control-proxy
- *    instead of a real control ugen, since the proxies are synthesized into
- *    actual ugens only at the end of a synth graph creation, in order to
- *    clumb several controls together. ControlOutProxy instance are typically
- *    returned from the ControlProxyFactory class, that is, using the package
- *    implicits, from calls such as "myControl".kr.
- */
-final case class ControlUGenOutProxy(source: ControlProxyLike[_], outputIndex: Int /*, rate: Rate */)
-  extends UGenIn {
+    def rate = source.rate
+    override def toString = source.toString + ".\\(" + outputIndex + ")"
+  }
 
-  def rate = source.rate
-  override def toString = source.toString + ".\\(" + outputIndex + ")"
+  /**
+   * A UGenOutProxy refers to a particular output of a multi-channel UGen.
+   * A sequence of these form the representation of a multi-channel-expanded
+   * UGen.
+   */
+  final case class UGenOutProxy(source: UGen.MultiOut, outputIndex: Int /*, rate: Rate */)
+    extends UGenIn with UGenProxy {
+
+    override def toString =
+      if (source.numOutputs == 1) source.toString else source.toString + ".\\(" + outputIndex + ")"
+
+    def rate: Rate = source.outputRates(outputIndex)
+  }
 }

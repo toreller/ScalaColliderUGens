@@ -28,7 +28,7 @@ package synth
 package ugen
 
 import collection.immutable.{IndexedSeq => IIdxSeq}
-import de.sciss.synth.{Constant => c}
+import de.sciss.synth.ugen.{Constant => c}
 import annotation.switch
 
 //object MulAdd {
@@ -39,6 +39,7 @@ import annotation.switch
 
 final case class MulAdd(/* rate: MaybeRate, */ in: GE, mul: GE, add: GE)
   extends UGenSource.SingleOut {
+
   protected def makeUGens: UGenInLike = unwrap(IIdxSeq(in.expand, mul.expand, add.expand))
 
   def rate: MaybeRate = in.rate // XXX correct?
@@ -140,7 +141,10 @@ object UnaryOpUGen {
 
     protected def make1(a: Float): Float
 
-    override def productPrefix = s"UnaryOp.$plainName"
+    // override def productPrefix = s"UnaryOpUGen$$$plainName"
+    override def productPrefix  = "UnaryOpUGen$Op"
+    override def productArity   = 1
+    override def productElement(n: Int): Any = if (n == 0) id else throw new IndexOutOfBoundsException(n.toString)
 
     def name: String = plainName.capitalize
 
@@ -454,7 +458,10 @@ object BinaryOpUGen {
 
     protected def make1(a: Float, b: Float): Float
 
-    override def productPrefix = s"BinaryOp.$plainName"
+    // override def productPrefix = s"BinaryOpUGen$$$plainName"
+    override def productPrefix = "BinaryOpUGen$Op"
+    override def productArity   = 1
+    override def productElement(n: Int): Any = if (n == 0) id else throw new IndexOutOfBoundsException(n.toString)
 
     def name: String = plainName.capitalize
 
