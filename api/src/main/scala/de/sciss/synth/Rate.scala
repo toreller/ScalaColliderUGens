@@ -26,6 +26,7 @@
 package de.sciss.synth
 
 import collection.immutable.{IndexedSeq => IIdxSeq}
+import scala.annotation.switch
 
 object MaybeRate {
   def max_?(rates: MaybeRate*): MaybeRate = {
@@ -54,27 +55,37 @@ object MaybeRate {
       case None => UndefinedRate
     }
   }
+
+  def apply(id: Int): MaybeRate = if (id == -1) UndefinedRate else Rate(id)
 }
 
 sealed abstract class MaybeRate extends Product {
+  def id: Int
   final def name: String = productPrefix
   def toOption: Option[Rate]
   def ?|(r: => Rate): Rate
 }
 
 case object UndefinedRate extends MaybeRate {
+  final val id = -1
   val toOption: Option[Rate] = None
   def ?|(r: => Rate): Rate = r
 }
 
 object Rate {
   implicit val ordering = Ordering.ordered[Rate]
+
+  def apply(id: Int): Rate = (id: @switch) match {
+    case scalar   .id => scalar
+    case control  .id => control
+    case audio    .id => audio
+    case demand   .id => demand
+  }
 }
 /**
  *    The calculation rate of a UGen or a UGen output.
  */
 sealed abstract class Rate extends MaybeRate with Ordered[Rate] {
-  def id: Int
   def methodName: String
 
   final val toOption: Option[Rate] = Some(this)
