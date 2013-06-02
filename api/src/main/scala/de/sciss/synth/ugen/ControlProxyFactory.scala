@@ -28,45 +28,36 @@ package ugen
 
 import collection.breakOut
 import collection.immutable.{IndexedSeq => IIdxSeq}
+import language.implicitConversions
 
 object ControlProxyFactory {
-  private val controlIrFactory = new ControlFactory(scalar )
-  private val controlKrFactory = new ControlFactory(control)
+  object Values {
+    implicit def float    (x: Float) : Values = Values(Vector(x))
+    implicit def double   (x: Double): Values = Values(Vector(x.toFloat))
+    implicit def floatSeq (xs: IIdxSeq[Float]) : Values = Values(xs)
+    implicit def doubleSeq(xs: IIdxSeq[Double]): Values = Values(xs.map(_.toFloat))
+    private[ugen] val singleZero = Values(Vector(0f))
+  }
+  final case class Values(seq: IIdxSeq[Float])
 }
 final class ControlProxyFactory(name: String) {
-  import ControlProxyFactory._
+  import ControlProxyFactory.Values
 
-  def ir: ControlProxy = ir(IIdxSeq(0f))
-  def ir(value: Double, values: Double*): ControlProxy      = ir(IIdxSeq((value.toFloat +: values.map(_.toFloat)): _*))
-  def ir(value: Float,  values: Float* ): ControlProxy      = ir(IIdxSeq((value +: values): _*))
+  def ir: ControlProxy = ir(Values.singleZero)
+  def ir(values: Values): ControlProxy      = ControlProxy(scalar,  values.seq, Some(name))
 
-  def kr: ControlProxy = kr(IIdxSeq(0f))
-  def kr(value: Double, values: Double*): ControlProxy      = kr(IIdxSeq((value.toFloat +: values.map(_.toFloat)): _*))
-  def kr(value: Float,  values: Float* ): ControlProxy      = kr(IIdxSeq((value +: values): _*))
+  def kr: ControlProxy = kr(Values.singleZero)
+  def kr(values: Values): ControlProxy      = ControlProxy(control, values.seq, Some(name))
 
-  def tr: TrigControlProxy = tr(IIdxSeq(0f))
-  def tr(value: Double, values: Double*): TrigControlProxy  = tr(IIdxSeq((value.toFloat +: values.map(_.toFloat)): _*))
-  def tr(value: Float,  values: Float* ): TrigControlProxy  = tr(IIdxSeq((value +: values): _*))
+  def tr: TrigControlProxy = tr(Values.singleZero)
+  def tr(values: Values): TrigControlProxy  = TrigControlProxy     (values.seq, Some(name))
 
-  def ar: AudioControlProxy = ar(IIdxSeq(0f))
-  def ar(value: Double, values: Double*): AudioControlProxy = ar(IIdxSeq((value.toFloat +: values.map(_.toFloat)): _*))
-  def ar(value: Float,  values: Float* ): AudioControlProxy = ar(IIdxSeq((value +: values): _*))
-
-  @inline private def ir(values: IIdxSeq[Float]) = ControlProxy(scalar,  values, Some(name))(controlIrFactory)
-  @inline private def kr(values: IIdxSeq[Float]) = ControlProxy(control, values, Some(name))(controlKrFactory)
-  @inline private def tr(values: IIdxSeq[Float]) = TrigControlProxy     (values, Some(name))
-  @inline private def ar(values: IIdxSeq[Float]) = AudioControlProxy    (values, Some(name))
+  def ar: AudioControlProxy = ar(Values.singleZero)
+  def ar(values: Values): AudioControlProxy = AudioControlProxy    (values.seq, Some(name))
 }
 
-sealed trait ControlFactoryLike[T] {
-  type Proxy = T
-
-  // don't ask me what this is doing. some vital variance correction...
-  def build(b: UGenGraph.Builder, proxies: Proxy*): Map[ControlProxyLike[_], (UGen, Int)]
-}
-
-abstract class AbstractControlFactory[T <: AbstractControlProxy[T]] extends ControlFactoryLike[T] /* with Serializable */ {
-  def build(b: UGenGraph.Builder, proxies: T*): Map[ControlProxyLike[_], (UGen, Int)] = {
+trait ControlFactoryLike {
+  def build(b: UGenGraph.Builder, proxies: IIdxSeq[ControlProxyLike]): Map[ControlProxyLike, (UGen, Int)] = {
     var numChannels = 0
     val specialIndex = proxies.map(p => {
       numChannels += p.values.size
@@ -84,21 +75,14 @@ abstract class AbstractControlFactory[T <: AbstractControlProxy[T]] extends Cont
   protected def makeUGen(numChannels: Int, specialIndex: Int): UGen
 }
 
-sealed trait ControlProxyLike[Impl] extends GE {
-  def rate: Rate
-  def factory: ControlFactoryLike[Impl]
-  def name: Option[String]
-}
-
-abstract class AbstractControlProxy[Impl] // ( numChannels: Int )
-  extends ControlProxyLike[Impl] {
-
+trait ControlProxyLike extends GE {
   // ---- constructor ----
   SynthGraph.builder.addControlProxy(this)
 
-  def values: IIdxSeq[Float]
-
-  def name: Option[String]
+  def rate    : Rate
+  private[synth] def factory: ControlFactoryLike
+  def name    : Option[String]
+  def values  : IIdxSeq[Float]
 
   /** Note: this expands to a single ControlUGenOutProxy for numChannels == 1,
     * otherwise to a sequence of proxies wrapped in UGenInGroup. Therefore,
@@ -114,6 +98,6 @@ abstract class AbstractControlProxy[Impl] // ( numChannels: Int )
   final private[synth] def expand: UGenInLike = if (values.size == 1) {
     ControlUGenOutProxy(this, 0)
   } else {
-    UGenInGroup(IIdxSeq.tabulate(values.size)(i => ControlUGenOutProxy(this, i)))
+    UGenInGroup(Vector.tabulate(values.size)(i => ControlUGenOutProxy(this, i)))
   }
 }

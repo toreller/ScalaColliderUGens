@@ -35,16 +35,16 @@ object Control {
    * Note: we are not providing further convenience methods,
    * as that is the task of ControlProxyFactory...
    */
-  def ir(values: IIdxSeq[Float], name: Option[String] = None) = apply(scalar , values, name)
-  def kr(values: IIdxSeq[Float], name: Option[String] = None) = apply(control, values, name)
+  def ir(values: ControlProxyFactory.Values, name: Option[String] = None) = apply(scalar , values.seq, name)
+  def kr(values: ControlProxyFactory.Values, name: Option[String] = None) = apply(control, values.seq, name)
 
-  def ir(values: Float*): Control = ir(IIdxSeq(values: _*))
-  def kr(values: Float*): Control = kr(IIdxSeq(values: _*))
+  // def ir(values: Float*): Control = ir(IIdxSeq(values: _*))
+  // def kr(values: Float*): Control = kr(IIdxSeq(values: _*))
 
   // side-effect: receiving messages from clients!
   // and more importantly: control ugens created from proxies are not wired, so they would
   // be eliminated if side-effect was false!!!
-  final class UGen private[ugen](rate: Rate, numChannels: Int, override val specialIndex: Int)
+  private[ugen] final class UGen(rate: Rate, numChannels: Int, override val specialIndex: Int)
     extends UGen.MultiOut("Control", rate, IIdxSeq.fill(numChannels)(rate), IIdxSeq.empty, false, true)
 }
 
@@ -59,23 +59,33 @@ final case class Control(rate: Rate, values: IIdxSeq[Float], ctrlName: Option[St
   }
 }
 
-final case class ControlProxy(rate: Rate, values: IIdxSeq[Float], name: Option[String])(val factory: ControlFactory)
-  extends AbstractControlProxy[ControlProxy]
+object ControlProxy {
+  private val scalarFactory  = new ControlFactory(scalar )
+  private val controlFactory = new ControlFactory(control)
+}
+final case class ControlProxy(rate: Rate, values: IIdxSeq[Float], name: Option[String])
+  extends ControlProxyLike {
 
-final class ControlFactory(rate: Rate) extends AbstractControlFactory[ControlProxy] {
+  private[synth] def factory: ControlFactoryLike = rate match {
+    case `scalar`   => ControlProxy.scalarFactory
+    case `control`  => ControlProxy.controlFactory
+    case _          => sys.error(s"Unsupported rate $rate")
+  }
+}
+
+final class ControlFactory(rate: Rate) extends ControlFactoryLike {
   protected def makeUGen(numChannels: Int, specialIndex: Int): UGen = new Control.UGen(rate, numChannels, specialIndex)
 }
 
 // ---------- TrigControl ----------
 
 object TrigControl {
-  def kr(values: IIdxSeq[Float], name: Option[String] = None) = TrigControl(values, name)
+  def kr(values: ControlProxyFactory.Values, name: Option[String] = None) = TrigControl(values.seq, name)
 
-  def kr(values: Float*): TrigControl = kr(IIdxSeq(values: _*))
+  // def kr(values: Float*): TrigControl = kr(IIdxSeq(values: _*))
 
-  final class UGen private[ugen](numChannels: Int, override val specialIndex: Int)
+  private[ugen] final class UGen(numChannels: Int, override val specialIndex: Int)
     extends UGen.MultiOut("TrigControl", control, IIdxSeq.fill(numChannels)(control), IIdxSeq.empty, false, true)
-
 }
 
 final case class TrigControl(values: IIdxSeq[Float], ctrlName: Option[String])
@@ -89,22 +99,23 @@ final case class TrigControl(values: IIdxSeq[Float], ctrlName: Option[String])
   }
 }
 
-final case class TrigControlProxy(values: IIdxSeq[Float], name: Option[String])
-  extends AbstractControlProxy[TrigControlProxy] /* ( IIdxSeq.fill( values.size )( control )) */ with ControlRated {
-  def factory = TrigControlFactory
+object TrigControlProxy {
+  private object factory extends ControlFactoryLike {
+    protected def makeUGen(numChannels: Int, specialIndex: Int): UGen = new TrigControl.UGen(numChannels, specialIndex)
+  }
 }
-
-object TrigControlFactory extends AbstractControlFactory[TrigControlProxy] {
-  protected def makeUGen(numChannels: Int, specialIndex: Int): UGen = new TrigControl.UGen(numChannels, specialIndex)
+final case class TrigControlProxy(values: IIdxSeq[Float], name: Option[String])
+  extends ControlProxyLike with ControlRated {
+  private[synth] def factory: ControlFactoryLike = TrigControlProxy.factory
 }
 
 // ---------- AudioControl ----------
 
 object AudioControl {
-  def ar(values: IIdxSeq[Float], name: Option[String] = None) = AudioControl(values, name)
-  def ar(values: Float*): AudioControl                        = ar(IIdxSeq(values: _*))
+  def ar(values: ControlProxyFactory.Values, name: Option[String] = None) = AudioControl(values.seq, name)
+  // def ar(values: Float*): AudioControl                        = ar(IIdxSeq(values: _*))
 
-  final class UGen private[ugen](numChannels: Int, override val specialIndex: Int)
+  private[ugen] final class UGen(numChannels: Int, override val specialIndex: Int)
     extends UGen.MultiOut("AudioControl", audio, IIdxSeq.fill(numChannels)(audio), IIdxSeq.empty, false, true)
 }
 
@@ -119,11 +130,12 @@ final case class AudioControl(values: IIdxSeq[Float], ctrlName: Option[String])
   }
 }
 
-final case class AudioControlProxy(values: IIdxSeq[Float], name: Option[String])
-  extends AbstractControlProxy[AudioControlProxy] /* ( IIdxSeq.fill( values.size )( audio )) */ with AudioRated {
-  def factory = AudioControlFactory
+object AudioControlProxy {
+  private object factory extends ControlFactoryLike {
+    protected def makeUGen(numChannels: Int, specialIndex: Int): UGen = new AudioControl.UGen(numChannels, specialIndex)
+  }
 }
-
-object AudioControlFactory extends AbstractControlFactory[AudioControlProxy] {
-  protected def makeUGen(numChannels: Int, specialIndex: Int): UGen = new AudioControl.UGen(numChannels, specialIndex)
+final case class AudioControlProxy(values: IIdxSeq[Float], name: Option[String])
+  extends ControlProxyLike with AudioRated {
+  private[synth] def factory: ControlFactoryLike = AudioControlProxy.factory
 }

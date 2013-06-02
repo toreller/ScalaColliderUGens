@@ -39,16 +39,15 @@ object GE {
   import language.implicitConversions
   import ugen.Constant
 
+  implicit def const(i: Int   ): Constant = new Constant(i)
   implicit def const(f: Float ): Constant = new Constant(f)
   implicit def const(d: Double): Constant = new Constant(d.toFloat)
 
-  implicit def expand(ge: GE): UGenInLike = ge.expand
-
-   // XXX don't we expect Multi[GE[R]] ?
-   implicit def fromSeq(xs: SSeq[GE]): GE = xs match {
-     case SSeq(x) => x
-     case _       => ugen.GESeq(xs.toIndexedSeq)
-   }
+  // XXX don't we expect Multi[GE[R]] ?
+  implicit def fromSeq(xs: SSeq[GE]): GE = xs match {
+    case SSeq(x)  => x
+    case _        => ugen.GESeq(xs.toIndexedSeq)
+  }
 
   implicit def fromIntSeq(xs: SSeq[Int]): GE = xs match {
     case SSeq(single) => Constant(single)

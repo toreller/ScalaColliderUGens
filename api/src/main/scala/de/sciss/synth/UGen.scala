@@ -28,8 +28,7 @@ package de.sciss.synth
 import collection.immutable.{IndexedSeq => IIdxSeq}
 import annotation.switch
 import runtime.ScalaRunTime
-import ugen.ControlProxyLike
-import language.existentials  // yes I know, that stuff in ControlProxyLike should really disappear
+import language.implicitConversions
 
 sealed trait UGen extends Product /* with MaybeIndividual */ {
   // ---- constructor ----
@@ -81,7 +80,7 @@ sealed trait UGen extends Product /* with MaybeIndividual */ {
      case _ => false
    }))
 
-   def isIndividual: Boolean
+   def isIndividual : Boolean
    def hasSideEffect: Boolean
 }
 
@@ -144,6 +143,9 @@ object UGen {
   }
 }
 
+object UGenInLike {
+  implicit def expand(ge: GE): UGenInLike = ge.expand
+}
 sealed trait UGenInLike extends GE {
   private[synth] def outputs: IIdxSeq[UGenInLike]
   private[synth] def unbubble: UGenInLike
@@ -212,9 +214,8 @@ package ugen {
    *    These constants are stored in a separate table of
    *    the synth graph.
    */
-  final case class Constant(value: Float) extends /* GE with */ UGenIn {
-    override def toString = value.toString
-    def rate: Rate = scalar
+  final case class Constant(value: Float) extends UGenIn with ScalarRated {
+    override def toString: String = value.toString
   }
 
   /**
@@ -226,7 +227,7 @@ package ugen {
    *    returned from the ControlProxyFactory class, that is, using the package
    *    implicits, from calls such as "myControl".kr.
    */
-  final case class ControlUGenOutProxy(source: ControlProxyLike[_], outputIndex: Int /*, rate: Rate */)
+  final case class ControlUGenOutProxy(source: ControlProxyLike, outputIndex: Int /*, rate: Rate */)
     extends UGenIn {
 
     def rate = source.rate

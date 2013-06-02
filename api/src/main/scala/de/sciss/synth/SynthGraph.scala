@@ -33,7 +33,7 @@ object SynthGraph {
   trait Builder {
     def addLazy(g: Lazy): Unit
 
-    def addControlProxy(proxy: ControlProxyLike[_]): Unit
+    def addControlProxy(proxy: ControlProxyLike): Unit
   }
 
   // java.lang.ThreadLocal is around 30% faster than
@@ -100,30 +100,30 @@ object SynthGraph {
       warn(g.toString)
     }
 
-    def addControlProxy(proxy: ControlProxyLike[_]) {
+    def addControlProxy(proxy: ControlProxyLike) {
       warn(proxy.toString)
     }
   }
 
   private final class BuilderImpl extends Builder {
-    private val lazies          = MBuffer.empty[Lazy]
-    private var controlProxies  = MSet.empty[ControlProxyLike[_]]
+    private val lazies          = IIdxSeq.newBuilder[Lazy]
+    private val controlProxies  = Set.newBuilder[ControlProxyLike]
 
     override def toString = "SynthGraph.Builder@" + hashCode.toHexString
 
-    def build = SynthGraph(lazies.toIndexedSeq, controlProxies.toSet)
+    def build = SynthGraph(lazies.result(), controlProxies.result())
 
     def addLazy(g: Lazy) {
       lazies += g
     }
 
-    def addControlProxy(proxy: ControlProxyLike[_]) {
+    def addControlProxy(proxy: ControlProxyLike) {
       controlProxies += proxy
     }
   }
 }
 
-final case class SynthGraph(sources: IIdxSeq[Lazy], controlProxies: ISet[ControlProxyLike[_]]) {
+final case class SynthGraph(sources: IIdxSeq[Lazy], controlProxies: ISet[ControlProxyLike]) {
   def isEmpty : Boolean  = sources.isEmpty && controlProxies.isEmpty
   def nonEmpty: Boolean  = !isEmpty
   def expand(implicit factory: UGenGraph.BuilderFactory): UGenGraph = factory.build(this)
