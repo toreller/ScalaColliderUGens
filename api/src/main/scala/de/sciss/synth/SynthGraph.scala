@@ -25,7 +25,6 @@
 
 package de.sciss.synth
 
-import collection.mutable.{Buffer => MBuffer, Set => MSet}
 import collection.immutable.{IndexedSeq => IIdxSeq, Set => ISet}
 import ugen.ControlProxyLike
 

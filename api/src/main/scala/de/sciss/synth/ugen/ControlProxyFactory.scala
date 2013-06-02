@@ -30,30 +30,29 @@ import collection.breakOut
 import collection.immutable.{IndexedSeq => IIdxSeq}
 import language.implicitConversions
 
-object ControlProxyFactory {
-  object Values {
-    implicit def float    (x: Float) : Values = Values(Vector(x))
-    implicit def double   (x: Double): Values = Values(Vector(x.toFloat))
-    implicit def floatSeq (xs: IIdxSeq[Float]) : Values = Values(xs)
-    implicit def doubleSeq(xs: IIdxSeq[Double]): Values = Values(xs.map(_.toFloat))
-    private[ugen] val singleZero = Values(Vector(0f))
-  }
-  final case class Values(seq: IIdxSeq[Float])
+object ControlValues {
+  // implicit def fromInt      (x :     Int    ): ControlValues = ControlValues(Vector(x.toFloat))
+  implicit def fromFloat    (x :     Float  ): ControlValues = ControlValues(Vector(x))
+  implicit def fromDouble   (x :     Double ): ControlValues = ControlValues(Vector(x.toFloat))
+  implicit def fromIntSeq   (xs: Seq[Int   ]): ControlValues = ControlValues(xs.map(_.toFloat)(breakOut))
+  implicit def fromFoatSeq  (xs: Seq[Float ]): ControlValues = ControlValues(xs.toIndexedSeq)
+  implicit def fromDoubleSeq(xs: Seq[Double]): ControlValues = ControlValues(xs.map(_.toFloat)(breakOut))
+  private[ugen] val singleZero = ControlValues(Vector(0f))
 }
+final case class ControlValues(seq: IIdxSeq[Float])
+
 final class ControlProxyFactory(name: String) {
-  import ControlProxyFactory.Values
+  def ir: ControlProxy = ir(ControlValues.singleZero)
+  def ir(values: ControlValues): ControlProxy      = ControlProxy(scalar,  values.seq, Some(name))
 
-  def ir: ControlProxy = ir(Values.singleZero)
-  def ir(values: Values): ControlProxy      = ControlProxy(scalar,  values.seq, Some(name))
+  def kr: ControlProxy = kr(ControlValues.singleZero)
+  def kr(values: ControlValues): ControlProxy      = ControlProxy(control, values.seq, Some(name))
 
-  def kr: ControlProxy = kr(Values.singleZero)
-  def kr(values: Values): ControlProxy      = ControlProxy(control, values.seq, Some(name))
+  def tr: TrigControlProxy = tr(ControlValues.singleZero)
+  def tr(values: ControlValues): TrigControlProxy  = TrigControlProxy     (values.seq, Some(name))
 
-  def tr: TrigControlProxy = tr(Values.singleZero)
-  def tr(values: Values): TrigControlProxy  = TrigControlProxy     (values.seq, Some(name))
-
-  def ar: AudioControlProxy = ar(Values.singleZero)
-  def ar(values: Values): AudioControlProxy = AudioControlProxy    (values.seq, Some(name))
+  def ar: AudioControlProxy = ar(ControlValues.singleZero)
+  def ar(values: ControlValues): AudioControlProxy = AudioControlProxy    (values.seq, Some(name))
 }
 
 trait ControlFactoryLike {

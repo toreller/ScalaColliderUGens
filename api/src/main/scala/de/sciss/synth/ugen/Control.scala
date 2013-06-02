@@ -35,8 +35,8 @@ object Control {
    * Note: we are not providing further convenience methods,
    * as that is the task of ControlProxyFactory...
    */
-  def ir(values: ControlProxyFactory.Values, name: Option[String] = None) = apply(scalar , values.seq, name)
-  def kr(values: ControlProxyFactory.Values, name: Option[String] = None) = apply(control, values.seq, name)
+  def ir(values: ControlValues, name: Option[String] = None) = apply(scalar , values.seq, name)
+  def kr(values: ControlValues, name: Option[String] = None) = apply(control, values.seq, name)
 
   // def ir(values: Float*): Control = ir(IIdxSeq(values: _*))
   // def kr(values: Float*): Control = kr(IIdxSeq(values: _*))
@@ -45,13 +45,13 @@ object Control {
   // and more importantly: control ugens created from proxies are not wired, so they would
   // be eliminated if side-effect was false!!!
   private[ugen] final class UGen(rate: Rate, numChannels: Int, override val specialIndex: Int)
-    extends UGen.MultiOut("Control", rate, IIdxSeq.fill(numChannels)(rate), IIdxSeq.empty, false, true)
+    extends UGen.MultiOut("Control", rate, Vector.fill(numChannels)(rate), Vector.empty, false, true)
 }
 
 final case class Control(rate: Rate, values: IIdxSeq[Float], ctrlName: Option[String])
   extends UGenSource.MultiOut {
 
-  protected def makeUGens: UGenInLike = makeUGen(IIdxSeq.empty)
+  protected def makeUGens: UGenInLike = makeUGen(Vector.empty)
 
   protected def makeUGen(args: IIdxSeq[UGenIn]): UGenInLike = {
     val specialIndex = UGenGraph.builder.addControl(values, ctrlName)
@@ -80,18 +80,18 @@ final class ControlFactory(rate: Rate) extends ControlFactoryLike {
 // ---------- TrigControl ----------
 
 object TrigControl {
-  def kr(values: ControlProxyFactory.Values, name: Option[String] = None) = TrigControl(values.seq, name)
+  def kr(values: ControlValues, name: Option[String] = None) = TrigControl(values.seq, name)
 
   // def kr(values: Float*): TrigControl = kr(IIdxSeq(values: _*))
 
   private[ugen] final class UGen(numChannels: Int, override val specialIndex: Int)
-    extends UGen.MultiOut("TrigControl", control, IIdxSeq.fill(numChannels)(control), IIdxSeq.empty, false, true)
+    extends UGen.MultiOut("TrigControl", control, Vector.fill(numChannels)(control), Vector.empty, false, true)
 }
 
 final case class TrigControl(values: IIdxSeq[Float], ctrlName: Option[String])
   extends UGenSource.MultiOut with ControlRated /* with IsControl */ {
 
-  protected def makeUGens: UGenInLike = makeUGen(IIdxSeq.empty)
+  protected def makeUGens: UGenInLike = makeUGen(Vector.empty)
 
   protected def makeUGen(args: IIdxSeq[UGenIn]): UGenInLike = {
     val specialIndex = UGenGraph.builder.addControl(values, ctrlName)
@@ -112,17 +112,17 @@ final case class TrigControlProxy(values: IIdxSeq[Float], name: Option[String])
 // ---------- AudioControl ----------
 
 object AudioControl {
-  def ar(values: ControlProxyFactory.Values, name: Option[String] = None) = AudioControl(values.seq, name)
+  def ar(values: ControlValues, name: Option[String] = None) = AudioControl(values.seq, name)
   // def ar(values: Float*): AudioControl                        = ar(IIdxSeq(values: _*))
 
   private[ugen] final class UGen(numChannels: Int, override val specialIndex: Int)
-    extends UGen.MultiOut("AudioControl", audio, IIdxSeq.fill(numChannels)(audio), IIdxSeq.empty, false, true)
+    extends UGen.MultiOut("AudioControl", audio, Vector.fill(numChannels)(audio), Vector.empty, false, true)
 }
 
 final case class AudioControl(values: IIdxSeq[Float], ctrlName: Option[String])
   extends UGenSource.MultiOut with AudioRated /* with IsControl */ {
 
-  protected def makeUGens: UGenInLike = makeUGen(IIdxSeq.empty)
+  protected def makeUGens: UGenInLike = makeUGen(Vector.empty)
 
   protected def makeUGen(args: IIdxSeq[UGenIn]): UGenInLike = {
     val specialIndex = UGenGraph.builder.addControl(values, ctrlName)
