@@ -103,7 +103,7 @@ The second attribute, `method`, builds up `implied` and requires that `implied` 
 
 `methodalias` adds _an additional_ method for the rate. An example is `IFFT` which specifies `<rate name="audio" methodalias="apply"/>`. This means the default method `ar` is created, plus an `apply` method as an alias.
 
-#### Argument Attributes ####
+#### Argument Attributes
 
 |Attribute Name|Value                            |Example   |
 |--------------|---------------------------------|----------|
