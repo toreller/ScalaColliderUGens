@@ -34,7 +34,7 @@ private[synth] object DoubleFun {
   @inline def abs         (d: Double): Double = math.abs(d)
   @inline def ceil        (d: Double): Double = math.ceil(d)
   @inline def floor       (d: Double): Double = math.floor(d)
-  @inline def frac        (d: Double): Double = (d - math.floor(d))
+  @inline def frac        (d: Double): Double = d - math.floor(d)
 
   // according to jmc
   @inline def signum      (d: Double): Double = math.signum(d)
@@ -43,16 +43,16 @@ private[synth] object DoubleFun {
   @inline def sqrt        (d: Double): Double = math.sqrt(d)
   @inline def exp         (d: Double): Double = math.exp(d)
   @inline def reciprocal  (d: Double): Double = 1.0 / d
-  @inline def midicps     (d: Double): Double = (440 * math.pow(2, (d - 69) / 12))
-  @inline def cpsmidi     (d: Double): Double = (math.log(d / 440) / LOG2 * 12 + 69)
-  @inline def midiratio   (d: Double): Double = (math.pow(2, d / 12))
-  @inline def ratiomidi   (d: Double): Double = (12 * math.log(d) / LOG2)
-  @inline def dbamp       (d: Double): Double = (math.pow(10, d * 0.05))
-  @inline def ampdb       (d: Double): Double = (math.log10(d) * 20)
-  @inline def octcps      (d: Double): Double = (440 * math.pow(2, d - 4.75))
-  @inline def cpsoct      (d: Double): Double = (math.log(d / 440) / LOG2 + 4.75)
+  @inline def midicps     (d: Double): Double = 440 * math.pow(2, (d - 69) / 12)
+  @inline def cpsmidi     (d: Double): Double = math.log(d / 440) / LOG2 * 12 + 69
+  @inline def midiratio   (d: Double): Double = math.pow(2, d / 12)
+  @inline def ratiomidi   (d: Double): Double = 12 * math.log(d) / LOG2
+  @inline def dbamp       (d: Double): Double = math.pow(10, d * 0.05)
+  @inline def ampdb       (d: Double): Double = math.log10(d) * 20
+  @inline def octcps      (d: Double): Double = 440 * math.pow(2, d - 4.75)
+  @inline def cpsoct      (d: Double): Double = math.log(d / 440) / LOG2 + 4.75
   @inline def log         (d: Double): Double = math.log(d)
-  @inline def log2        (d: Double): Double = (math.log(d) / LOG2)
+  @inline def log2        (d: Double): Double = math.log(d) / LOG2
   @inline def log10       (d: Double): Double = math.log10(d)
   @inline def sin         (d: Double): Double = math.sin(d)
   @inline def cos         (d: Double): Double = math.cos(d)
@@ -87,13 +87,13 @@ private[synth] object DoubleFun {
   @inline def min       (a: Double, b: Double): Double = math.min(a, b)
   @inline def max       (a: Double, b: Double): Double = math.max(a, b)
 
-  @inline def round     (a: Double, b: Double) = if (b == 0) a else math.floor(a / b + 0.5f) * b
-  @inline def roundup   (a: Double, b: Double) = if (b == 0) a else math.ceil (a / b) * b
-  @inline def trunc     (a: Double, b: Double) = if (b == 0) a else math.floor(a / b) * b
+  @inline def round     (a: Double, b: Double): Double = if (b == 0) a else math.floor(a / b + 0.5f) * b
+  @inline def roundup   (a: Double, b: Double): Double = if (b == 0) a else math.ceil (a / b) * b
+  @inline def trunc     (a: Double, b: Double): Double = if (b == 0) a else math.floor(a / b) * b
   @inline def atan2     (a: Double, b: Double): Double = math.atan2(a, b)
   @inline def hypot     (a: Double, b: Double): Double = math.hypot(a, b)
 
-  @inline def hypotx    (a: Double, b: Double) = {
+  @inline def hypotx    (a: Double, b: Double): Double = {
     val minab = math.min(math.abs(a), math.abs(b))
     a + b - (math.sqrt(2) - 1) * minab
   }
@@ -105,36 +105,36 @@ private[synth] object DoubleFun {
 // UnsgnRghtShft
 // fill
 
-  @inline def ring1     (a: Double, b: Double) = a * b + a
-  @inline def ring2     (a: Double, b: Double) = a * b + a + b
-  @inline def ring3     (a: Double, b: Double) = a * a * b
+  @inline def ring1     (a: Double, b: Double): Double = a * b + a
+  @inline def ring2     (a: Double, b: Double): Double = a * b + a + b
+  @inline def ring3     (a: Double, b: Double): Double = a * a * b
 
-  @inline def ring4     (a: Double, b: Double) = {
+  @inline def ring4     (a: Double, b: Double): Double = {
     val ab = a * b
     a * ab - b * ab
   }
 
-  @inline def difsqr    (a: Double, b: Double) = a * a - b * b
-  @inline def sumsqr    (a: Double, b: Double) = a * a + b * b
+  @inline def difsqr    (a: Double, b: Double): Double = a * a - b * b
+  @inline def sumsqr    (a: Double, b: Double): Double = a * a + b * b
 
-  @inline def sqrsum    (a: Double, b: Double) = {
+  @inline def sqrsum    (a: Double, b: Double): Double = {
     val z = a + b
     z * z
   }
 
-  @inline def sqrdif    (a: Double, b: Double) = {
+  @inline def sqrdif    (a: Double, b: Double): Double = {
     val z = a - b
     z * z
   }
 
-  @inline def absdif    (a: Double, b: Double) = math.abs(a - b)
-  @inline def thresh    (a: Double, b: Double) = if (a < b) 0.0 else a
-  @inline def amclip    (a: Double, b: Double) = a * 0.5 * (b + math.abs(a))
-  @inline def scaleneg  (a: Double, b: Double) = (math.abs(a) - a) * (0.5 * b + 0.5) + a
-  @inline def clip2     (a: Double, b: Double) = math.max(math.min(a, b), -b)
-  @inline def excess    (a: Double, b: Double) = a - math.max(math.min(a, b), -b)
-  @inline def fold2     (a: Double, b: Double) = fold(a, -b, b)
-  @inline def wrap2     (a: Double, b: Double) = wrap(a, -b, b)
+  @inline def absdif    (a: Double, b: Double): Double = math.abs(a - b)
+  @inline def thresh    (a: Double, b: Double): Double = if (a < b) 0.0 else a
+  @inline def amclip    (a: Double, b: Double): Double = a * 0.5 * (b + math.abs(a))
+  @inline def scaleneg  (a: Double, b: Double): Double = (math.abs(a) - a) * (0.5 * b + 0.5) + a
+  @inline def clip2     (a: Double, b: Double): Double = math.max(math.min(a, b), -b)
+  @inline def excess    (a: Double, b: Double): Double = a - math.max(math.min(a, b), -b)
+  @inline def fold2     (a: Double, b: Double): Double = fold(a, -b, b)
+  @inline def wrap2     (a: Double, b: Double): Double = wrap(a, -b, b)
 
   // ---- n-ary ops ----
 

@@ -50,9 +50,7 @@ object Lazy {
       * the `expand` method. Therefore it is guaranteed, that the expansion to
       * ugens is performed no more than once in the graph expansion.
       */
-    final private[synth] def force(b: UGenGraph.Builder) {
-      visit(b)
-    }
+    final private[synth] def force(b: UGenGraph.Builder): Unit = visit(b)
 
     /** A final implementation of this method which looks up the current ugen graph
       * builder and then performs the expansion just as `force`, returning the

@@ -25,7 +25,7 @@
 
 package de.sciss.synth
 
-import collection.immutable.{IndexedSeq => IIdxSeq}
+import collection.immutable.{IndexedSeq => Vec}
 import annotation.switch
 import runtime.ScalaRunTime
 import language.implicitConversions
@@ -38,13 +38,13 @@ sealed trait UGen extends Product /* with MaybeIndividual */ {
   // YYY
   def numOutputs: Int
   // YYY
-  //   def outputs: IIdxSeq[ UGenIn ] // YYY   XXX could be UGenProxy
-  def outputRates: IIdxSeq[Rate]
+  //   def outputs: Vec[ UGenIn ] // YYY   XXX could be UGenProxy
+  def outputRates: Vec[Rate]
 
   def name: String
 
   //   def outputRates: Seq[ Rate ]
-  def inputs: IIdxSeq[UGenIn]
+  def inputs: Vec[UGenIn]
   def numInputs = inputs.size
 
   def source = this
@@ -89,46 +89,46 @@ object UGen {
    * A SingleOutUGen is a UGen which has exactly one output, and
    * hence can directly function as input to another UGen without expansion.
    */
-  class SingleOut(val name: String, val rate: Rate, val inputs: IIdxSeq[UGenIn],
+  class SingleOut(val name: String, val rate: Rate, val inputs: Vec[UGenIn],
                   val isIndividual: Boolean = false, val hasSideEffect: Boolean = false)
     extends ugen.UGenProxy with UGen {
     final def numOutputs = 1
 
-    final def outputRates: IIdxSeq[Rate] = rate.toIndexedSeq // IIdxSeq( rate )
+    final def outputRates: Vec[Rate] = rate.toIndexedSeq // Vec( rate )
 
     final def outputIndex = 0
   }
 
   object ZeroOut {
-    private val outputRates: IIdxSeq[Rate] = IIdxSeq.empty
+    private val outputRates: Vec[Rate] = Vec.empty
   }
 
-  class ZeroOut(val name: String, val rate: Rate, val inputs: IIdxSeq[UGenIn], val isIndividual: Boolean = false)
+  class ZeroOut(val name: String, val rate: Rate, val inputs: Vec[UGenIn], val isIndividual: Boolean = false)
     extends UGen /* with HasSideEffect */ {
     final /* override */ def numOutputs = 0
 
-    //      final def outputs = IIdxSeq.empty
-    final def outputRates: IIdxSeq[Rate] = ZeroOut.outputRates
+    //      final def outputs = Vec.empty
+    final def outputRates: Vec[Rate] = ZeroOut.outputRates
 
-    // IIdxSeq.empty
+    // Vec.empty
     final def hasSideEffect = true
   }
 
   /**
    * A class for UGens with multiple outputs
    */
-  class MultiOut(val name: String, val rate: Rate, val outputRates: IIdxSeq[Rate], val inputs: IIdxSeq[UGenIn],
+  class MultiOut(val name: String, val rate: Rate, val outputRates: Vec[Rate], val inputs: Vec[UGenIn],
                  val isIndividual: Boolean = false, val hasSideEffect: Boolean = false)
     extends UGen with ugen.UGenInGroup {
     final def numOutputs = outputRates.size
 
-    //      final lazy val outputs: IIdxSeq[ UGenIn ] = outputRates.zipWithIndex.map( tup => OutProxy( this, tup._2, tup._1 ))
+    //      final lazy val outputs: Vec[ UGenIn ] = outputRates.zipWithIndex.map( tup => OutProxy( this, tup._2, tup._1 ))
     final def unwrap(i: Int): UGenInLike = {
       //         outputs( i % outputRates.size )
       ugen.UGenOutProxy(this, i % numOutputs) // , outputRates( i )
     }
 
-    def outputs: IIdxSeq[UGenIn] = IIdxSeq.tabulate(numOutputs)(ch => ugen.UGenOutProxy(this, ch))
+    def outputs: Vec[UGenIn] = Vec.tabulate(numOutputs)(ch => ugen.UGenOutProxy(this, ch))
 
     /*
          This is important: Imagine for example `Out.ar( PanAz.ar( 4, In.ar( 0, 1 ), pos ))`.
@@ -147,7 +147,7 @@ object UGenInLike {
   implicit def expand(ge: GE): UGenInLike = ge.expand
 }
 sealed trait UGenInLike extends GE {
-  private[synth] def outputs: IIdxSeq[UGenInLike]
+  private[synth] def outputs: Vec[UGenInLike]
   private[synth] def unbubble: UGenInLike
 
   /**
@@ -157,7 +157,7 @@ sealed trait UGenInLike extends GE {
    * automatically wrap the index around numElements!
    */
   private[synth] def unwrap(i: Int): UGenInLike
-  private[synth] def flatOutputs: IIdxSeq[UGenIn]
+  private[synth] def flatOutputs: Vec[UGenIn]
 
   // ---- GE ----
   final private[synth] def expand: UGenInLike = this
@@ -171,21 +171,21 @@ sealed trait UGenInLike extends GE {
 sealed trait UGenIn extends UGenInLike {
   def rate: Rate
 
-  private[synth] def outputs: IIdxSeq[UGenIn] = IIdxSeq(this)
+  private[synth] def outputs: Vec[UGenIn] = Vec(this)
   private[synth] final def unwrap(i: Int): UGenInLike = this
 
   // don't bother about the index
-  private[synth] final def flatOutputs: IIdxSeq[UGenIn] = IIdxSeq(this)
+  private[synth] final def flatOutputs: Vec[UGenIn] = Vec(this)
   private[synth] final def unbubble: UGenInLike = this
 }
 
 package ugen {
   object UGenInGroup {
-    private final val emptyVal = new Apply(IIdxSeq.empty)
+    private final val emptyVal = new Apply(Vec.empty)
     def empty: UGenInGroup = emptyVal
-    def apply(xs: IIdxSeq[UGenInLike]): UGenInGroup = new Apply(xs)
+    def apply(xs: Vec[UGenInLike]): UGenInGroup = new Apply(xs)
 
-    private final case class Apply(outputs: IIdxSeq[UGenInLike]) extends UGenInGroup {
+    private final case class Apply(outputs: Vec[UGenInLike]) extends UGenInGroup {
       override def productPrefix = "UGenInGroup"
 
       private[synth] def numOutputs: Int = outputs.size
@@ -199,9 +199,9 @@ package ugen {
     }
   }
   sealed trait UGenInGroup extends UGenInLike {
-    private[synth] def outputs: IIdxSeq[UGenInLike]
+    private[synth] def outputs: Vec[UGenInLike]
     private[synth] def numOutputs: Int
-    private[synth] final def flatOutputs: IIdxSeq[UGenIn] = outputs.flatMap(_.flatOutputs)
+    private[synth] final def flatOutputs: Vec[UGenIn] = outputs.flatMap(_.flatOutputs)
   }
 
   sealed trait UGenProxy extends UGenIn {

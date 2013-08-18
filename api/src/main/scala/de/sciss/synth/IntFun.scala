@@ -26,10 +26,10 @@
 package de.sciss.synth
 
 private[synth] object IntFun {
-  @inline def abs(a: Int): Int       = math.abs( a )
-  @inline def signum(a: Int): Int    = math.signum( a )
-  @inline def squared(a: Int): Long  = { val n = a.toLong; n * n }
-  @inline def cubed(a: Int): Long    = { val n = a.toLong; n * n * n }
+  @inline def abs     (a: Int): Int   = math.abs( a )
+  @inline def signum  (a: Int): Int   = math.signum( a )
+  @inline def squared (a: Int): Long  = { val n = a.toLong; n * n }
+  @inline def cubed   (a: Int): Long  = { val n = a.toLong; n * n * n }
 
   // ---- binary ops ----
   @inline def min(a: Int, b: Int): Int   = math.min(a, b)

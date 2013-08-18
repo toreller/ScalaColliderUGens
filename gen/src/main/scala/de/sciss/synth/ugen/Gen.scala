@@ -37,7 +37,7 @@ object Gen extends App {
   var resources       = false
   var outDirOption    = Option.empty[String]
   var forceOverwrite  = false
-  val parser          = new OptionParser( "ScalaCollider-UGens" ) {
+  val parser          = new OptionParser("ScalaCollider-UGens") {
     opt("r", "resources", "Use resources as input", action = { resources = true })
     opt("f", "force", "Force overwrite of output files", action = { forceOverwrite = true })
     opt( "d", "dir", "<directory>", "Source output root directory", (s: String) => outDirOption = Some(s))
@@ -66,12 +66,12 @@ object Gen extends App {
   val inputs: Iterator[InputSource] = if (resources) {
     Iterator.single(xml.Source.fromInputStream(getClass.getResourceAsStream("standard-ugens.xml")))
   } else {
-    inFiles.iterator.map(xml.Source.fromFile _)
+    inFiles.iterator.map(xml.Source.fromFile)
   }
 
   inputs.foreach { source =>
     val xml = XML.load(source)
     synth.performFiles(xml, outDir, docs = docs, forceOverwrite = forceOverwrite)
   }
-  sys.exit(0)
+  sys.exit()  // XXX TODO: do we need this?
 }

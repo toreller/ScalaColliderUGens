@@ -27,7 +27,7 @@ package de.sciss
 package synth
 package ugen
 
-import collection.immutable.{IndexedSeq => IIdxSeq}
+import collection.immutable.{IndexedSeq => Vec}
 import de.sciss.synth.ugen.{Constant => c}
 import annotation.switch
 
@@ -40,11 +40,11 @@ import annotation.switch
 final case class MulAdd(/* rate: MaybeRate, */ in: GE, mul: GE, add: GE)
   extends UGenSource.SingleOut {
 
-  protected def makeUGens: UGenInLike = unwrap(IIdxSeq(in.expand, mul.expand, add.expand))
+  protected def makeUGens: UGenInLike = unwrap(Vec(in.expand, mul.expand, add.expand))
 
   def rate: MaybeRate = in.rate // XXX correct?
 
-  protected def makeUGen(args: IIdxSeq[UGenIn]): UGenInLike = {
+  protected def makeUGen(args: Vec[UGenIn]): UGenInLike = {
     import BinaryOpUGen.{Plus, Minus, Times}
     import UnaryOpUGen.Neg
 
@@ -356,7 +356,7 @@ object UnaryOpUGen {
 
   // Note: only deterministic selectors are implemented!!
   private final class UGenImpl /**/ (/* rate: Rate, */ selector: Op, a: UGenIn /*[ R ]*/)
-    extends UGen.SingleOut("UnaryOpUGen", a.rate, IIdxSeq(a)) {
+    extends UGen.SingleOut("UnaryOpUGen", a.rate, Vec(a)) {
 
     override def specialIndex = selector.id
   }
@@ -367,10 +367,10 @@ final case class UnaryOpUGen(/* rate: MaybeRate, */ selector: UnaryOpUGen.Op, a:
 
   def rate: MaybeRate = a.rate
 
-  protected def makeUGens: UGenInLike = unwrap(IIdxSeq(a.expand))
+  protected def makeUGens: UGenInLike = unwrap(Vec(a.expand))
 
-  protected def makeUGen(args: IIdxSeq[UGenIn]): UGenInLike = {
-    val IIdxSeq(a) = args
+  protected def makeUGen(args: Vec[UGenIn]): UGenInLike = {
+    val Vec(a) = args
     selector.make1(a)
   }
 
@@ -759,7 +759,7 @@ object BinaryOpUGen {
 
   // Note: only deterministic selectors are implemented!!
   private final class UGenImpl(selector: Op, a: UGenIn, b: UGenIn)
-    extends UGen.SingleOut("BinaryOpUGen", a.rate max b.rate, IIdxSeq(a, b)) {
+    extends UGen.SingleOut("BinaryOpUGen", a.rate max b.rate, Vec(a, b)) {
 
     override def specialIndex = selector.id
   }
@@ -781,9 +781,9 @@ sealed trait BinaryOpUGen extends UGenSource.SingleOut {
 
   final def rate: MaybeRate = MaybeRate.max_?( a.rate, b.rate )
 
-  protected final def makeUGens: UGenInLike = unwrap(IIdxSeq(a.expand, b.expand))
+  protected final def makeUGens: UGenInLike = unwrap(Vec(a.expand, b.expand))
 
-  protected final def makeUGen(args: IIdxSeq[UGenIn]): UGenInLike = {
+  protected final def makeUGen(args: Vec[UGenIn]): UGenInLike = {
     val a0 = args(0)
     val a1 = args(1)
     selector.make1(a0, a1)

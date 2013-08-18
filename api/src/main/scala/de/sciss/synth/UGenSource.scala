@@ -25,11 +25,11 @@
 
 package de.sciss.synth
 
-import collection.immutable.{IndexedSeq => IIdxSeq}
+import collection.immutable.{IndexedSeq => Vec}
 
 object UGenSource {
   trait ZeroOut extends UGenSource[Unit] {
-    final protected def rewrap(args: IIdxSeq[UGenInLike], exp: Int) {
+    final protected def rewrap(args: Vec[UGenInLike], exp: Int): Unit = {
       var i = 0
       while (i < exp) {
         unwrap(args.map(_.unwrap(i)))
@@ -42,18 +42,18 @@ object UGenSource {
   trait MultiOut  extends SomeOut
 
   protected sealed trait SomeOut extends UGenSource[UGenInLike] with GE.Lazy {
-    final protected def rewrap(args: IIdxSeq[UGenInLike], exp: Int): UGenInLike =
-      ugen.UGenInGroup(IIdxSeq.tabulate(exp)(i => unwrap(args.map(_.unwrap(i)))))
+    final protected def rewrap(args: Vec[UGenInLike], exp: Int): UGenInLike =
+      ugen.UGenInGroup(Vec.tabulate(exp)(i => unwrap(args.map(_.unwrap(i)))))
   }
 }
 
 sealed trait UGenSource[U] extends Lazy.Expander[U] with Product {
-  protected def makeUGen(args: IIdxSeq[UGenIn]): U
+  protected def makeUGen(args: Vec[UGenIn]): U
 
   final def name: String = productPrefix
 
-  final protected def unwrap(args: IIdxSeq[UGenInLike]): U = {
-    var uins    = IIdxSeq.empty[UGenIn]
+  final protected def unwrap(args: Vec[UGenInLike]): U = {
+    var uins    = Vec.empty[UGenIn]
     var uinsOk  = true
     var exp     = 0
     args.foreach(_.unbubble match {
@@ -70,5 +70,5 @@ sealed trait UGenSource[U] extends Lazy.Expander[U] with Product {
     }
   }
 
-  protected def rewrap(args: IIdxSeq[UGenInLike], exp: Int): U
+  protected def rewrap(args: Vec[UGenInLike], exp: Int): U
 }

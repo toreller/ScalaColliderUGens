@@ -26,7 +26,7 @@
 package de.sciss.synth
 package impl
 
-import collection.immutable.{IndexedSeq => IIdxSeq}
+import collection.immutable.{IndexedSeq => Vec}
 import collection.breakOut
 import de.sciss.synth.UGenSpec.{ArgumentValue, ArgumentType}
 
@@ -138,13 +138,11 @@ private[synth] object UGenSpecParser {
     }
   }
 
-  private def incompatibleTypeDefault(uName: String, aName: String, tpe: Any, df: Any) {
+  private def incompatibleTypeDefault(uName: String, aName: String, tpe: Any, df: Any): Nothing =
     sys.error(s"Mismatch between argument type and default value for ugen ${uName}, argument ${aName}, type is ${tpe}, default is ${df}")
-  }
 
-  private def errorScalarType(uName: String, aName: String, tpe: ArgumentType) {
+  private def errorScalarType(uName: String, aName: String, tpe: ArgumentType): Nothing =
     sys.error(s"Cannot use scalar declaration with arguments of type ${tpe}, in ${uName}, argument ${aName}")
-  }
 
   // poor man's type inference
   private def inferArgType(uName: String, aName: String,
@@ -309,12 +307,11 @@ private[synth] object UGenSpecParser {
     val b     = List.newBuilder[String]
     val sb    = new StringBuilder
 
-    def flush() {
+    def flush(): Unit =
       if (!sb.isEmpty) {
         b += sb.toString
         sb.clear()
       }
-    }
 
     var inPre = false
     trim.foreach { line =>
@@ -405,7 +402,7 @@ private[synth] object UGenSpecParser {
     val indSideEffect = writesBus || writesBuffer || writesFFT
     val indIndiv      = readsBus  || readsBuffer  || readsFFT || indSideEffect || random
 
-    val aNodes = (node \ "arg")
+    val aNodes = node \ "arg"
 
     // ---- rates ----
 
@@ -426,7 +423,7 @@ private[synth] object UGenSpecParser {
       }
     }
 
-    def addArgRate(r: Rate, rNode: xml.Node) {
+    def addArgRate(r: Rate, rNode: xml.Node): Unit =
       (rNode \ "arg").foreach { raNode =>
         val raAttr  = raNode.attributes.asAttrMap
         val raName  = raAttr.string("name")
@@ -448,9 +445,8 @@ private[synth] object UGenSpecParser {
         val newMap  = oldMap + (r -> (raDef, raCons))
         argRatesMap += raName -> newMap
       }
-    }
 
-    val rNodes = (node \ "rate")
+    val rNodes = node \ "rate"
     if (rNodes.isEmpty) sys.error(s"No rates specified for ${uName}")
     val impliedRate = (rNodes.size == 1) && rNodes.head.attributes.asAttrMap.boolean("implied")
     val rates = if (impliedRate) {
@@ -497,7 +493,7 @@ private[synth] object UGenSpecParser {
 
     // ---- arguments ----
 
-    var args          = Vector.empty: IIdxSeq[Argument]
+    var args          = Vector.empty: Vec[Argument]
     var argsOrd       = Map.empty[Int, Argument]
     var argMap        = Map.empty[String, Argument]
     var inputs        = Vector.empty[Input]
@@ -552,9 +548,8 @@ private[synth] object UGenSpecParser {
         }
       }
 
-      def errorMixPos() {
+      def errorMixPos(): Nothing =
         sys.error(s"Cannot mix positional and non-positional arguments, in ugen ${uName}, argument ${aName}")
-      }
 
       val arg = Argument(aName, aType, aDefaults, aRates)
       aAttrs.intOption("pos") match {                                                 // handles "pos"
@@ -598,7 +593,7 @@ private[synth] object UGenSpecParser {
     var outputs     = Vector.empty[Output]
     var outputDocs  = Map.empty[String, List[String]]
 
-    val oNodes  = (node \ "output")
+    val oNodes  =  node \ "output"
     val zeroOut = (node \ "no-outputs").nonEmpty
     if (zeroOut && oNodes.nonEmpty) sys.error(s"Cannot mix no-outputs and output nodes, in ugen ${uName}")
 

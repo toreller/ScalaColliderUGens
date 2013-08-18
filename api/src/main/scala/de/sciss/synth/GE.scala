@@ -27,7 +27,7 @@ package de.sciss.synth
 
 import scala.{Seq => SSeq}
 import collection.breakOut
-import collection.immutable.{IndexedSeq => IIdxSeq}
+import collection.immutable.{IndexedSeq => Vec}
 
 /** The UGen graph is constructed from interconnecting graph elements (GE).
   * Graph elements can be decomposed into a sequence of UGenIn objects.
@@ -92,7 +92,7 @@ trait GE extends Product {
 }
 
 package ugen {
-  private[synth] final case class GESeq(elems: IIdxSeq[GE]) extends GE {
+  private[synth] final case class GESeq(elems: Vec[GE]) extends GE {
     def numOutputs            = elems.size
     def expand: UGenInLike    = UGenInGroup(elems.map(_.expand))
     def rate                  = MaybeRate.reduce(elems.map(_.rate): _*)
@@ -100,7 +100,7 @@ package ugen {
     override def toString     = "GESeq" + elems.mkString("(", ",", ")")
   }
 
-private[synth] final case class UGenInSeq(elems: IIdxSeq[UGenIn]) extends GE {
+private[synth] final case class UGenInSeq(elems: Vec[UGenIn]) extends GE {
     def numOutputs            = elems.size
     def expand: UGenInLike    = UGenInGroup(elems)
     def rate                  = MaybeRate.reduce(elems.map(_.rate): _*)

@@ -27,7 +27,7 @@ package de.sciss.synth
 package ugen
 
 import collection.breakOut
-import collection.immutable.{IndexedSeq => IIdxSeq}
+import collection.immutable.{IndexedSeq => Vec}
 import language.implicitConversions
 
 object ControlValues {
@@ -39,7 +39,7 @@ object ControlValues {
   implicit def fromDoubleSeq(xs: Seq[Double]): ControlValues = ControlValues(xs.map(_.toFloat)(breakOut))
   private[ugen] val singleZero = ControlValues(Vector(0f))
 }
-final case class ControlValues(seq: IIdxSeq[Float])
+final case class ControlValues(seq: Vec[Float])
 
 final class ControlProxyFactory(name: String) {
   def ir: ControlProxy = ir(ControlValues.singleZero)
@@ -56,7 +56,7 @@ final class ControlProxyFactory(name: String) {
 }
 
 trait ControlFactoryLike {
-  def build(b: UGenGraph.Builder, proxies: IIdxSeq[ControlProxyLike]): Map[ControlProxyLike, (UGen, Int)] = {
+  def build(b: UGenGraph.Builder, proxies: Vec[ControlProxyLike]): Map[ControlProxyLike, (UGen, Int)] = {
     var numChannels = 0
     val specialIndex = proxies.map(p => {
       numChannels += p.values.size
@@ -81,7 +81,7 @@ trait ControlProxyLike extends GE {
   def rate    : Rate
   private[synth] def factory: ControlFactoryLike
   def name    : Option[String]
-  def values  : IIdxSeq[Float]
+  def values  : Vec[Float]
 
   /** Note: this expands to a single ControlUGenOutProxy for numChannels == 1,
     * otherwise to a sequence of proxies wrapped in UGenInGroup. Therefore,

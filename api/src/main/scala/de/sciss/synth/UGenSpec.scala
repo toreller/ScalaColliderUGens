@@ -27,7 +27,7 @@ package de.sciss
 package synth
 
 import collection.immutable
-import immutable.{IndexedSeq => IIdxSeq}
+import immutable.{IndexedSeq => Vec}
 import collection.breakOut
 import impl.{UGenSpecParser => ParserImpl}
 
@@ -231,9 +231,9 @@ object UGenSpec {
                        links: List[String], warnPos: Boolean)
 }
 final case class UGenSpec(name: String, attr: Set[UGenSpec.Attribute], rates: UGenSpec.Rates,
-                          args:    IIdxSeq[UGenSpec.Argument],
-                          inputs:  IIdxSeq[UGenSpec.Input   ],
-                          outputs: IIdxSeq[UGenSpec.Output  ],
+                          args:    Vec[UGenSpec.Argument],
+                          inputs:  Vec[UGenSpec.Input   ],
+                          outputs: Vec[UGenSpec.Output  ],
                           doc:     Option [UGenSpec.Doc]) {
   lazy val argMap:   Map[String, UGenSpec.Argument] = args.map  (a => a.name -> a)(breakOut)
   lazy val inputMap: Map[String, UGenSpec.Input   ] = inputs.map(i => i.arg  -> i)(breakOut)

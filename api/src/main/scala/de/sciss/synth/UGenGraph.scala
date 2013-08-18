@@ -25,7 +25,7 @@
 
 package de.sciss.synth
 
-import collection.immutable.{IndexedSeq => IIdxSeq}
+import collection.immutable.{IndexedSeq => Vec}
 import java.io.DataOutputStream
 
 object UGenGraph {
@@ -35,7 +35,7 @@ object UGenGraph {
 
   trait Builder {
     def addUGen(ugen: UGen): Unit
-    def addControl(values: IIdxSeq[Float], name: Option[String]): Int
+    def addControl(values: Vec[Float], name: Option[String]): Int
 
     def visit[U](ref: AnyRef, init: => U): U
   }
@@ -101,8 +101,8 @@ object UGenGraph {
   private object BuilderDummy extends Builder {
     def build: UGenGraph = outOfContext
 
-    def addControl(values: IIdxSeq[Float], name: Option[String]): Int = 0
-    def addUGen(ugen: UGen) {}
+    def addControl(values: Vec[Float], name: Option[String]): Int = 0
+    def addUGen(ugen: UGen) = ()
 
     def visit[U](ref: AnyRef, init: => U): U = outOfContext
 
@@ -110,17 +110,17 @@ object UGenGraph {
   }
 }
 
-final case class UGenGraph(constants: IIdxSeq[Float], controlValues: IIdxSeq[Float],
-                           controlNames: IIdxSeq[(String, Int)], ugens: IIdxSeq[UGenGraph.RichUGen]) {
+final case class UGenGraph(constants: Vec[Float], controlValues: Vec[Float],
+                           controlNames: Vec[(String, Int)], ugens: Vec[UGenGraph.RichUGen]) {
   //   override lazy val hashCode = ... TODO: figure out how case class calculates it...
-  private[synth] def write(dos: DataOutputStream) {
+  private[synth] def write(dos: DataOutputStream): Unit = {
     // ---- constants ----
     dos.writeShort(constants.size)
-    constants.foreach(dos.writeFloat _)
+    constants.foreach(dos.writeFloat)
 
     // ---- controls ----
     dos.writeShort(controlValues.size)
-    controlValues.foreach(dos.writeFloat _)
+    controlValues.foreach(dos.writeFloat)
 
     dos.writeShort(controlNames.size)
     var count = 0
@@ -150,7 +150,7 @@ final case class UGenGraph(constants: IIdxSeq[Float], controlValues: IIdxSeq[Flo
     dos.writeShort(0) // variants not supported
   }
 
-  @inline private def writePascalString(dos: DataOutputStream, str: String) {
+  @inline private def writePascalString(dos: DataOutputStream, str: String): Unit = {
     dos.writeByte(str.length)
     dos.write(str.getBytes)
   }

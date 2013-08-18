@@ -25,7 +25,7 @@
 
 package de.sciss.synth
 
-import collection.immutable.{IndexedSeq => IIdxSeq, Set => ISet}
+import collection.immutable.{IndexedSeq => Vec}
 import ugen.ControlProxyLike
 
 object SynthGraph {
@@ -69,7 +69,7 @@ object SynthGraph {
   private object BuilderDummy extends Builder {
     def build: SynthGraph = sys.error("Out of context")
 
-    private def warn(obj: => String) {
+    private def warn(obj: => String): Unit =
       if (warnOutsideContext) {
         Console.err.println("Warning - adding SynthGraph element outside context: " + obj)
         val e   = new Throwable()
@@ -93,36 +93,27 @@ object SynthGraph {
           i += 1
         }
       }
-    }
 
-    def addLazy(g: Lazy) {
-      warn(g.toString)
-    }
+    def addLazy(g: Lazy): Unit = warn(g.toString)
 
-    def addControlProxy(proxy: ControlProxyLike) {
-      warn(proxy.toString)
-    }
+    def addControlProxy(proxy: ControlProxyLike): Unit = warn(proxy.toString)
   }
 
   private final class BuilderImpl extends Builder {
-    private val lazies          = IIdxSeq.newBuilder[Lazy]
+    private val lazies          = Vec.newBuilder[Lazy]
     private val controlProxies  = Set.newBuilder[ControlProxyLike]
 
     override def toString = "SynthGraph.Builder@" + hashCode.toHexString
 
     def build = SynthGraph(lazies.result(), controlProxies.result())
 
-    def addLazy(g: Lazy) {
-      lazies += g
-    }
+    def addLazy(g: Lazy): Unit = lazies += g
 
-    def addControlProxy(proxy: ControlProxyLike) {
-      controlProxies += proxy
-    }
+    def addControlProxy(proxy: ControlProxyLike): Unit = controlProxies += proxy
   }
 }
 
-final case class SynthGraph(sources: IIdxSeq[Lazy], controlProxies: ISet[ControlProxyLike]) {
+final case class SynthGraph(sources: Vec[Lazy], controlProxies: Set[ControlProxyLike]) {
   def isEmpty : Boolean  = sources.isEmpty && controlProxies.isEmpty
   def nonEmpty: Boolean  = !isEmpty
   def expand(implicit factory: UGenGraph.BuilderFactory): UGenGraph = factory.build(this)

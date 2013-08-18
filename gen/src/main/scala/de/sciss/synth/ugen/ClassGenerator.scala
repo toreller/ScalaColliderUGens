@@ -47,7 +47,7 @@ final class ClassGenerator
 
   val CHARSET = "UTF-8"
 
-  def performFiles(node: xml.Node, dir: File, docs: Boolean = true, forceOverwrite: Boolean = false) {
+  def performFiles(node: xml.Node, dir: File, docs: Boolean = true, forceOverwrite: Boolean = false): Unit = {
     val revision = (node \ "@revision").text.toInt
     (node \ "file") foreach { fNode =>
       val fName   = (fNode \ "@name").text + ".scala"
@@ -77,7 +77,7 @@ final class ClassGenerator
     }
   }
 
-  def performFile(specs: Seq[UGenSpec], file: File, revision: Int) {
+  def performFile(specs: Seq[UGenSpec], file: File, revision: Int): Unit = {
     val out = new FileOutputStream(file)
     try {
       // create class trees
@@ -124,14 +124,13 @@ final class ClassGenerator
     val b     = List.newBuilder[String]
     val sb    = new StringBuilder
 
-    def flush() {
+    def flush(): Unit =
       if (!sb.isEmpty) {
         b += sb.toString().trim
         sb.clear()
       }
-    }
 
-    @tailrec def loop(off: Int) {
+    @tailrec def loop(off: Int): Unit = {
       val j0  = para.indexOf(' ', off)
       val j   = if (j0 >= 0) j0 + 1 else sz
       val ln  = j - off
@@ -149,7 +148,7 @@ final class ClassGenerator
 
   private def linesFromParagraphs(paras: List[String], width: Int = 80): List[String] = {
     val b = List.newBuilder[String]
-    @tailrec def loop(xs: List[String], feed: Boolean) {
+    @tailrec def loop(xs: List[String], feed: Boolean): Unit =
       xs match {
         case head :: tail =>
           val isPre = head.startsWith("{{{")
@@ -164,7 +163,7 @@ final class ClassGenerator
 
         case Nil =>
       }
-    }
+
     loop(paras, feed = false)
     b.result()
   }
@@ -488,9 +487,9 @@ final class ClassGenerator
     // case of an implied rate `AudioRated` etc.
     val caseClassMixins: List[TypeDef] = {
 
-      val mixin1 = if (doneFlag)                    (traitDoneFlag   :: Nil)    else Nil
-      val mixin2 = if (indiv      || indIndiv)      (traitIndiv      :: mixin1) else mixin1
-      val mixin3 = if (sideEffect || indSideEffect) (traitSideEffect :: mixin2) else mixin2
+      val mixin1 = if (doneFlag)                    traitDoneFlag   :: Nil    else Nil
+      val mixin2 = if (indiv      || indIndiv)      traitIndiv      :: mixin1 else mixin1
+      val mixin3 = if (sideEffect || indSideEffect) traitSideEffect :: mixin2 else mixin2
 
       impliedRate match {
         case Some(r)  => TypeDef(NoMods, r.traitTypeString: TypeName, Nil, EmptyTree) :: mixin3
@@ -574,7 +573,7 @@ final class ClassGenerator
             // the last argument to UGen.SingleOut and UGen.MultiOut is `hasSideEffect`.
             // it has a default value of `false`, so we need to add this argument only
             // if there is a side effect and the UGen is not zero-out.
-            val args0 = if ((sideEffect || indSideEffect) && (outputs.nonEmpty)) {
+            val args0 = if ((sideEffect || indSideEffect) && outputs.nonEmpty) {
               Literal(Constant(true)) :: Nil
             } else Nil
 
