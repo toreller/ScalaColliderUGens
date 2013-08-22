@@ -5997,12 +5997,50 @@
         <ugen name="LFNoise0" random="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="freq" default="500.0"/>
+            <arg name="freq" default="500.0">
+                <doc>
+                    rate at which to generate random values.
+                </doc>
+            </arg>
+            <doc>
+                <text>
+                    A step noise UGen. It generates abruptly changing random values
+                    between `-1` and `+1` at a rate given by the `freq` argument.
+
+                    The frequency is quantized to the nearest integer division of the samplerate, and
+                    changes in frequency are only picked up at the next trigger. In contrast,
+                    variant `LFDNoise0` has precise frequency and reacts to frequency changes instantly.
+                </text>
+                <see>ugen.LFDNoise0</see>
+                <see>ugen.LFNoise1</see>
+                <see>ugen.LFNoise2</see>
+                <see>ugen.TRand</see>
+            </doc>
         </ugen>
         <ugen name="LFNoise1" random="true">
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="freq" default="500.0"/>
+            <arg name="freq" default="500.0">
+                <doc>
+                    rate at which to generate new breakpoints.
+                </doc>
+            </arg>
+            <doc>
+                <text>
+                    A ramp noise UGen. It generates line segments whose start and
+                    end points are chosen randomly between `-1` and `+1`. New breakpoints are generated at
+                    a specified frequency.
+
+                    The frequency is quantized to the nearest integer division of the samplerate, and
+                    changes in frequency are only picked up at the next trigger. In contrast,
+                    variant `LFDNoise1` has precise frequency and reacts to frequency changes instantly.
+                </text>
+                <see>ugen.LFDNoise1</see>
+                <see>ugen.LFNoise0</see>
+                <see>ugen.LFNoise2</see>
+                <see>ugen.Ramp</see>
+            </doc>
+
         </ugen>
         <ugen name="LFNoise2" random="true">
             <rate name="control"/>
