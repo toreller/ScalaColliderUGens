@@ -1,4 +1,4 @@
-<ugens revision="6">    <!-- list as of 02-sep-10 -->
+<ugens revision="7">    <!-- list as of 02-sep-10 -->
     <file name="ChaosUGens">
         <ugen name="CuspN">
             <rate name="audio"/>
@@ -6340,10 +6340,32 @@
             </rate>
             <output name="left"/>
             <output name="right"/>
-            <arg name="left"/>
-            <arg name="right"/>
-            <arg name="pos" default="0.0"/>
+            <arg name="left">
+                <doc>
+                    The left input signal
+                </doc>
+            </arg>
+            <arg name="right">
+                <doc>
+                    The right input signal
+                </doc>
+            </arg>
+            <arg name="pos" default="0.0">
+                <doc>
+                    The balance position from `-1` (left only, right muted) to `+1` (right only, left muted).
+                    The curve follows an equal power law, such that `left.squared + right.squared == 1`,
+                    e.g. at the middel position `0`, both channels are multiplied with factor
+                    `sqrt(0.5) = 0.707 = -3 dB`.
+                </doc>
+            </arg>
             <arg name="level" default="1.0"/>
+            <doc>
+                <text>
+                    An equal power two channel balancing UGen. It takes a left and right input signal
+                    and attenuates them according to the `pos` value, producing again a stereophonic output.
+                </text>
+                <see>ugen.XFade2</see>
+            </doc>
         </ugen>
         <ugen name="Rotate2">
             <rate name="control"/>
