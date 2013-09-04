@@ -45,7 +45,10 @@ final class ClassGenerator
 
   import global._
 
-  val CHARSET = "UTF-8"
+  final val CHARSET = "UTF-8"
+
+  final val DocWidth      = 80
+  final val ParamColumns  = 24
 
   def performFiles(node: xml.Node, dir: File, docs: Boolean = true, forceOverwrite: Boolean = false): Unit = {
     val revision = (node \ "@revision").text.toInt
@@ -117,9 +120,27 @@ final class ClassGenerator
 
   def compilationUnitOfFile(f: AbstractFile): Option[CompilationUnit] = unitOfFile.get(f)
 
+  // Expects a paragraph already with newlines replaced by whitespace.
   private def linesWrap(para: String, width: Int): List[String] = {
     val sz = para.length
     if (sz <= width ) return para :: Nil
+
+    val words0: List[String] = para.split("`").toList.zipWithIndex.flatMap { case (chunk, idx) =>
+      if (idx % 2 == 0) chunk.split(" ").filterNot(_.isEmpty)
+      else s"`$chunk`" :: Nil
+    }
+
+    val words = words0.map { w =>
+      // val w = w0.trim
+      if (w.startsWith("[[")) {
+        val i     = w.indexOf("]]")
+        val link0 = w.substring(2, i)
+        // if (link0.endsWith("]")) sys.error(s"FAIL '$w'")
+        mkLink(link0) + w.substring(i + 2)
+      } else {
+        w
+      }
+    }
 
     val b     = List.newBuilder[String]
     val sb    = new StringBuilder
@@ -130,23 +151,25 @@ final class ClassGenerator
         sb.clear()
       }
 
-    @tailrec def loop(off: Int): Unit = {
-      val j0  = para.indexOf(' ', off)
-      val j   = if (j0 >= 0) j0 + 1 else sz
-      val ln  = j - off
-      if (ln > 0) {
-        if (sb.length + ln > width) flush()
-        sb.append(para.substring(off, j))
-        loop(j)
-      }
+    @tailrec def loop(rem: List[String]): List[String] = rem match {
+      case head :: tail =>
+        if (!sb.isEmpty && sb.length + head.length >= width) {
+          flush()
+        } else {
+          sb.append(' ')
+        }
+        sb.append(head)
+        loop(tail)
+
+      case _ =>
+        flush()
+        b.result()
     }
 
-    loop(0)
-    flush()
-    b.result()
+    loop(words)
   }
 
-  private def linesFromParagraphs(paras: List[String], width: Int = 80): List[String] = {
+  private def linesFromParagraphs(paras: List[String], width: Int = DocWidth): List[String] = {
     val b = List.newBuilder[String]
     @tailrec def loop(xs: List[String], feed: Boolean): Unit =
       xs match {
@@ -190,10 +213,10 @@ final class ClassGenerator
 
     val bodyAndArgs = if (argDocs.isEmpty) bodyAndWarn else {
       val argLines = argDocs.flatMap { case (aName, aDoc) =>
-        val aDocL = linesWrap(aDoc, 57) // 80 - 23 = 57 columns
+        val aDocL = linesWrap(aDoc, DocWidth - ParamColumns) // 80 - 23 = 57 columns
         aDocL.zipWithIndex.map { case (ln, idx) =>
-          val pre = if (idx == 0) ("@param " + aName).take(21) else ""
-          val tab = pre + (" " * (23 - pre.length))
+          val pre = if (idx == 0) ("@param " + aName).take(ParamColumns - 2) else ""
+          val tab = pre + (" " * (ParamColumns - pre.length))
           tab + ln
         }
       }
@@ -201,11 +224,18 @@ final class ClassGenerator
     }
 
     val all = if (linkDocs.isEmpty) bodyAndArgs else {
-      val linkLines = linkDocs.map(link => s"@see [[de.sciss.synth.${link}]]")
+      val linkLines = linkDocs.map { link0 => s"@see ${mkLink(link0)}" }
       feed(bodyAndArgs, linkLines)
     }
 
     DocDef(DocComment(all.mkString("/**\n * ", "\n * ", "\n */\n"), NoPosition), tree)
+  }
+
+  private def mkLink(link0: String): String = {
+    val i         = link0.lastIndexOf('.')
+    val link      = link0.substring(i + 1)
+    val fullLink  = if (link0.startsWith("ugen.") || link0.charAt(0).isUpper) s"de.sciss.synth.$link0" else link0
+    s"[[$fullLink $link]]"
   }
 
   /*
