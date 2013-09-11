@@ -2,6 +2,7 @@ import sbt._
 import Keys._
 import sbt.File
 import sbtbuildinfo.Plugin._
+import com.typesafe.sbt.pgp.PgpKeys._
 
 object Build extends sbt.Build {
   def numbersVersion = "0.1.+"
@@ -11,8 +12,11 @@ object Build extends sbt.Build {
     base      = file("."),
     aggregate = Seq(spec, api, gen, core),
     settings  = Project.defaultSettings ++ Seq(
-      publishLocal := {},
-      publish := {}
+      // publishLocal  := (),
+      // publish       := (),
+      // signedArtifacts := Map.empty,
+      packagedArtifacts := Map.empty    // don't send this to Sonatype
+      // publishSigned := ()
     )
   )
 
