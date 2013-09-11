@@ -1,4 +1,4 @@
-<ugens revision="14">    <!-- list as of 02-sep-10 -->
+<ugens revision="16">    <!-- list as of 02-sep-10 -->
     <file name="ChaosUGens">
         <ugen name="CuspN">
             <rate name="audio"/>
@@ -2271,30 +2271,30 @@
         <ugen name="Duty" sideeffect="true"> <!-- has done action, but does not set done flag -->
             <rate name="control"/>
             <rate name="audio"/>
-            <arg name="dur" default="1.0">
+            <arg name="dur" default="1.0" pos="0">
                 <doc>
                     the provider of time values. Can be a demand-rate ugen or any signal.
                     The next poll is acquired after the previous duration.
                 </doc>
             </arg>
-            <arg name="reset" default="low">
+            <arg name="reset" default="low" pos="2">
                 <doc>
                     a trigger which resets the dur input (if demand-rated) and the
                     the level input ugen. The reset input may also be a demand-rate ugen, in this case
                     providing a stream of reset times.
                 </doc>
             </arg>
-            <arg name="level">
-                <doc>
-                    a demand-rate ugen providing the output values.
-                </doc>
-            </arg>
-            <arg name="doneAction" default="doNothing">
+            <arg name="doneAction" default="doNothing" pos="3">
                 <doc>
                     a doneAction that is evaluated when the duration stream ends.
                 </doc>
             </arg>
-            <doc>
+            <arg name="level" pos="1">
+                <doc>
+                    a demand-rate ugen providing the output values.
+                </doc>
+            </arg>
+            <doc warnpos="true">
                 <text>
                     A UGen which polls results from demand-rate ugens in intervals specified by a durational input.
                     A value from the `level` ugen is demanded and output according to a stream
@@ -2315,7 +2315,7 @@
                     The next poll is acquired after the previous duration.
                 </doc>
             </arg>
-            <arg name="reset" default="low" pos="1">
+            <arg name="reset" default="low" pos="2">
                 <doc>
                     a trigger which resets the dur input (if demand-rated) and the
                     the level input ugen. The reset input may also be a demand-rate ugen, in this case
@@ -2327,7 +2327,7 @@
                     a doneAction that is evaluated when the duration stream ends.
                 </doc>
             </arg>
-            <arg name="level" default="1.0" pos="2">
+            <arg name="level" default="1.0" pos="1">
                 <doc>
                     a demand-rate ugen providing the output values.
                 </doc>
@@ -2340,7 +2340,7 @@
                     (along with polling the next durational value).
                 </doc>
             </arg>
-            <doc>
+            <doc warnpos="true">
                 <text>
                     A UGen which polls results from demand-rate ugens in intervals specified by a durational input,
                     and outputs them as trigger values.
@@ -4367,8 +4367,8 @@
             <rate name="audio">
                 <arg name="in" rate="ugen"/>
             </rate>
-            <arg name="in" pos="1"/>
-            <arg name="length" default="3" init="true" pos="0"/>
+            <arg name="length" default="3" init="true" pos="1"/>
+            <arg name="in" pos="0"/>
             <doc warnpos="true"/>
         </ugen>
 

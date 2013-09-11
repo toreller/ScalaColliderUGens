@@ -4,6 +4,8 @@ import sbt.File
 import sbtbuildinfo.Plugin._
 
 object Build extends sbt.Build {
+  def numbersVersion = "0.1.+"
+
   lazy val root: Project = Project(
     id        = "scalacolliderugens",
     base      = file("."),
@@ -40,6 +42,7 @@ object Build extends sbt.Build {
     settings  = Project.defaultSettings ++ buildInfoSettings ++ Seq(
       description := "Basic UGens API for ScalaCollider",
       licenseURL("GPL v2+", "api"),
+      libraryDependencies += "de.sciss" %% "numbers" % numbersVersion,
       sourceGenerators in Compile <+= buildInfo,
       buildInfoKeys := Seq(name, organization, version, scalaVersion, description,
         BuildInfoKey.map(homepage) {
@@ -113,7 +116,7 @@ object Build extends sbt.Build {
     } finally {
       os.close()
     }
-    val sources = io.Source.fromFile(tmp).getLines().map(file(_)).toList
+    val sources = io.Source.fromFile(tmp).getLines().map(file).toList
     tmp.delete()
     sources
   }

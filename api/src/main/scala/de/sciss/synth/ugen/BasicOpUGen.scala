@@ -30,6 +30,7 @@ package ugen
 import collection.immutable.{IndexedSeq => Vec}
 import de.sciss.synth.ugen.{Constant => c}
 import annotation.switch
+import de.sciss.numbers.{FloatFunctions => rf, FloatFunctions2 => rf2}
 
 //object MulAdd {
 //   def ar( in: GE, mul: GE, add: GE ) : MulAdd = apply( audio, in, mul, add )
@@ -72,16 +73,14 @@ final case class MulAdd(/* rate: MaybeRate, */ in: GE, mul: GE, add: GE)
   override def toString = s"$in.madd($mul, $add)"
 }
 
-/**
- *    Unary operations are generally constructed by calling one of the methods of <code>GE</code>.
- *
- *    @see  GE
- *    @see  BinaryOpUGen
- */
+/** Unary operations are generally constructed by calling one of the methods of <code>GE</code>.
+  *
+  * @see  GE
+  * @see  BinaryOpUGen
+  */
 object UnaryOpUGen {
   unop =>
 
-  import synth.{FloatFun => rf}
 
   object Op {
     def apply(id: Int): Op = (id: @switch) match {
@@ -163,7 +162,7 @@ object UnaryOpUGen {
 
   case object Not extends Op {
     final val id = 1
-    protected def make1(a: Float) = rf.not(a)
+    protected def make1(a: Float) = rf2.not(a)
   }
 
   // case object IsNil       extends Op(  2 )
@@ -203,7 +202,7 @@ object UnaryOpUGen {
 
   case object Cubed extends Op {
     final val id = 13
-    protected def make1(a: Float) = rf.cubed(a)
+    protected def make1(a: Float) = rf2.cubed(a)
   }
 
   case object Sqrt extends Op {
@@ -218,7 +217,7 @@ object UnaryOpUGen {
 
   case object Reciprocal extends Op {
     final val id = 16
-    protected def make1(a: Float) = rf.reciprocal(a)
+    protected def make1(a: Float) = rf2.reciprocal(a)
   }
 
   case object Midicps extends Op {
@@ -328,12 +327,12 @@ object UnaryOpUGen {
   // class Sum3rand          extends Op( 41 )
   case object Distort extends Op {
     final val id = 42
-    protected def make1(a: Float) = rf.distort(a)
+    protected def make1(a: Float) = rf2.distort(a)
   }
 
   case object Softclip extends Op {
     final val id = 43
-    protected def make1(a: Float) = rf.softclip(a)
+    protected def make1(a: Float) = rf2.softclip(a)
   }
 
   // class Coin              extends Op( 44 )
@@ -346,12 +345,12 @@ object UnaryOpUGen {
   // case object TriWindow   extends Op( 51 )
   case object Ramp extends Op {
     final val id = 52
-    protected def make1(a: Float) = rf.ramp(a)
+    protected def make1(a: Float) = rf2.ramp(a)
   }
 
   case object Scurve extends Op {
     final val id = 53
-    protected def make1(a: Float) = rf.scurve(a)
+    protected def make1(a: Float) = rf2.scurve(a)
   }
 
   // Note: only deterministic selectors are implemented!!
@@ -411,8 +410,8 @@ object BinaryOpUGen {
       case BitAnd   .id => BitAnd
       case BitOr    .id => BitOr
       case BitXor   .id => BitXor
-      case Round    .id => Round
-      case Roundup  .id => Roundup
+      case RoundTo    .id => RoundTo
+      case RoundUpTo  .id => RoundUpTo
       case Trunc    .id => Trunc
       case Atan2    .id => Atan2
       case Hypot    .id => Hypot
@@ -473,7 +472,6 @@ object BinaryOpUGen {
     }
   }
 
-  import synth.{FloatFun => rf}
 
   case object Plus extends Op {
     final val id = 0
@@ -621,14 +619,14 @@ object BinaryOpUGen {
 
   // case object Lcm            extends Op( 17 )
   // case object Gcd            extends Op( 18 )
-  case object Round extends Op {
+  case object RoundTo extends Op {
     final val id = 19
-    protected def make1(a: Float, b: Float) = rf.round(a, b)
+    protected def make1(a: Float, b: Float) = rf.roundTo(a, b)
   }
 
-  case object Roundup extends Op {
+  case object RoundUpTo extends Op {
     final val id = 20
-    protected def make1(a: Float, b: Float) = rf.roundup(a, b)
+    protected def make1(a: Float, b: Float) = rf.roundUpTo(a, b)
   }
 
   case object Trunc extends Op {
@@ -662,22 +660,22 @@ object BinaryOpUGen {
   // case object Fill           extends Op( 29 )
   case object Ring1 extends Op {
     final val id = 30
-    protected def make1(a: Float, b: Float) = rf.ring1(a, b)
+    protected def make1(a: Float, b: Float) = rf2.ring1(a, b)
   }
 
   case object Ring2 extends Op {
     final val id = 31
-    protected def make1(a: Float, b: Float) = rf.ring2(a, b)
+    protected def make1(a: Float, b: Float) = rf2.ring2(a, b)
   }
 
   case object Ring3 extends Op {
     final val id = 32
-    protected def make1(a: Float, b: Float) = rf.ring3(a, b)
+    protected def make1(a: Float, b: Float) = rf2.ring3(a, b)
   }
 
   case object Ring4 extends Op {
     final val id = 33
-    protected def make1(a: Float, b: Float) = rf.ring4(a, b)
+    protected def make1(a: Float, b: Float) = rf2.ring4(a, b)
   }
 
   case object Difsqr extends Op {
@@ -707,17 +705,17 @@ object BinaryOpUGen {
 
   case object Thresh extends Op {
     final val id = 39
-    protected def make1(a: Float, b: Float) = rf.thresh(a, b)
+    protected def make1(a: Float, b: Float) = rf2.thresh(a, b)
   }
 
   case object Amclip extends Op {
     final val id = 40
-    protected def make1(a: Float, b: Float) = rf.amclip(a, b)
+    protected def make1(a: Float, b: Float) = rf2.amclip(a, b)
   }
 
   case object Scaleneg extends Op {
     final val id = 41
-    protected def make1(a: Float, b: Float) = rf.scaleneg(a, b)
+    protected def make1(a: Float, b: Float) = rf2.scaleneg(a, b)
   }
 
   case object Clip2 extends Op {
@@ -789,9 +787,8 @@ sealed trait BinaryOpUGen extends UGenSource.SingleOut {
     selector.make1(a0, a1)
   }
 
-  override def toString = if ((selector.id <= 11) || ((selector.id >= 14) && (selector.id <= 16))) {
+  override def toString = if ((selector.id <= 11) || ((selector.id >= 14) && (selector.id <= 16)))
     s"($a ${selector.name} $b)"
-  } else {
+  else
     s"$a.${selector.name}($b)"
-  }
 }

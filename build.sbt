@@ -1,18 +1,18 @@
 name := "ScalaColliderUGens"
 
-version in ThisBuild := "1.7.0-SNAPSHOT"
+version         in ThisBuild := "1.7.0"
 
-organization in ThisBuild := "de.sciss"
+organization    in ThisBuild := "de.sciss"
 
-description in ThisBuild := "UGens for ScalaCollider"
+description     in ThisBuild := "UGens for ScalaCollider"
 
-homepage in ThisBuild <<= name { n => Some(url("https://github.com/Sciss/" + n)) }
+homepage        in ThisBuild := Some(url("https://github.com/Sciss/" + name.value))
 
-scalaVersion in ThisBuild := "2.10.2"
+scalaVersion    in ThisBuild := "2.10.2"
 
 retrieveManaged in ThisBuild := true
 
-scalacOptions in ThisBuild ++= Seq("-deprecation", "-unchecked", "-feature")
+scalacOptions   in ThisBuild ++= Seq("-deprecation", "-unchecked", "-feature")
 
 initialCommands in console in ThisBuild := """import de.sciss.synth._"""
 
@@ -20,19 +20,18 @@ initialCommands in console in ThisBuild := """import de.sciss.synth._"""
 
 publishMavenStyle in ThisBuild := true
 
-publishTo in ThisBuild <<= version { v =>
-  Some(if (v endsWith "-SNAPSHOT")
+publishTo in ThisBuild :=
+  Some(if (version.value endsWith "-SNAPSHOT")
     "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
   else
     "Sonatype Releases"  at "https://oss.sonatype.org/service/local/staging/deploy/maven2"
   )
-}
 
 publishArtifact in Test := false
 
 pomIncludeRepository in ThisBuild := { _ => false }
 
-pomExtra in ThisBuild <<= name { n =>
+pomExtra in ThisBuild := { val n = name.value
 <scm>
   <url>git@github.com:Sciss/{n}.git</url>
   <connection>scm:git:git@github.com:Sciss/{n}.git</connection>

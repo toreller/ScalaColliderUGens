@@ -234,7 +234,12 @@ final class ClassGenerator
   private def mkLink(link0: String): String = {
     val i         = link0.lastIndexOf('.')
     val link      = link0.substring(i + 1)
-    val fullLink  = if (link0.startsWith("ugen.") || link0.charAt(0).isUpper) s"de.sciss.synth.$link0" else link0
+    val fullLink  = if (link0.startsWith("ugen."))
+      s"de.sciss.synth.$link0$$"  // companion object. XXX TODO: not all UGens do have one... e.g. PV_BinWipe doesn't
+    else if (link0.charAt(0).isUpper)
+      s"de.sciss.synth.$link0"
+    else
+      link0
     s"[[$fullLink $link]]"
   }
 

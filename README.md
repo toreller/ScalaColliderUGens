@@ -23,11 +23,11 @@ All artifacts are published to Maven Central, and are available as follows:
     "de.sciss" %% "scalacolliderugens-api"  % v
     "de.sciss" %% "scalacolliderugens-core" % v
 
-The current stable version `v` is `"1.6.2+"`. The current snapshot version is `"1.7.+"`.
+The current stable version `v` is `"1.7.+"`.
 
 ## building
 
-The project builds with sbt 0.12 against Scala 2.10. To compile, run `sbt compile`.
+The project builds with sbt 0.13 against Scala 2.10. To compile, run `sbt compile`.
 
 ### generating additional UGen class files
 
