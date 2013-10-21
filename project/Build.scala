@@ -2,7 +2,7 @@ import sbt._
 import Keys._
 import sbt.File
 import sbtbuildinfo.Plugin._
-import com.typesafe.sbt.pgp.PgpKeys._
+// import com.typesafe.sbt.pgp.PgpKeys._
 
 object Build extends sbt.Build {
   def numbersVersion = "0.1.+"
@@ -42,7 +42,7 @@ object Build extends sbt.Build {
   lazy val api = Project(
     id        = "scalacolliderugens-api",
     base      = file("api"),
-//    dependencies = Seq(xml),
+    //    dependencies = Seq(xml),
     settings  = Project.defaultSettings ++ buildInfoSettings ++ Seq(
       description := "Basic UGens API for ScalaCollider",
       licenseURL("GPL v2+", "api"),
@@ -69,7 +69,8 @@ object Build extends sbt.Build {
       licenseURL("GPL v2+", "gen"),
       libraryDependencies ++= Seq(
         "com.github.scopt" %% "scopt" % "2.1.0",
-        "org.scala-refactoring" % "org.scala-refactoring.library" % "0.6.1"
+        "org.scala-refactoring" % "org.scala-refactoring.library" % "0.6.1",
+        "org.scalatest" %% "scalatest" % "1.9.2" % "test"
       ),
       libraryDependencies <+= scalaVersion { sv =>
         "org.scala-lang" % "scala-compiler" % sv

@@ -6372,9 +6372,9 @@
                     this UGen always searches through the entire buffer until the value is found or the
                     end has been reached (returning -1).
                 </text>
+                <see>ugen.Index</see>
+                <see>ugen.IndexInBetween</see>
             </doc>
-            <see>ugen.Index</see>
-            <see>ugen.IndexInBetween</see>
         </ugen>
         <ugen name="Shaper" readsbuf="true">
             <rate name="control"/>
