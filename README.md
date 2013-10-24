@@ -23,7 +23,7 @@ All artifacts are published to Maven Central, and are available as follows:
     "de.sciss" %% "scalacolliderugens-api"  % v
     "de.sciss" %% "scalacolliderugens-core" % v
 
-The current stable version `v` is `"1.7.+"`.
+The current stable version `v` is `"1.7.2+"`.
 
 ## building
 
