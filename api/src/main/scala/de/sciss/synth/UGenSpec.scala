@@ -32,6 +32,10 @@ import collection.breakOut
 import impl.{UGenSpecParser => ParserImpl}
 
 object UGenSpec {
+  /** Lazily computes the specs of the UGens bundled with the standard SuperCollider distribution.
+    * This reads and parses the `standard-ugens.xml` resource. The result maps from UGen names
+    * to their specifications.
+    */
   lazy val standardUGens: Map[String, UGenSpec] = {
     val is = ugen.Control.getClass.getResourceAsStream("standard-ugens.xml")
     try {
@@ -42,50 +46,102 @@ object UGenSpec {
     }
   }
 
+  /** Parses a complete XML file containing a number of UGen specifications.
+    *
+    * @param source   the XML source, such as obtained from a file or input stream.
+    * @param docs     if `true`, parses documentation as well. if `false` skips documentation, thus
+    *                 `spec.doc` will be `None`.
+    * @return         a map from UGen names to their specifications.
+    */
   def parseAll(source: xml.InputSource, docs: Boolean = false): Map[String, UGenSpec] =
     ParserImpl.parseAll(source, docs = docs)
 
+  /** Parses an individual XML node for one specific UGen specification.
+    *
+    * @param node the `<ugen>` node.
+    * @param docs if `true`, parses documentation as well. if `false` skips documentation, thus
+    *             `spec.doc` will be `None`.
+    */
   def parse(node: xml.Node, docs: Boolean = false): UGenSpec = ParserImpl.parse(node, docs = docs)
 
   // ---- UGen attributes ----
 
   object Attribute {
+
+    /** Some attributes imply side effects. For example if the UGen writes to a buffer, it cannot
+      * be eliminated even if unconnected to any other UGen, thus performs a side effect.
+      */
     sealed trait ImpliesSideEffect extends Attribute
+
+    /** Some attributes imply that the UGen is individual, if it not performing side effects.
+      * Individuality means that two instances of a UGen, even when having the same arguments,
+      * cannot be reduced to one. An example is reading buffers. If two UGens A and B
+      * read from the same buffer, they could still be at different positions within the UGen
+      * graph, with another UGen inbetween them which writes to that buffer; hence they could
+      * in fact see two different signals.
+      */
     sealed trait ImpliesIndividual extends Attribute
 
+    /** Indicates that the UGen reads from an audio bus. */
     case object ReadsBus      extends Attribute.ImpliesIndividual   // cf Specified.txt
+    /** Indicates that the UGen reads from a buffer. */
     case object ReadsBuffer   extends Attribute.ImpliesIndividual   // cf Specified.txt
+    /** Indicates that the UGen reads from an FFT buffer. */
     case object ReadsFFT      extends Attribute.ImpliesIndividual   // cf Specified.txt
+    /** Indicates that the UGen accesses a random number generator. */
     case object UsesRandSeed  extends Attribute.ImpliesIndividual
+    /** Indicates that the UGen is otherwise individual. This is currently
+      * used for many demand rate UGens which are internally advanced when polled,
+      * so employing two times a `Dseq` with the same parameters should not collapse the UGens.
+      */
     case object IsIndividual  extends Attribute.ImpliesIndividual
 
+    /** Indicates that the UGen writes to an audio bus. */
     case object WritesBus     extends Attribute.ImpliesSideEffect with Attribute.ImpliesIndividual
+    /** Indicates that the UGen writes to a buffer. */
     case object WritesBuffer  extends Attribute.ImpliesSideEffect with Attribute.ImpliesIndividual
+    /** Indicates that the UGen writes to an FFT buffer. */
     case object WritesFFT     extends Attribute.ImpliesSideEffect with Attribute.ImpliesIndividual
+    /** Indicates that the UGen has another kind of side effect. An example is
+      * `DetectSilence` which executes a done action.
+      */
     case object HasSideEffect extends Attribute.ImpliesSideEffect
 
+    /** Indicates that the UGen sets the so-called "done-flag". This may be read by another UGen
+      * which takes this UGen as input.
+      */
     case object HasDoneFlag   extends Attribute
   }
+  /** An attribute describes an aspect of a UGen related to how it consumes resources, whether it is individual etc. */
   sealed trait Attribute
 
   // ---- UGen input arguments ----
 
+  /** A UGen client-side (logical) input argument.
+    *
+    * @param name     the name of the argument. On the server-side UGen inputs do not have argument names, so this
+    *                 is purely for the user-interface. It will be the argument name of the constructor arguments
+    *                 of the UGen class.
+    * @param tpe      the argument type, such as graph element `GE` or integer.
+    * @param defaults default values for the argument, as specified depending on the UGen's calculation rate.
+    * @param rates    constraints for the argument's own rate, as specified depending on this UGen's calculation rate.
+    */
   final case class Argument(name: String, tpe: ArgumentType,
                             defaults: Map[MaybeRate, ArgumentValue],
-                            rates: Map[MaybeRate, RateConstraint]) {
+                            rates   : Map[MaybeRate, RateConstraint]) {
     override def toString = {
       val base = s"${name}: ${tpe}"
       val s1 = defaults.get(UndefinedRate) match {
-        case Some(v) => s"${base} = ${v}"
-        case _ => base
+        case Some(v)  => s"${base} = ${v}"
+        case _        => base
       }
       val md = defaults - UndefinedRate
       val s2 = if (md.isEmpty) s1 else {
         s"${s1} ${md.mkString("[", ", ", "]")}"
       }
       val s3 = rates.get(UndefinedRate) match {
-        case Some(v) => s"${s2} @${v}"
-        case _ => s2
+        case Some(v)  => s"${s2} @${v}"
+        case _        => s2
       }
       val mr = rates - UndefinedRate
       if (mr.isEmpty) s3 else {
@@ -95,10 +151,20 @@ object UGenSpec {
   }
 
   object ArgumentType {
+    /** An integer input. This is typically used to determine the UGen's number of channels. */
     case object Int extends ArgumentType
-//    sealed trait GELike extends ArgumentType { def shape: SignalShape }
-//    case object GEWithDoneFlag extends GELike { def shape: SignalShape = SignalShape.Generic }
-//    final case class GE(shape: SignalShape) extends GELike
+
+    /** A graph element input. This is further defined by a signal shape, and a boolean which indicates
+      * whether the input is evaluated only at the UGen's init phase.
+      *
+      * @param shape    the shape of signal. This may influence the choice of client-side Scala argument type
+      *                 used. For example `SignalShape.String` means that the argument will indeed become
+      *                 `String` instead of `GE`, although in the UGen expansion that string is converted
+      *                 to UGen inputs.
+      * @param scalar   if `true`, the input will be evaluated by the UGen only in its initialization phase.
+      *                 It is still legal to pass in non-scalar input elements, this is merely an information
+      *                 usable by the client.
+      */
     final case class GE(shape: SignalShape, scalar: Boolean = false) extends ArgumentType {
       override def toString = {
         val base = shape.toString
@@ -106,71 +172,117 @@ object UGenSpec {
       }
     }
   }
+  /** Currently, two types of arguments are supported for UGen classes: `GE` and `Int`.
+    * However, the actual Scala type for graph elements may differ, depending on the GE's signal shape.
+    * If that shape is `String`, the argument may appear to have type `String` which is then internally
+    * converted to a UGen input.
+    */
   sealed trait ArgumentType
 
   object RateConstraint {
+    /** The rate of a UGen's argument must be the same as the UGen's own calculation rate. */
     case object SameAsUGen extends RateConstraint {
       override def toString = "same-rate-as-ugen"
     }
+    /** The rate of a UGen's argument must be exactly as specified here. */
     final case class Fixed(rate: Rate) extends RateConstraint {
       override def toString = "fixed-rate=" + rate
     }
   }
+  /** One of a fixed set of constraints on a UGen argument's calculation rate. */
   sealed trait RateConstraint
 
   object SignalShape {
-    case object Generic     extends SignalShape // aka Float
+    /** A generic quasi-continuous (float) control or audible signal. */
+    case object Generic     extends SignalShape
+    /** A signal which is used as an integer, for example to distinguish a discrete set of values. */
     case object Int         extends SignalShape
+    /** A signal which is decoded as a character string. */
     case object String      extends SignalShape
+    /** A signal which indicates a bus index. */
     case object Bus         extends SignalShape
+    /** A signal which indicates an audio buffer identifier. */
     case object Buffer      extends SignalShape
+    /** A signal which indicates an FFT buffer identifier. */
     case object FFT         extends SignalShape
-    case object Trigger     extends SignalShape // with values `low` and `high`
-    case object Switch      extends SignalShape // with values `false` and `true`
-    case object Gate        extends SignalShape // with values `closed` and `open`
+    /** A signal which acts as a trigger. A trigger occurs when a signal crosses
+      * from non-positive to positive.
+      *
+      * In the XML specification this shape is inferred from values `low` and `high`.
+      */
+    case object Trigger     extends SignalShape
+
+    /** A signal which acts as a binary on-off switch. A switch is off when zero,
+      * and on when greater than zero.
+      *
+      * In the XML specification this shape is inferred from values `false` and `true`.
+      */
+
+    case object Switch      extends SignalShape
+    /** A signal which acts as a binary closed-open gate. A gate is closed when zero,
+      * and open when greater than zero.
+      *
+      * In the XML specification this shape is inferred from values `closed` and `open`.
+      */
+    case object Gate        extends SignalShape
+    /** A signal which acts as a multiplier input. */
     case object Mul         extends SignalShape
+    /** A signal which represents one of the predefined done-action values. */
     case object DoneAction  extends SignalShape
+    /** An out signal which is read only in terms of its special done-flag. */
     case object DoneFlag    extends SignalShape
   }
-  sealed trait SignalShape /* extends ArgumentType */ // .GELike { def shape = this }
+  /** The logical shape or type or "meaning" of a signal. */
+  sealed trait SignalShape
 
   object ArgumentValue {
+    /** Value is given as an `Int` constant. */
     final case class Int(value: scala.Int) extends ArgumentValue {
-//      def toGE = /* if (value == scala.Int.MaxValue) Constant(scala.Float.PositiveInfinity) else */ Constant(value)
       override def toString = value.toString
     }
+    /** Value is given as a `Float` constant. */
     final case class Float(value: scala.Float) extends ArgumentValue {
-//      def toGE = Constant(value)
       override def toString = {
         val s = value.toString
         if (s.contains('.')) s else s + ".0"
       }
     }
+    /** Value is given as a `Boolean` constant. Currently the class synthesizer
+      * does not support this, and automatically uses `0` and `1`.
+      */
     final case class Boolean(value: scala.Boolean) extends ArgumentValue {
-//      def toGE = Constant(if (value) 1f else 0f)
       override def toString = value.toString
     }
+    /** Value is a `String` literal. */
     final case class String(value: java.lang.String) extends ArgumentValue {
-//      def toGE = ???
-      override def toString = s""""${value}""""
+      override def toString = "\"" + value + "\""
     }
+    /** Value is `Float.PositiveInfinity` (but more prettily written). */
     case object Inf extends ArgumentValue {
-//      def toGE = Constant(scala.Float.PositiveInfinity)
       override def toString = productPrefix.toLowerCase
     }
+    /** Values is a `DoneAction`, such as `doNothing` or `freeSelf`. */
     final case class DoneAction(peer: synth.DoneAction) extends ArgumentValue {
-//      def toGE = Constant(peer.id)
       override def toString = peer.toString
     }
+    /** Value indicates Nyquist frequency. This is mapped to a method expanding to `SampleRate.ir / 2`. */
     case object Nyquist extends ArgumentValue {
-//      def toGE = ???
       override def toString = productPrefix.toLowerCase
     }
   }
-  sealed trait ArgumentValue {
-//    def toGE: GE
-  }
+  /** Type of default value for a UGen constructor argument. This allows for the inclusion
+    * of special values such as `Nyquist` or done actions that are more specific than
+    * for example `Constant`.
+    */
+  sealed trait ArgumentValue
 
+  /** A UGen (server-side) input corresponds with a particular argument in the client-side interface.
+    *
+    * @param arg      the name of the argument (in the spec's `args` sequence) corresponding to the UGen input.
+    * @param variadic if `true`, the signal is treated as a multi-channel input with variable number of channels.
+    *                 only the last input of a UGen can be variadic. An example is the second input of
+    *                 the `Out` UGen.
+    */
   final case class Input(arg: String, variadic: Boolean) {
     override def toString = if (variadic) arg + "..." else arg
   }
@@ -178,14 +290,40 @@ object UGenSpec {
   // ---- Supported rates ----
 
   object RateMethod {
+    /** The default method name for a given rate. That is, `ar` for audio-rate, `kr` for control-rate,
+      * `ir` for scalar-rate, and `dr` for demand-rate.
+      */
     case object Default extends RateMethod
+    /** Uses a custom method name for the given implied rate.
+      * Often the name will be `"apply"`, for example with the FFT UGens
+      * (`PV_MagAbove` etc.). Then the UGen can be constructed as `PV_MagAbove(...)` instead of
+      * `PV_MagAbove.kr(...)`.
+      */
     case class Custom(name: String) extends RateMethod
+
+    /** Allows for a secondary method to be generated next to the default method. That is, it
+      * acts as a combination of `Default` and `Custom`. This is currently not used for the
+      * standard UGens.
+      */
     case class Alias (name: String) extends RateMethod
+    /** OBSOLETE: This value is not used any more. */
     case object None extends RateMethod
   }
+  /** The shape of a UGen's constructor method relating to a particular calculation rate.
+    * For example, it may be one of the standard namings like `ar` for audio-rate
+    * (`RateMethod.Default`), or it may be a custom method.
+    */
   sealed trait RateMethod
 
   object Rates {
+
+    /** An implied rate means that the UGen can only possibly run at one particular rate.
+      * When an implied rate is used, the UGen mixes in a rate trait, such as `AudioRated` and
+      * does not include an explicit `rate` argument in its case class constructor.
+      *
+      * @param rate     the rate at which the UGen runs
+      * @param method   the type of constructor method to generate
+      */
     final case class Implied(rate: Rate, method: RateMethod) extends Rates {
       def set = immutable.Set(rate)
 
@@ -197,25 +335,43 @@ object UGenSpec {
         }
       }
     }
+    /** An explicit set of supported rates. */
     final case class Set(set: immutable.Set[Rate]) extends Rates {
       override def toString = set.mkString("[", ", ", "]")
+      /** Explicitly specified rates always use the `Default` type of method naming. */
       def method = RateMethod.Default
     }
   }
+  /** The supported calculation rates of a UGen can be either implied or a specified set of rates. */
   sealed trait Rates {
     def method: RateMethod
+    /** The set of supported rates, whether implied or explicit. */
     def set: Set[Rate]
   }
 
   // ---- Outputs ----
 
-//  object Outputs {
-//    final case class Argument(name: String) extends Outputs
-//    // type = fft
-//
-//  }
-//  sealed trait Outputs
+  //  object Outputs {
+  //    final case class Argument(name: String) extends Outputs
+  //    // type = fft
+  //
+  //  }
+  //  sealed trait Outputs
 
+  /** Specification of a UGen output. Note that this describes one logical output. A UGen with a
+    * variable number of output channels can be seen has having _one_ logical output. For instance,
+    * the `In` UGen has one output signal, even if that signal may have any number of channels.
+    * In contrast, the `Pitch` UGen has two discrete logical outputs, one indicating the status
+    * ("hasFreq"), the other giving the actually seen frequency.
+    *
+    * @param name     logical name of the output. The server does not know about output names,
+    *                 this is purely for client side usage (e.g. in a GUI or help system).
+    * @param shape    the "shape" or type of output signal, for example (continuous) generic or binary trigger.
+    *                 technically all signals are the same, the shape just indicates the expected shape of that
+    *                 signal.
+    * @param variadic if defined, specifies the name of an argument (in the spec's `args`) which must be of
+    *                 type `Int`, determining the number of channels in this output.
+    */
   final case class Output(name: Option[String], shape: SignalShape, variadic: Option[String]) {
     override def toString = {
       val base  = name getOrElse "<out>"
@@ -227,15 +383,44 @@ object UGenSpec {
     }
   }
 
+  /** Documentation of a UGen.
+    *
+    * @param body     the main UGen description text, as a list of paragraphs.
+    * @param args     maps argument names to documentation for that argument, given as a list of paragraphs.
+    * @param outputs  maps output names to documentation for that output, given as a list of paragraphs.
+    * @param links    list of cross-links to related UGens.
+    * @param warnPos  if `true`, indicates that the argument positions are different than in SC-Lang,
+    *                 warranting an explicit warning to the user to raise awareness.
+    */
   final case class Doc(body: List[String], args: Map[String, List[String]], outputs: Map[String, List[String]],
                        links: List[String], warnPos: Boolean)
 }
-final case class UGenSpec(name: String, attr: Set[UGenSpec.Attribute], rates: UGenSpec.Rates,
+
+/** Specification of a Unit Generator.
+  *
+  * @param name     the name of the unit generator, as seen by the server
+  * @param attr     a set of attributes which characterize the UGen, such as resource usage or uniqueness
+  * @param rates    at which calculation rates the UGen runs, and whether the rate is implied
+  * @param args     the constructor arguments of the UGen representation. This is the interface for the client-side
+  *                 instantiation and may include types other than `GE`, for example integers for fixed
+  *                 number of channels, etc., as well as definitions for default values.
+  * @param inputs   the inputs as passed to the underlying UGen (server-side object). Inputs are things which
+  *                 expand to `UGenInLike` elements. Typically they correspond to client-side `args` arguments.
+  *                 The order of this sequence must be correctly reflecting the UGen plugin interface, whereas
+  *                 the order of the `args` sequence may diverge for an improved user interface.
+  * @param outputs  a list of output specifications
+  * @param doc      optional text documentation
+  */
+final case class UGenSpec(name: String,
+                          attr:    Set[UGenSpec.Attribute],
+                          rates:       UGenSpec.Rates,
                           args:    Vec[UGenSpec.Argument],
                           inputs:  Vec[UGenSpec.Input   ],
                           outputs: Vec[UGenSpec.Output  ],
-                          doc:     Option [UGenSpec.Doc]) {
+                          doc:  Option[UGenSpec.Doc     ]) {
+  /** A convenience field which maps from argument names to arguments. */
   lazy val argMap:   Map[String, UGenSpec.Argument] = args.map  (a => a.name -> a)(breakOut)
+  /** A convenience field which maps from input argument names to inputs. */
   lazy val inputMap: Map[String, UGenSpec.Input   ] = inputs.map(i => i.arg  -> i)(breakOut)
 
   override def toString = s"${productPrefix}(${name}, attr = ${attr.mkString("[", ", ", "]")}, rates = ${rates}, " +
