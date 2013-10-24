@@ -39,13 +39,14 @@ import UGenSpec.{SignalShape => Sig, _}
 import ArgumentType.GE
 import annotation.tailrec
 import java.io.{FileOutputStream, File}
+import scala.io.Source
 
 final class ClassGenerator
   extends Refactoring with Tracing with CompilerProvider with CompilerAccess with TreeFactory {
 
   import global._
 
-  final val CHARSET = "UTF-8"
+  final val CHARSET       = "UTF-8"
 
   final val DocWidth      = 80
   final val ParamColumns  = 24
@@ -56,7 +57,7 @@ final class ClassGenerator
       val fName   = (fNode \ "@name").text + ".scala"
       val f       = new File(dir, fName)
       val write   = forceOverwrite || !f.isFile || {
-        val source = io.Source.fromFile(f, CHARSET)
+        val source = Source.fromFile(f, CHARSET)
         try {
           val it = source.getLines()
           !it.hasNext || {
