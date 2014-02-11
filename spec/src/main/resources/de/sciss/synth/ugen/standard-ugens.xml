@@ -2691,10 +2691,11 @@
             </arg>
             <arg name="speed" default="1.0">
                 <doc>
-                    controls the speed of playback. Values below 4 are probably fine, but the higher the value,
-                    the more disk activity there is, and the more likelihood there will be a problem.
-                    The following must be true: `rate &lt; bufFrames / (2 * blockSize)`, e.g with typical default
-                    values, this will be `32768 / (2 * 64) = 256`.
+                    controls the speed of playback. The buffer is always streamed at a frequency of
+                    `SampleRate.ir * speed`, so the buffer's own sample rate is irrelevant. Factors below 4 are
+                    probably fine, but the higher the value, the more disk activity there is, and the more likelihood
+                    there will be a problem. The following must be true: `rate &lt; bufFrames / (2 * blockSize)`,
+                    e.g with typical default values, this will be `32768 / (2 * 64) = 256`.
                 </doc>
             </arg>
             <arg name="loop" default="false">

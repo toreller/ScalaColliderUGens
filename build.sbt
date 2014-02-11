@@ -1,6 +1,6 @@
 name := "ScalaColliderUGens"
 
-version         in ThisBuild := "1.7.2"
+version         in ThisBuild := "1.7.3-SNAPSHOT"
 
 organization    in ThisBuild := "de.sciss"
 
