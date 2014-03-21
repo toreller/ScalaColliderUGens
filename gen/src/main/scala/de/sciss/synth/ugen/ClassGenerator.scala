@@ -2,21 +2,9 @@
  *  ClassGenerator.scala
  *  (ScalaColliderUGens)
  *
- *  Copyright (c) 2008-2013 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2014 Hanns Holger Rutz. All rights reserved.
  *
- *  This software is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  as published by the Free Software Foundation; either
- *  version 2, june 1991 of the License, or (at your option) any later version.
- *
- *  This software is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- *  General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public
- *  License (gpl.txt) along with this software; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *  This software is published under the GNU General Public License v2+
  *
  *
  *  For further information, please contact Hanns Holger Rutz at
@@ -31,7 +19,7 @@ import tools.refactoring
 import refactoring.Refactoring
 import refactoring.util.CompilerProvider
 import collection.breakOut
-import collection.immutable.{IndexedSeq => IIdxSeq}
+import collection.immutable.{IndexedSeq => Vec}
 import refactoring.transformation.TreeFactory
 import refactoring.common.{CompilerAccess, Tracing}
 import tools.nsc.io.AbstractFile
@@ -43,13 +31,15 @@ import scala.io.Source
 
 final class ClassGenerator
   extends Refactoring with Tracing with CompilerProvider with CompilerAccess with TreeFactory {
-
+  me =>
+  
   import global._
+  import me.{global => gl}
 
-  final val CHARSET       = "UTF-8"
+  val CHARSET       = "UTF-8"
 
-  final val DocWidth      = 80
-  final val ParamColumns  = 24
+  val DocWidth      = 80
+  val ParamColumns  = 24
 
   def performFiles(node: xml.Node, dir: File, docs: Boolean = true, forceOverwrite: Boolean = false): Unit = {
     val revision = (node \ "@revision").text.toInt
@@ -99,9 +89,9 @@ final class ClassGenerator
       else
         Nil
 
-      // the imports always include the `IIdxSeq` alias, and optionally the `inf` alias.
+      // the imports always include the `Vec` alias, and optionally the `inf` alias.
       val imports = Import(Select(Ident("collection" ),"immutable"),
-        ImportSelector("IndexedSeq": TermName, -1, strIIdxSeq: TypeName, -1) :: Nil) :: imports0
+        ImportSelector("IndexedSeq": TermName, -1, strVec: TypeName, -1) :: Nil) :: imports0
 
       // the package definition defines the `synth` and `ugen` packages, adds the imports and then the classes
       val pkg     = PackageDef(Select(Select(Ident("de"), "sciss"), "synth"),
@@ -111,7 +101,7 @@ final class ClassGenerator
       val strBody = createText(pkg)
       // we prepend a revision line comment which reflects the version
       // of the spec file used
-      val strRev  = s"// revision: ${revision}\n$strBody"
+      val strRev  = s"// revision: $revision\n$strBody"
       val bytes   = strRev.getBytes(CHARSET)
       out.write(bytes)
     } finally {
@@ -229,7 +219,9 @@ final class ClassGenerator
       feed(bodyAndArgs, linkLines)
     }
 
-    DocDef(DocComment(all.mkString("/**\n * ", "\n * ", "\n */\n"), NoPosition), tree)
+    // somehow Scala 2.11 eats a line feed for class and object comments...gen
+    val firstLine = if (body && BuildInfo.scalaVersion.startsWith("2.11")) "\n" else ""
+    DocDef(DocComment(all.mkString(s"$firstLine/**\n * ", "\n * ", "\n */\n"), NoPosition), tree)
   }
 
   private def mkLink(link0: String): String = {
@@ -250,26 +242,26 @@ final class ClassGenerator
    */
   private def collectMethodDocs(spec: UGenSpec): List[(String, String)] = spec.doc match {
     case Some(doc) =>
-      spec.args.flatMap( a => {
+      spec.args.flatMap { a =>
         val aDoc = doc.args.get(a.name)
         aDoc.map(d => a.name -> d.mkString(" "))
-      })(breakOut)
+      } (breakOut)
 
     case _ => Nil
   }
 
   private implicit final class RichRate(val peer: Rate) {
-    def traitTypeString = peer.name.capitalize + "Rated"
+    def traitTypeString = s"${peer.name.capitalize}Rated"
   }
 
   private implicit final class RichArgumentValue(val peer: ArgumentValue) /* extends AnyVal */ {
     import ArgumentValue._
 
     def toTree: Tree = peer match {
-      case Int(i)         => Literal(Constant(i))
-      case Float(f)       => Literal(Constant(f))
-      case Boolean(b)     => Literal(Constant(if (b) 1 else 0)) // currently no type class for GE | Switch
-      case String(s)      => Literal(Constant(s))               // currently no type class for GE | String
+      case Int(i)         => Literal(gl.Constant(i))
+      case Float(f)       => Literal(gl.Constant(f))
+      case Boolean(b)     => Literal(gl.Constant(if (b) 1 else 0)) // currently no type class for GE | Switch
+      case String(s)      => Literal(gl.Constant(s))               // currently no type class for GE | String
       case Inf            => Ident(strInf)
       case DoneAction(a)  => Ident(a.name)
       case Nyquist        => Ident(strNyquist)
@@ -306,15 +298,15 @@ final class ClassGenerator
 
   private val traitSideEffect   = TypeDef(Modifiers(Flags.TRAIT), "HasSideEffect": TypeName, Nil, EmptyTree)
   private val traitDoneFlag     = TypeDef(Modifiers(Flags.TRAIT), "HasDoneFlag":   TypeName, Nil, EmptyTree)
-//    val traitRandom       = TypeDef(Modifiers(Flags.TRAIT), "UsesRandSeed":  TypeName, Nil, EmptyTree)
+  // val traitRandom       = TypeDef(Modifiers(Flags.TRAIT), "UsesRandSeed":  TypeName, Nil, EmptyTree)
   private val traitIndiv        = TypeDef(Modifiers(Flags.TRAIT), "IsIndividual":  TypeName, Nil, EmptyTree)
-//    val traitWritesBuffer = TypeDef(Modifiers(Flags.TRAIT), "WritesBuffer":  TypeName, Nil, EmptyTree)
-//    val traitWritesFFT    = TypeDef(Modifiers(Flags.TRAIT), "WritesFFT":     TypeName, Nil, EmptyTree)
-//    val traitWritesBus    = TypeDef(Modifiers(Flags.TRAIT), "WritesBus":     TypeName, Nil, EmptyTree)
+  // val traitWritesBuffer = TypeDef(Modifiers(Flags.TRAIT), "WritesBuffer":  TypeName, Nil, EmptyTree)
+  // val traitWritesFFT    = TypeDef(Modifiers(Flags.TRAIT), "WritesFFT":     TypeName, Nil, EmptyTree)
+  // val traitWritesBus    = TypeDef(Modifiers(Flags.TRAIT), "WritesBus":     TypeName, Nil, EmptyTree)
 
   private val strApply            = "apply"
   private val identApply          = Ident(strApply)
-  private val strIIdxSeq          = "IIdxSeq"
+  private val strVec              = "Vec"
   private val identVector         = Ident("Vector")
   private val strMakeUGens        = "makeUGens"
   private val strMakeUGen         = "makeUGen"
@@ -360,14 +352,14 @@ final class ClassGenerator
         case GE(Sig.Mul, _)  => true
         case _               => false
       })
-      require(muls.size <= 1, s"Can only have one expandBin (${name})")
+      require(muls.size <= 1, s"Can only have one expandBin ($name)")
       muls.headOption
     }
 
     // this is to ensure for makeUGen that when expandBin is defined, we simply do not pass in
     // _args to the UGen constructor, simplifying the process of filtering out the argument
     // which corresponds to expandBin!
-    require(expandBin.isEmpty || inputs.size == 1, s"Currently `mul` input must be sole input (${name})")
+    require(expandBin.isEmpty || inputs.size == 1, s"Currently `mul` input must be sole input ($name)")
 
     val argsIn  = args.toList
     // val argsOut = args.filter(a => inputMap.contains(a.name))
@@ -550,7 +542,7 @@ final class ClassGenerator
           }
         }
 
-        def split(as: IIdxSeq[Argument], ts: IIdxSeq[Tree]): IIdxSeq[Tree] = {
+        def split(as: Vec[Argument], ts: Vec[Tree]): Vec[Tree] = {
           var from  = 0
           var keep  = false
           var b     = Vector.empty[Tree]
@@ -584,7 +576,7 @@ final class ClassGenerator
 
       DefDef(
         NoMods withPosition(Flags.PROTECTED, NoPosition) withPosition(Flags.METHOD, NoPosition),
-        stringToTermName(strMakeUGens),
+        strMakeUGens: TermName,
         Nil,                                                        // tparams
         Nil,                                                        // vparamss
         TypeDef(NoMods, expandResultStr: TypeName, Nil, EmptyTree), // tpt
@@ -600,7 +592,7 @@ final class ClassGenerator
     else
       "Single"
 
-    // `protected def makeUGen(_args: IIdxSeq[UGenIn]): UGenInLike = ...`
+    // `protected def makeUGen(_args: Vec[UGenIn]): UGenInLike = ...`
     val makeUGenDef = {
       val methodBody: Tree = {
         val (preBody, ugenConstrArgs) = {
@@ -610,14 +602,14 @@ final class ClassGenerator
             // it has a default value of `false`, so we need to add this argument only
             // if there is a side effect and the UGen is not zero-out.
             val args0 = if ((sideEffect || indSideEffect) && outputs.nonEmpty) {
-              Literal(Constant(true)) :: Nil
+              Literal(gl.Constant(true)) :: Nil
             } else Nil
 
-            // the preceeding argument is `isIndividual` for all UGens
+            // the preceding argument is `isIndividual` for all UGens
             if (indiv || indIndiv) {
-              Literal(Constant(true)) :: args0
+              Literal(gl.Constant(true)) :: args0
             } else if (args0.nonEmpty) {
-              Literal(Constant(false)) :: args0
+              Literal(gl.Constant(false)) :: args0
             } else args0
           }
 
@@ -627,17 +619,17 @@ final class ClassGenerator
           val strResolvedRateArg = if (maybeRateRef.nonEmpty) "_rate" else strRateArg
           val identResolvedRate = Ident(impliedRate.map(_.name).getOrElse(strResolvedRateArg))
 
-          // for a UGen.MultiOut the next preceeding arg is `outputRates: IIdxSeq[Rate]`
+          // for a UGen.MultiOut the next preceding arg is `outputRates: Vec[Rate]`
           val args2 = if (!multiOut) Nil else {
             val numFixed  = outputs.count(_.variadic.isEmpty)
             val variadic  = outputs.collect {
               case Output(oName, _, Some(v)) => v
             }
             if (numFixed > 0 && variadic.nonEmpty) {
-              sys.error(s"Mixed variadic / non-variadic outputs not supported, in ${name}")
+              sys.error(s"Mixed variadic / non-variadic outputs not supported, in $name")
             }
             if (variadic.size > 1) {
-              sys.error(s"Multiple variadic outputs not supported, in ${name}")
+              sys.error(s"Multiple variadic outputs not supported, in $name")
             }
 
             // tree that defines the number of outputs
@@ -645,19 +637,19 @@ final class ClassGenerator
               case Some(v) =>
                 val refArg = argMap(v)
                 refArg.tpe match {
-                  case GE(Sig.String,_) => sys.error(s"Strings not supported for variadic outputs, in ${name}")
+                  case GE(Sig.String,_) => sys.error(s"Strings not supported for variadic outputs, in $name")
                   case GE(_,_) =>
                     val numFixedArgs = argsOut.size - 1       // we ensured above that there is only one variadic argument
                     val selSz = Select(identUArgs, strSize)   // `_args.size`
                     if (numFixedArgs == 0) selSz else {
                       // `_args.size.-(<numFixedArgs>)`
-                      Apply(Select(selSz, strMinus), Literal(Constant(numFixedArgs)) :: Nil)
+                      Apply(Select(selSz, strMinus), Literal(gl.Constant(numFixedArgs)) :: Nil)
                     }
                   case ArgumentType.Int =>
                     Ident(refArg.name)
                 }
 
-              case _ => Literal(Constant(numFixed))
+              case _ => Literal(gl.Constant(numFixed))
             }
 
             // `Vector.fill(<numOuts>)(<resolvedRate>)
@@ -666,7 +658,7 @@ final class ClassGenerator
 
           // might support Mul besides other args in the future
           val inArg = if (expandBin.isDefined) {
-            require(argsOut.size == 1, s"At present, Mul input must be only input, in ${name}")
+            require(argsOut.size == 1, s"At present, Mul input must be only input, in $name")
             Select(identVector, strEmpty) // `inputs = Vector.empty`
           } else {
             identUArgs  // `inputs = _args`
@@ -688,7 +680,7 @@ final class ClassGenerator
                 NoMods,
                 strResolvedRateArg,
                 EmptyTree,
-                Apply(Select(identRateArg, strMaybeResolve), Select(Apply(identUArgs, Literal(Constant(aPos)) :: Nil), strRateMethod) :: Nil)
+                Apply(Select(identRateArg, strMaybeResolve), Select(Apply(identUArgs, Literal(gl.Constant(aPos)) :: Nil), strRateMethod) :: Nil)
               )
             }
           }
@@ -700,12 +692,12 @@ final class ClassGenerator
         val ugenConstr  = New(ugenTpe, ugenConstrArgs)
 
         // the resulting application is either the ugen instantiation, or, if a Mul is used,
-        // a binary op of the ugen instantation
+        // a binary op of the ugen instantiation
         val resApp = expandBin match {
           case Some(mul) =>
             val aPos      = argsOut.indexOf(mul)
             val mulMake1  = Select(Select(identBinaryOp, strTimes), strMake1)
-            Apply(mulMake1, ugenConstr :: Apply(identUArgs, Literal(Constant(aPos)) :: Nil) :: Nil)
+            Apply(mulMake1, ugenConstr :: Apply(identUArgs, Literal(gl.Constant(aPos)) :: Nil) :: Nil)
 
           case _ => ugenConstr
         }
@@ -720,13 +712,13 @@ final class ClassGenerator
       val methodArgs = List(List(ValDef(
         Modifiers(Flags.PARAM),
         strUArgs,
-        TypeDef(NoMods, strIIdxSeq: TypeName, TypeDef(NoMods, strUGenIn: TypeName, Nil, EmptyTree) :: Nil, EmptyTree),
+        TypeDef(NoMods, strVec: TypeName, TypeDef(NoMods, strUGenIn: TypeName, Nil, EmptyTree) :: Nil, EmptyTree),
         EmptyTree
       )))
 
       DefDef(
         NoMods withPosition(Flags.PROTECTED, NoPosition) withPosition(Flags.METHOD, NoPosition),
-        stringToTermName(strMakeUGen),
+        strMakeUGen: TermName,
         Nil,                                                        // tparams
         methodArgs,                                                 // vparamss
         TypeDef(NoMods, expandResultStr: TypeName, Nil, EmptyTree), // tpt

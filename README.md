@@ -4,7 +4,7 @@
 
 Specification and base API of [ScalaCollider](https://github.com/Sciss/ScalaCollider) UGens, as well as a core library of generated UGen classes.
 
-This project is (C)opyright 2008-2013 by Hanns Holger Rutz. All rights reserved. All sub projects released under the GNU GPL v2+, except for the specification which is released under a BSD-style license. All code comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
+This project is (C)opyright 2008-2014 by Hanns Holger Rutz. All rights reserved. All sub projects released under the GNU GPL v2+, except for the specification which is released under a BSD-style license. All code comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
 
 Big thanks to Mirko Stocker for the [Scala-Refactoring Library](http://scala-refactoring.org/) which provides the AST-to-source code converter.
 

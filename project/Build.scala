@@ -2,10 +2,13 @@ import sbt._
 import Keys._
 import sbt.File
 import sbtbuildinfo.Plugin._
-// import com.typesafe.sbt.pgp.PgpKeys._
 
 object Build extends sbt.Build {
-  def numbersVersion = "0.1.+"
+  def numbersVersion   = "0.1.+"
+
+  def scalaTestVersion = "2.1.2"
+
+  def scoptVersion     = "3.2.0"
 
   lazy val root: Project = Project(
     id        = "scalacolliderugens",
@@ -47,6 +50,12 @@ object Build extends sbt.Build {
       description := "Basic UGens API for ScalaCollider",
       licenseURL("GPL v2+", "api"),
       libraryDependencies += "de.sciss" %% "numbers" % numbersVersion,
+      libraryDependencies ++= {
+        val sv = scalaVersion.value
+        if (sv startsWith "2.11") {
+          ("org.scala-lang.modules" %% "scala-xml" % "1.0.1") :: Nil
+        } else Nil
+      },
       sourceGenerators in Compile <+= buildInfo,
       buildInfoKeys := Seq(name, organization, version, scalaVersion, description,
         BuildInfoKey.map(homepage) {
@@ -68,12 +77,21 @@ object Build extends sbt.Build {
       description := "Source code generator for ScalaCollider UGens",
       licenseURL("GPL v2+", "gen"),
       libraryDependencies ++= Seq(
-        "com.github.scopt" %% "scopt" % "2.1.0",
-        "org.scala-refactoring" % "org.scala-refactoring.library" % "0.6.1",
-        "org.scalatest" %% "scalatest" % "1.9.2" % "test"
+        "com.github.scopt" %% "scopt"     % scoptVersion,
+        "org.scalatest"    %% "scalatest" % scalaTestVersion % "test"
       ),
-      libraryDependencies <+= scalaVersion { sv =>
-        "org.scala-lang" % "scala-compiler" % sv
+      libraryDependencies ++= { val sv = scalaVersion.value
+        val refOrg     = "org.scala-refactoring"
+        val refArt     = s"$refOrg.library"
+        val ref = if (sv startsWith "2.11") {
+          refOrg %% refArt % "0.6.2-SNAPSHOT"
+        } else {
+          refOrg %  refArt % "0.6.1"
+        }
+        Seq(
+          "org.scala-lang" % "scala-compiler" % sv,
+          ref
+        )
       },
       publishLocal := {},
       publish := {}
@@ -107,16 +125,13 @@ object Build extends sbt.Build {
     log.info("Generating UGen source code...")
 
     try {
-      // def fork(javaHome: Option[File], jvmOptions: Seq[String], scalaJars: Iterable[File], arguments: Seq[String],
-      //          workingDirectory: Option[File], connectInput: Boolean, outputStrategy: sbt.OutputStrategy): sbt.Process
       val outs  = CustomOutput(os)
-      val p     = new Fork.ForkScala(mainClass).fork(javaHome = None, jvmOptions = Nil, scalaJars = cp,
-        arguments = "-r" :: "-d" :: scalaOutput.getAbsolutePath :: Nil, workingDirectory = None,
-        connectInput = false, outputStrategy = outs)
-      val res = p.exitValue()
+      val fOpt  = ForkOptions(javaHome = None, outputStrategy = Some(outs), /* runJVMOptions = Nil, */ bootJars = cp,
+        workingDirectory = None, connectInput = false)
+      val res: Int = Fork.scala(config = fOpt, arguments = mainClass :: "-r" :: "-d" :: scalaOutput.getAbsolutePath :: Nil)
 
       if (res != 0) {
-        sys.error("UGen class file generator failed with exit code " + res)
+        sys.error(s"UGen class file generator failed with exit code $res")
       }
     } finally {
       os.close()

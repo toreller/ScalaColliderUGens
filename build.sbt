@@ -1,18 +1,20 @@
 name := "ScalaColliderUGens"
 
-version         in ThisBuild := "1.7.3-SNAPSHOT"
+version            in ThisBuild := "1.8.0-SNAPSHOT"
 
-organization    in ThisBuild := "de.sciss"
+organization       in ThisBuild := "de.sciss"
 
-description     in ThisBuild := "UGens for ScalaCollider"
+description        in ThisBuild := "UGens for ScalaCollider"
 
-homepage        in ThisBuild := Some(url("https://github.com/Sciss/" + name.value))
+homepage           in ThisBuild := Some(url("https://github.com/Sciss/" + name.value))
 
-scalaVersion    in ThisBuild := "2.10.2"
+scalaVersion       in ThisBuild := "2.11.0-RC3"
 
-retrieveManaged in ThisBuild := true
+crossScalaVersions in ThisBuild := Seq("2.11.0-RC3", "2.10.3")
 
-scalacOptions   in ThisBuild ++= Seq("-deprecation", "-unchecked", "-feature")
+// retrieveManaged in ThisBuild := true
+
+scalacOptions in ThisBuild ++= Seq("-deprecation", "-unchecked", "-feature")
 
 initialCommands in console in ThisBuild := """import de.sciss.synth._"""
 
