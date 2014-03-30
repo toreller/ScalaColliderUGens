@@ -1,6 +1,6 @@
 name := "ScalaColliderUGens"
 
-version            in ThisBuild := "1.8.0-SNAPSHOT"
+version            in ThisBuild := "1.8.0"
 
 organization       in ThisBuild := "de.sciss"
 
@@ -8,11 +8,11 @@ description        in ThisBuild := "UGens for ScalaCollider"
 
 homepage           in ThisBuild := Some(url("https://github.com/Sciss/" + name.value))
 
-scalaVersion       in ThisBuild := "2.11.0-RC3"
+scalaVersion       in ThisBuild := "2.10.4"
 
-crossScalaVersions in ThisBuild := Seq("2.11.0-RC3", "2.10.3")
+crossScalaVersions in ThisBuild := Seq("2.11.0-RC3", "2.10.4")
 
-// retrieveManaged in ThisBuild := true
+retrieveManaged in ThisBuild := true
 
 scalacOptions in ThisBuild ++= Seq("-deprecation", "-unchecked", "-feature")
 
