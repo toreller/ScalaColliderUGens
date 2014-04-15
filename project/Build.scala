@@ -4,7 +4,7 @@ import sbt.File
 import sbtbuildinfo.Plugin._
 
 object Build extends sbt.Build {
-  def numbersVersion   = "0.1.+"
+  def numbersVersion   = "0.1.1"
 
   def scalaTestVersion = "2.1.3"
 
