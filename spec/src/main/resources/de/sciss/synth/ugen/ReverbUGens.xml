@@ -1,0 +1,39 @@
+<ugens revision="1">
+    <ugen name="FreeVerb">
+        <rate name="audio" implied="true"/>
+        <arg name="in" rate="ugen"/>
+        <arg name="mix" default="0.33"/>
+        <arg name="room" default="0.5"/>
+        <arg name="damp" default="0.5"/>
+    </ugen>
+    <ugen name="FreeVerb2">
+        <rate name="audio" implied="true">
+            <arg name="left" rate="ugen"/>
+            <arg name="right" rate="ugen"/>
+        </rate>
+        <output name="left"/>
+        <output name="right"/>
+        <arg name="left"/>
+        <arg name="right"/>
+        <arg name="mix" default="0.33"/>
+        <arg name="room" default="0.5"/>
+        <arg name="damp" default="0.5"/>
+    </ugen>
+    <ugen name="GVerb">
+        <rate name="audio" implied="true">
+            <arg name="in" rate="ugen"/>
+        </rate>
+        <output name="left"/>
+        <output name="right"/>
+        <arg name="in"/>
+        <arg name="roomSize" default="10.0"/>
+        <arg name="revTime" default="3.0"/>
+        <arg name="damping" default="0.5"/>
+        <arg name="inputBW" default="0.5"/>
+        <arg name="spread" default="15.0"/>
+        <arg name="dryLevel" default="1.0"/>
+        <arg name="earlyRefLevel" default="0.7"/>
+        <arg name="tailLevel" default="0.5"/>
+        <arg name="maxRoomSize" default="300.0" init="true"/>
+    </ugen>
+</ugens>

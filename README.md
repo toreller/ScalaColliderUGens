@@ -23,15 +23,15 @@ All artifacts are published to Maven Central, and are available as follows:
     "de.sciss" %% "scalacolliderugens-api"  % v
     "de.sciss" %% "scalacolliderugens-core" % v
 
-The current stable version `v` is `"1.8.1+"`.
+The current stable version `v` is `"1.9.+"`.
 
 ## building
 
-The project builds with sbt 0.13 against Scala 2.10. To compile, run `sbt compile`.
+The project builds with sbt 0.13 against Scala 2.11, 2.10. To compile, run `sbt compile`.
 
 ### generating additional UGen class files
 
-The UGen descriptions reside in XML files. The `spec` sub project contains a file for the standard UGens included with a plain SuperCollider installation. You will need to create additional XML files if you wish to compile sources for third party UGens.
+The UGen descriptions reside in XML files. The `spec` sub project contains files for the standard UGens included with a plain SuperCollider installation. You will need to create additional XML files if you wish to compile sources for third party UGens.
 
 To synthesize the source code for a given UGen description XML file, run as follows:
 
@@ -45,30 +45,31 @@ The generated source files then need to be compiled against `scalacolliderugens-
 
 There is no DTD yet. But the structure of the XML file is as follows:
 
-    <ugens>
-       <file name="PluginName">
-          <ugen name="UGenName" [ ugenAttrs ]>
-             <rate name="RateName" [ implied="true" [ method="MethodName" ]]>
-                [ <arg ... /> ]
-             </rate>
-             <rate ... />
-             [ <output ... /> ]
-             <arg name="ArgumentName" [ argAttrs ]>
-                [ <doc>Argument description</doc> ]
-             </arg>
-             <arg ... />
-             [ <doc>
-                <text>UGen description</text>
-                [ <see>ugen.RelatedUGenName</see>
-                  <see ... /> ]
-               </doc> ]
-          </ugen>
-          [ <ugen ... /> ]
-       </file>
-       [ <file ... /> ]
+    <ugens revision="<num>">
+      <ugen name="UGenName" [ ugenAttrs ]>
+        <rate name="RateName" [ implied="true" [ method="MethodName" ]]>
+          [ <arg ... /> ]
+        </rate>
+        <rate ... />
+        [ <output ... /> ]
+        <arg name="ArgumentName" [ argAttrs ]>
+          [ <doc>Argument description</doc> ]
+        </arg>
+        <arg ... />
+        [ <doc>
+          <text>UGen description</text>
+          [ <example name="description">
+              Example code demonstrating the UGen
+            </example>
+            <example ... /> ]
+          [ <see>ugen.RelatedUGenName</see>
+            <see ... /> ]
+          </doc> ]
+      </ugen>
+      [ <ugen ... /> ]
     </ugens>
 
-All UGens within one `file` section are considered to be part of that particular `.scx` plugin. Their synthesized classes will also be grouped in a file by that name.
+All UGens within one file are considered to be part of that particular `.scx` plugin. Their synthesized classes will also be grouped in a file by that name.
 
 #### UGen Attributes
 

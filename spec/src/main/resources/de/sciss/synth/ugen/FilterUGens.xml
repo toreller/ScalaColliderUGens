@@ -1,0 +1,985 @@
+<ugens revision="1">
+    <ugen name="Ramp">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                the signal to smooth out
+            </doc>
+        </arg>
+        <arg name="dur" default="0.1">
+            <doc>
+                the ramp-time (seconds) which is also the interval of the sampling
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen which produces a linear lag (time smear) regarding
+                and input signal. Other than `Lag` which is a feedback
+                filter with exponential decay, `Ramp` applies a linear
+                ramp. This is achieved by sampling the input signal
+                at regular intervals given by the `lagTime` and starting
+                a new line segment after each interval.
+            </text>
+            <see>ugen.Lag</see>
+            <see>ugen.Sweep</see>
+        </doc>
+    </ugen>
+    <ugen name="Lag">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal.
+            </doc>
+        </arg>
+        <arg name="time" default="0.1">
+            <doc>
+                60 dB lag time in seconds.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                An exponential lag UGen.
+                This is essentially the same as `OnePole` except that instead of supplying the coefficient directly,
+                it is calculated from a 60 dB lag time. This is the time required for the filter to converge to
+                within 0.01 % of a value. This is useful for smoothing out control signals.
+            </text>
+            <see>ugen.OnePole</see>
+            <see>ugen.LagUD</see>
+            <see>ugen.Lag2</see>
+            <see>ugen.Ramp</see>
+        </doc>
+    </ugen>
+    <ugen name="Lag2">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal.
+            </doc>
+        </arg>
+        <arg name="time" default="0.1">
+            <doc>
+                60 dB lag time in seconds.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A cascaded exponential lag
+                UGen. `Lag2.kr(in, time)` is equivalent to `Lag.kr(Lag.kr(in, time), time)`,
+                thus resulting in a smoother transition. This saves on CPU as you only have to
+                calculate the decay factor once instead of twice.
+            </text>
+            <see>ugen.Lag</see>
+            <see>ugen.Lag2UD</see>
+            <see>ugen.Lag3</see>
+        </doc>
+    </ugen>
+    <ugen name="Lag3">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal.
+            </doc>
+        </arg>
+        <arg name="time" default="0.1">
+            <doc>
+                60 dB lag time in seconds.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A cascaded exponential lag
+                UGen. `Lag3.kr(in, time)` is equivalent to `Lag.kr(Lag.kr(Lag.kr(Lag.kr(in, time), time), time)`,
+                thus resulting in a smoother transition. This saves on CPU as you only have to
+                calculate the decay factor once instead of three times.
+            </text>
+            <see>ugen.Lag</see>
+            <see>ugen.Lag3UD</see>
+            <see>ugen.Lag2</see>
+        </doc>
+    </ugen>
+    <ugen name="LagUD">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal.
+            </doc>
+        </arg>
+        <arg name="timeUp" default="0.1">
+            <doc>
+                60 dB lag time in seconds effective during a rising slope in the input signal
+            </doc>
+        </arg>
+        <arg name="timeDown" default="0.1">
+            <doc>
+                60 dB lag time in seconds effective during a falling slope in the input signal
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                An exponential lag UGen with separate inputs for up and down slope.
+                This is essentially the same as `Lag` except that you can supply a different 60 dB time
+                for when the signal goes up, from when the signal goes down.
+            </text>
+            <see>ugen.Lag</see>
+            <see>ugen.Lag2UD</see>
+        </doc>
+    </ugen>
+    <ugen name="Lag2UD">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal.
+            </doc>
+        </arg>
+        <arg name="timeUp" default="0.1">
+            <doc>
+                60 dB lag time in seconds effective during a rising slope in the input signal
+            </doc>
+        </arg>
+        <arg name="timeDown" default="0.1">
+            <doc>
+                60 dB lag time in seconds effective during a falling slope in the input signal
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A cascaded exponential lag UGen with separate inputs for up and down
+                slope. `Lag2UD.kr(in, up, down)` is equivalent to `LagUD.kr(LagUD.kr(in, up, down), up, down)`,
+                thus resulting in a smoother transition. This saves on CPU as you only have to
+                calculate the decay factors once instead of twice.
+            </text>
+            <see>ugen.LagUD</see>
+            <see>ugen.Lag2</see>
+            <see>ugen.Lag3UD</see>
+        </doc>
+    </ugen>
+    <ugen name="Lag3UD">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal.
+            </doc>
+        </arg>
+        <arg name="timeUp" default="0.1">
+            <doc>
+                60 dB lag time in seconds effective during a rising slope in the input signal
+            </doc>
+        </arg>
+        <arg name="timeDown" default="0.1">
+            <doc>
+                60 dB lag time in seconds effective during a falling slope in the input signal
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A cascaded exponential lag UGen with separate inputs for up and down
+                slope. `Lag3UD.kr(in, up, down)` is equivalent to `LagUD.kr(LagUD.kr(LagUD.kr(in, up, down), up, down), up, down)`,
+                thus resulting in a smoother transition. This saves on CPU as you only have to
+                calculate the decay factors once instead of three times.
+            </text>
+            <see>ugen.LagUD</see>
+            <see>ugen.Lag3</see>
+            <see>ugen.Lag2UD</see>
+        </doc>
+    </ugen>
+    <ugen name="OnePole">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be processed
+            </doc>
+        </arg>
+        <arg name="coeff" default="0.5">
+            <doc>
+                feedback coefficient. Should be between -1 and +1
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A one pole (IIR) filter UGen.
+                Implements the formula :
+                {{{
+                out(i) = ((1 - abs(coef)) * in(i)) + (coef * out(i-1))
+                }}}
+            </text>
+            <see>ugen.OneZero</see>
+            <see>ugen.Lag</see>
+        </doc>
+    </ugen>
+    <ugen name="OneZero">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be processed
+            </doc>
+        </arg>
+        <arg name="coeff" default="0.5">
+            <doc>
+                feed forward coefficient. +0.5 makes a two point averaging filter (see also `LPZ1`),
+                -0.5 makes a differentiator (see also `HPZ1`),  +1 makes a single sample delay (see also `Delay1`),
+                -1 makes an inverted single sample delay.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A one zero (FIR) filter UGen.
+                Implements the formula :
+                {{{
+                out(i) = ((1 - abs(coef)) * in(i)) + (coef * in(i-1))
+                }}}
+            </text>
+            <see>ugen.OnePole</see>
+            <see>ugen.LPZ1</see>
+            <see>ugen.HPZ1</see>
+            <see>ugen.Delay1</see>
+            <see>ugen.Integrator</see>
+        </doc>
+    </ugen>
+    <ugen name="TwoPole">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be processed
+            </doc>
+        </arg>
+        <arg name="freq" default="440.0"/>
+        <arg name="radius" default="0.8"/>
+    </ugen>
+    <ugen name="TwoZero">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be processed
+            </doc>
+        </arg>
+        <arg name="freq" default="440.0"/>
+        <arg name="radius" default="0.8"/>
+    </ugen>
+    <ugen name="Decay">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be processed
+            </doc>
+        </arg>
+        <arg name="time" default="1.0"/>
+        <doc>
+            <text>
+                An integrator UGen with exponential decay of past values. This is essentially the same
+                as `Integrator` except that instead of supplying the coefficient directly, it is calculated
+                from a 60 dB decay time. This is the time required for the integrator to lose 99.9 % of its
+                value or -60dB.
+
+                Note: This should not be confused with `Lag` which does not overshoot due to integration,
+                but asymptotically follows the input signal.
+            </text>
+            <see>ugen.Integrator</see>
+            <see>ugen.Decay2</see>
+            <see>ugen.Lag</see>
+        </doc>
+    </ugen>
+    <ugen name="Decay2">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be processed
+            </doc>
+        </arg>
+        <arg name="attack" default="0.01"/>
+        <arg name="release" default="1.0"/>
+        <doc>
+            <text>
+                A integrator UGen with controllable attack and release times.
+                While `Decay` has a very sharp attack and can produce clicks, `Decay2` rounds off the attack by
+                subtracting one Decay from another. It can be seen as equivalent to
+                {{{
+                Decay.ar(in, release) - Decay.ar(in, attack)
+                }}}
+
+                Note: This should not be confused with `LagUD` which does not overshoot due to integration,
+                but asymptotically follows the input signal.
+            </text>
+            <see>ugen.Decay</see>
+            <see>ugen.Integrator</see>
+            <see>ugen.LagUD</see>
+        </doc>
+    </ugen>
+    <!-- this should exist according to plugin sources...
+    <ugen name="Flip"/>
+    -->
+    <ugen name="Delay1">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in"/>
+    </ugen>
+    <ugen name="Delay2">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in"/>
+    </ugen>
+    <ugen name="Integrator">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be processed
+            </doc>
+        </arg>
+        <arg name="coeff" default="1.0">
+            <doc>
+                the leak coefficient. Should be between -1 and +1
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A filter UGen to integrate an input signal with a leak.
+                Implements the formula :
+                {{{
+                out(i) = in(i) + (coef * out(i-1))
+                }}}
+            </text>
+            <see>ugen.OnePole</see>
+            <see>ugen.HPZ1</see>
+            <see>ugen.LPZ1</see>
+        </doc>
+    </ugen>
+    <ugen name="LeakDC">
+        <rate name="control">
+            <arg name="coeff" default="0.9"/>
+        </rate>
+        <rate name="audio">
+            <arg name="coeff" default="0.995"/>
+        </rate>
+        <arg name="in" rate="ugen"/>
+        <arg name="coeff"/>
+    </ugen>
+    <ugen name="LPZ1">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be processed
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                two point average filter UGen.
+                Implements the formula :
+                {{{
+                out(i) = 0.5 * (in(i) + in(i-1))
+                }}}
+            </text>
+            <see>ugen.OnePole</see>
+            <see>ugen.HPZ1</see>
+            <see>ugen.Integrator</see>
+        </doc>
+    </ugen>
+    <ugen name="HPZ1">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be processed
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A two point difference filter UGen.
+                Implements the formula :
+                {{{
+                out(i) = 0.5 * (in(i) - in(i-1))
+                }}}
+            </text>
+            <see>ugen.OneZero</see>
+            <see>ugen.LPZ1</see>
+        </doc>
+    </ugen>
+    <ugen name="LPZ2">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen"/>
+    </ugen>
+    <ugen name="HPZ2">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen"/>
+    </ugen>
+    <ugen name="BPZ2">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen"/>
+    </ugen>
+    <ugen name="BRZ2">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen"/>
+    </ugen>
+    <ugen name="APF">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen"/>
+        <arg name="freq" default="440.0"/>
+        <arg name="radius" default="0.8"/>
+    </ugen>
+    <ugen name="LPF">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen"/>
+        <arg name="freq" default="440.0"/>
+    </ugen>
+    <ugen name="HPF">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen"/>
+        <arg name="freq" default="440.0"/>
+    </ugen>
+    <ugen name="BPF">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen"/>
+        <arg name="freq" default="440.0"/>
+        <arg name="rq" default="1.0"/>
+    </ugen>
+    <ugen name="BRF">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen"/>
+        <arg name="freq" default="440.0"/>
+        <arg name="rq" default="1.0"/>
+    </ugen>
+    <ugen name="RLPF">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen"/>
+        <arg name="freq" default="440.0"/>
+        <arg name="rq" default="1.0"/>
+    </ugen>
+    <ugen name="RHPF">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen"/>
+        <arg name="freq" default="440.0"/>
+        <arg name="rq" default="1.0"/>
+    </ugen>
+
+    <ugen name="Slew">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal
+            </doc>
+        </arg>
+        <arg name="up" default="1.0">
+            <doc>
+                maximum upward slope.
+            </doc>
+        </arg>
+        <arg name="down" default="1.0">
+            <doc>
+                maximum downward slope.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A slew rate limiter UGen.
+                Limits the slope of an input signal. The slope is expressed in units per second.
+            </text>
+        </doc>
+    </ugen>
+    <ugen name="Slope">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be measured
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen measuring the slope of signal.
+                It calculates the rate of change per second of a signal, as given by the following formula:
+                {{{
+                out(i) = (in(i) - in(i-1)) * sampleRate
+                }}}
+                It thus equal to `HPZ1.ar(_) * 2 * SampleRate.ir`
+            </text>
+        </doc>
+    </ugen>
+
+    <ugen name="MidEQ">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen"/>
+        <arg name="freq" default="440.0"/>
+        <arg name="rq" default="1.0"/>
+        <arg name="gain" default="0.0"/>
+    </ugen>
+    <ugen name="Median">
+        <rate name="control"/>
+        <rate name="audio">
+            <arg name="in" rate="ugen"/>
+        </rate>
+        <arg name="length" default="3" init="true" pos="1"/>
+        <arg name="in" pos="0"/>
+        <doc warnpos="true"/>
+    </ugen>
+
+    <ugen name="Resonz">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen"/>
+        <arg name="freq" default="440.0"/>
+        <arg name="rq" default="1.0"/>
+    </ugen>
+    <ugen name="Ringz">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen"/>
+        <arg name="freq" default="440.0"/>
+        <arg name="attack" default="1.0"/>
+        <arg name="decay" default="1.0"/>
+    </ugen>
+    <ugen name="Formlet">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen"/>
+        <arg name="freq" default="440.0"/>
+        <arg name="attack" default="1.0"/>
+        <arg name="decay" default="1.0"/>
+    </ugen>
+
+    <ugen name="FOS">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen"/>
+        <arg name="a0" default="0.0"/>
+        <arg name="a1" default="0.0"/>
+        <arg name="b1" default="0.0"/>
+    </ugen>
+    <ugen name="SOS">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen"/>
+        <arg name="a0" default="0.0"/>
+        <arg name="a1" default="0.0"/>
+        <arg name="a2" default="0.0"/>
+        <arg name="b1" default="0.0"/>
+        <arg name="b2" default="0.0"/>
+    </ugen>
+
+    <ugen name="Compander">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in">
+            <doc>
+                The signal to be compressed / expanded / gated.
+            </doc>
+        </arg>
+        <arg name="ctrl">
+            <doc>
+                The signal whose amplitude controls the processor. Often the same as in, but one may wish
+                to apply equalization or delay to it to change the compressor character (side-chaining), or even feed
+                a completely different signal, for instance in a ducking application.
+            </doc>
+        </arg>
+        <arg name="thresh" default="0.5">
+            <doc>
+                Control signal amplitude threshold, which determines the break point between slopeBelow
+                and slopeAbove. Usually 0..1. The control signal amplitude is calculated using RMS.
+            </doc>
+        </arg>
+        <arg name="ratioBelow" default="1.0">
+            <doc>
+                Slope of the amplitude curve below the threshold. If this slope &gt; 1.0, the amplitude
+                will drop off more quickly the softer the control signal gets; when the control signal is close to 0
+                amplitude, the output should be exactly zero -- hence, noise gating. Values &lt; 1.0 are possible,
+                but it means that a very low-level control signal will cause the input signal to be amplified,
+                which would raise the noise floor.
+            </doc>
+        </arg>
+        <arg name="ratioAbove" default="1.0">
+            <doc>
+                Slope of the amplitude curve above the threshold. Values &lt; 1.0 achieve compression
+                (louder signals are attenuated); &gt; 1.0, you get expansion (louder signals are made even louder).
+                For 3:1 compression, you would use a value of 1/3 here.
+            </doc>
+        </arg>
+        <arg name="attack" default="0.01">
+            <doc>
+                The amount of time it takes for the amplitude adjustment to kick in fully. This is
+                usually pretty small, not much more than 10 milliseconds (the default value). I often set it as low as
+                2 milliseconds (0.002).
+            </doc>
+        </arg>
+        <arg name="release" default="0.1">
+            <doc>
+                The amount of time for the amplitude adjustment to be released. Usually a bit longer
+                than attack; if both times are too short, you can get some (possibly unwanted) artifacts.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A compressor, expander, limiter, gate and ducking UGen. This dynamic processor uses a
+                hard-knee characteristic. All of the thresholds and ratios are given as direct
+                values, not in decibels!
+            </text>
+            <see>ugen.Limiter</see>
+            <see>ugen.Normalizer</see>
+        </doc>
+    </ugen>
+    <ugen name="Limiter">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in"/>
+        <arg name="level" default="1.0"/>
+        <arg name="dur" default="0.01" init="true"/>
+    </ugen>
+    <ugen name="Normalizer">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in"/>
+        <arg name="level" default="1"/>
+        <arg name="dur" default="0.01" init="true"/>
+    </ugen>
+
+    <ugen name="Amplitude">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in"/>
+        <arg name="attack" default="0.01"/>
+        <arg name="release" default="0.01"/>
+    </ugen>
+    <ugen name="DetectSilence" sideeffect="true">   <!-- has done action, but does not set done flag -->
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be measured.
+            </doc>
+        </arg>
+        <arg name="amp" default="0.0001" init="true">
+            <doc>
+                minimum amplitude threshold which must be exceeded for the input signal
+                to be considered non-silent.
+            </doc>
+        </arg>
+        <arg name="dur" default="0.1" init="true">
+            <doc>
+                The duration in seconds for which the input signal must be continuously smaller than or equal
+                to the threshold to be considered silent.
+            </doc>
+        </arg>
+        <arg name="doneAction" default="doNothing">
+            <doc>
+                an action to be performed when the output changes from zero to one (silence detected).
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen which detects whether its input signal falls below a given amplitude for a given amount
+                of time (becoming "silent"). A silence is detected if the absolute sample values of the input
+                remain less than or equal to the `amp` threshold for a consecutive amount of time given by the
+                `dur` argument.
+
+                A value of `1` is output when this condition is met, and a value of `0` is output when the
+                condition is not met (i.e. at least one sample occurs in the input whose absolute value is
+                greater than `amp`). Besides, when the output changes from zero to one, the `doneAction` is
+                executed (unless it is `doNothing`).
+
+                A special case is the initial condition of the UGen: It will begin with an output value of `0`
+                (no silence detected), even if the input signal is below the amplitude threshold. It is only
+                after the first input sample rising above the threshold that the actual monitoring begins and
+                a trigger of `1` or the firing of the done-action may occur.
+            </text>
+        </doc>
+    </ugen>
+
+    <ugen name="Hilbert">
+        <output name="real"/>
+        <output name="imag"/>
+        <rate name="audio"/>
+        <arg name="in"/>
+    </ugen>
+    <ugen name="FreqShift">
+        <rate name="audio"/>
+        <arg name="in"/>
+        <arg name="freq" default="0.0"/>
+        <arg name="phase" default="0.0"/>
+    </ugen>
+    <ugen name="MoogFF">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen"/>
+        <arg name="freq" default="200.0"/>
+        <arg name="gain" default="2.0"/>
+        <arg name="reset" default="closed"/>    <!-- strangely not a trigger, but a gate -->
+    </ugen>
+
+    <ugen name="BLowPass">
+        <rate name="audio" implied="true"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be processed.
+            </doc>
+        </arg>
+        <arg name="freq" default="500.0">
+            <doc>
+                cutoff frequency.
+            </doc>
+        </arg>
+        <arg name="rq" default="1.0">
+            <doc>
+                the reciprocal of Q, hence bandwidth / cutoffFreq.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A 2nd order (12db per oct roll-off) resonant low pass filter UGen.
+                The B equalization suite is based on the Second Order Section (SOS) biquad UGen.
+
+                Note: Biquad coefficient calculations imply certain amount of CPU overhead. These
+                plugin UGens contain optimizations such that the coefficients get updated only when
+                there has been a change to one of the filter's parameters. This can cause spikes in
+                CPU performance and should be considered when using several of these units.
+            </text>
+        </doc>
+    </ugen>
+    <ugen name="BHiPass">
+        <rate name="audio" implied="true"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be processed.
+            </doc>
+        </arg>
+        <arg name="freq" default="500.0">
+            <doc>
+                cutoff frequency.
+            </doc>
+        </arg>
+        <arg name="rq" default="1.0">
+            <doc>
+                the reciprocal of Q, hence bandwidth / cutoffFreq.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A 2nd order (12db per oct roll-off) resonant high pass filter UGen.
+                The B equalization suite is based on the Second Order Section (SOS) biquad UGen.
+
+                Note: Biquad coefficient calculations imply certain amount of CPU overhead. These
+                plugin UGens contain optimizations such that the coefficients get updated only when
+                there has been a change to one of the filter's parameters. This can cause spikes in
+                CPU performance and should be considered when using several of these units.
+            </text>
+        </doc>
+    </ugen>
+    <ugen name="BBandPass">
+        <rate name="audio" implied="true"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be processed.
+            </doc>
+        </arg>
+        <arg name="freq" default="500.0">
+            <doc>
+                center frequency.
+            </doc>
+        </arg>
+        <arg name="bw" default="1.0">
+            <doc>
+                the bandwidth '''in octaves''' between -3 dB frequencies
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                An band pass filter UGen.
+                The B equalization suite is based on the Second Order Section (SOS) biquad UGen.
+
+                Note: Biquad coefficient calculations imply certain amount of CPU overhead. These
+                plugin UGens contain optimizations such that the coefficients get updated only when
+                there has been a change to one of the filter's parameters. This can cause spikes in
+                CPU performance and should be considered when using several of these units.
+            </text>
+        </doc>
+    </ugen>
+    <ugen name="BBandStop">
+        <rate name="audio" implied="true"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be processed.
+            </doc>
+        </arg>
+        <arg name="freq" default="500.0">
+            <doc>
+                center frequency.
+            </doc>
+        </arg>
+        <arg name="bw" default="1.0">
+            <doc>
+                the bandwidth '''in octaves''' between -3 dB frequencies
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                An band stop (reject) filter UGen.
+                The B equalization suite is based on the Second Order Section (SOS) biquad UGen.
+
+                Note: Biquad coefficient calculations imply certain amount of CPU overhead. These
+                plugin UGens contain optimizations such that the coefficients get updated only when
+                there has been a change to one of the filter's parameters. This can cause spikes in
+                CPU performance and should be considered when using several of these units.
+            </text>
+        </doc>
+    </ugen>
+    <ugen name="BPeakEQ">
+        <rate name="audio" implied="true"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be processed.
+            </doc>
+        </arg>
+        <arg name="freq" default="500.0">
+            <doc>
+                center frequency.
+            </doc>
+        </arg>
+        <arg name="rq" default="1.0">
+            <doc>
+                the reciprocal of Q, hence bandwidth / cutoffFreq.
+            </doc>
+        </arg>
+        <arg name="gain" default="0.0">
+            <doc>
+                boost/cut at the center frequency (in decibels).
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                An parametric equalizer UGen.
+                The B equalization suite is based on the Second Order Section (SOS) biquad UGen.
+
+                Note: Biquad coefficient calculations imply certain amount of CPU overhead. These
+                plugin UGens contain optimizations such that the coefficients get updated only when
+                there has been a change to one of the filter's parameters. This can cause spikes in
+                CPU performance and should be considered when using several of these units.
+            </text>
+        </doc>
+    </ugen>
+    <ugen name="BAllPass">
+        <rate name="audio" implied="true"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be processed.
+            </doc>
+        </arg>
+        <arg name="freq" default="500.0">
+            <doc>
+                cutoff frequency.
+            </doc>
+        </arg>
+        <arg name="rq" default="1.0">
+            <doc>
+                the reciprocal of Q, hence bandwidth / cutoffFreq.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                An all pass filter UGen.
+                The B equalization suite is based on the Second Order Section (SOS) biquad UGen.
+
+                Note: Biquad coefficient calculations imply certain amount of CPU overhead. These
+                plugin UGens contain optimizations such that the coefficients get updated only when
+                there has been a change to one of the filter's parameters. This can cause spikes in
+                CPU performance and should be considered when using several of these units.
+            </text>
+        </doc>
+    </ugen>
+    <ugen name="BLowShelf">
+        <rate name="audio" implied="true"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be processed.
+            </doc>
+        </arg>
+        <arg name="freq" default="500.0">
+            <doc>
+                cutoff frequency.
+            </doc>
+        </arg>
+        <arg name="rs" default="1.0">
+            <doc>
+                the reciprocal of the slope S (Shell boost/cut slope).
+                When `S = 1`, the shelf slope is as steep as it can be and remain monotonically increasing
+                or decreasing gain with frequency.  The shelf slope, in dB/octave, remains proportional to
+                S for all other values for a fixed freq/sample-rate and `gain`.
+            </doc>
+        </arg>
+        <arg name="gain" default="0.0">
+            <doc>
+                boost/cut at the cutoff frequency (in decibels).
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A low shelf equalizer UGen.
+                The B equalization suite is based on the Second Order Section (SOS) biquad UGen.
+
+                Note: Biquad coefficient calculations imply certain amount of CPU overhead. These
+                plugin UGens contain optimizations such that the coefficients get updated only when
+                there has been a change to one of the filter's parameters. This can cause spikes in
+                CPU performance and should be considered when using several of these units.
+            </text>
+        </doc>
+    </ugen>
+    <ugen name="BHiShelf">
+        <rate name="audio" implied="true"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be processed.
+            </doc>
+        </arg>
+        <arg name="freq" default="500.0">
+            <doc>
+                cutoff frequency.
+            </doc>
+        </arg>
+        <arg name="rs" default="1.0">
+            <doc>
+                the reciprocal of the slope S (Shell boost/cut slope).
+                When `S = 1`, the shelf slope is as steep as it can be and remain monotonically increasing
+                or decreasing gain with frequency.  The shelf slope, in dB/octave, remains proportional to
+                S for all other values for a fixed freq/sample-rate and `gain`.
+            </doc>
+        </arg>
+        <arg name="gain" default="0.0">
+            <doc>
+                boost/cut at the cutoff frequency (in decibels).
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A high shelf equalizer UGen.
+                The B equalization suite is based on the Second Order Section (SOS) biquad UGen.
+
+                Note: Biquad coefficient calculations imply certain amount of CPU overhead. These
+                plugin UGens contain optimizations such that the coefficients get updated only when
+                there has been a change to one of the filter's parameters. This can cause spikes in
+                CPU performance and should be considered when using several of these units.
+            </text>
+        </doc>
+    </ugen>
+</ugens>

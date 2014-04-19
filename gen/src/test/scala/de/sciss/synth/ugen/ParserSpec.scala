@@ -3,13 +3,15 @@ package de.sciss.synth.ugen
 import org.scalatest.FlatSpec
 import de.sciss.synth.UGenSpec
 
-/** To run only this test:
-  *
-  * test-only de.sciss.synth.ugen.ParserSpec
-  */
+/*
+ To run only this test:
+
+ test-only de.sciss.synth.ugen.ParserSpec
+
+ */
 class ParserSpec extends FlatSpec {
-  "UGenSpec" should "be able to parse a specifc entry" in {
-    val is = getClass.getResourceAsStream("standard-ugens.xml")
+  "UGenSpec" should "be able to parse a specific entry" in {
+    val is = getClass.getResourceAsStream("ChaosUGens.xml")
     try {
       val doc   = xml.XML.load(is)
       val cusp  = (doc \\ "ugen").find(_.attributes.asAttrMap("name") == "CuspN").get

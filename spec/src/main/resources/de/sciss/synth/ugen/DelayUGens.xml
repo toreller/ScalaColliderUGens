@@ -1,0 +1,1319 @@
+<ugens revision="1">
+    <ugen name="ControlRate">
+        <rate name="scalar" implied="true"/>    <!-- method="" -->
+        <doc>
+            <text>
+                A UGen that reports the server's current control rate. This is equivalent to the reciprocal
+                of `ControlDur`
+            </text>
+            <see>ugen.ControlDur</see>
+            <see>ugen.SampleRate</see>
+        </doc>
+    </ugen>
+    <ugen name="SampleRate">
+        <rate name="scalar" implied="true"/>    <!-- method="" -->
+        <doc>
+            <text>
+                A UGen that reports the server's current (audio) sample rate. This is equivalent to the reciprocal
+                of `SampleDur`
+            </text>
+            <see>ugen.SampleDur</see>
+            <see>ugen.ControlRate</see>
+            <see>ugen.RadiansPerSample</see>
+        </doc>
+    </ugen>
+    <ugen name="SampleDur">
+        <rate name="scalar" implied="true"/>     <!-- method="" -->
+        <doc>
+            <text>
+                A UGen that reports the server's current (audio) sample period in seconds. This is equivalent to the reciprocal
+                of `SampleRate`
+            </text>
+            <see>ugen.SampleRate</see>
+            <see>ugen.ControlDur</see>
+        </doc>
+    </ugen>
+    <ugen name="ControlDur">
+        <rate name="scalar" implied="true"/>     <!-- method="" -->
+        <doc>
+            <text>
+                A UGen that reports the server's current control period in seconds. This is equivalent to the reciprocal
+                of `ControlRate`
+            </text>
+            <see>ugen.ControlRate</see>
+            <see>ugen.SampleDur</see>
+        </doc>
+    </ugen>
+    <ugen name="SubsampleOffset">
+        <rate name="scalar" implied="true"/>     <!-- method="" -->
+        <doc>
+            <text>
+                A UGen that reports the fractional sample offset of the current Synth from its requested scheduled start.
+
+                When a synth is created from a time stamped osc-bundle, it starts
+                calculation at the next possible block (normally 64 samples). Using an
+                `OffsetOut` UGen, one can delay the audio so that it matches sample
+                accurately.
+
+                For some synthesis methods, one even needs subsample accuracy. `SubsampleOffset`
+                provides the information where, within the current sample, the synth was
+                scheduled. It can be used to offset envelopes or resample the audio
+                output.
+            </text>
+            <see>ugen.ControlRate</see>
+            <see>ugen.SampleDur</see>
+        </doc>
+    </ugen>
+    <ugen name="RadiansPerSample">
+        <rate name="scalar" implied="true"/>     <!-- method="" -->
+        <doc>
+            <text>
+                A UGen that delivers the conversion factor from frequency in Hertz to radians (normalized frequency).
+                The relation is `RadiansPerSample * sr = 2pi`, thus multiplying the UGen with a frequency between
+                zero and nyquist (sr/2) yields the normalized frequency between zero and pi.
+            </text>
+            <see>ugen.SampleRate</see>
+        </doc>
+    </ugen>
+    <ugen name="NumInputBuses">
+        <rate name="scalar" implied="true"/>     <!-- method="" -->
+        <doc>
+            <text>Number of input buses.</text>
+            <see>ugen.NumAudioBuses</see>
+            <see>ugen.NumControlBuses</see>
+            <see>ugen.NumBuffers</see>
+            <see>ugen.NumOutputBuses</see>
+            <see>ugen.NumRunningSynths</see>
+        </doc>
+    </ugen>
+    <ugen name="NumOutputBuses">
+        <rate name="scalar" implied="true"/>     <!-- method="" -->
+        <doc>
+            <text>Number of output buses.</text>
+            <see>ugen.NumAudioBuses</see>
+            <see>ugen.NumControlBuses</see>
+            <see>ugen.NumBuffers</see>
+            <see>ugen.NumInputBuses</see>
+            <see>ugen.NumRunningSynths</see>
+        </doc>
+    </ugen>
+    <ugen name="NumAudioBuses">
+        <rate name="scalar" implied="true"/>     <!-- method="" -->
+        <doc>
+            <text>Number of audio buses.</text>
+            <see>ugen.NumControlBuses</see>
+            <see>ugen.NumBuffers</see>
+            <see>ugen.NumInputBuses</see>
+            <see>ugen.NumOutputBuses</see>
+            <see>ugen.NumRunningSynths</see>
+        </doc>
+    </ugen>
+    <ugen name="NumControlBuses">
+        <rate name="scalar" implied="true"/>     <!-- method="" -->
+        <doc>
+            <text>Number of control buses.</text>
+            <see>ugen.NumAudioBuses</see>
+            <see>ugen.NumBuffers</see>
+            <see>ugen.NumInputBuses</see>
+            <see>ugen.NumOutputBuses</see>
+            <see>ugen.NumRunningSynths</see>
+        </doc>
+    </ugen>
+    <ugen name="NumBuffers">
+        <rate name="scalar" implied="true"/>     <!-- method="" -->
+        <doc>
+            <text>Number of open buffers.</text>
+            <see>ugen.NumAudioBuses</see>
+            <see>ugen.NumControlBuses</see>
+            <see>ugen.NumInputBuses</see>
+            <see>ugen.NumOutputBuses</see>
+            <see>ugen.NumRunningSynths</see>
+        </doc>
+    </ugen>
+    <ugen name="NumRunningSynths">
+        <rate name="scalar" implied="true"/>     <!-- method="" -->
+        <doc>
+            <text>Number of currently running synths.</text>
+            <see>ugen.NumAudioBuses</see>
+            <see>ugen.NumControlBuses</see>
+            <see>ugen.NumBuffers</see>
+            <see>ugen.NumInputBuses</see>
+            <see>ugen.NumOutputBuses</see>
+        </doc>
+    </ugen>
+
+    <ugen name="BufSampleRate">
+        <rate name="scalar"/>
+        <doc>
+            <text>
+                Returns the buffer's current sample rate.
+            </text>
+        </doc>
+        <rate name="control"/>
+        <doc>
+            <text>
+                Returns the buffer's current sample rate.
+            </text>
+        </doc>
+        <arg name="buf" type="buf">
+            <doc>
+                Buffer index.
+            </doc>
+        </arg>
+    </ugen>
+    <ugen name="BufRateScale">
+        <rate name="scalar"/>
+        <doc>
+            <text>
+                Returns a ratio by which the playback of the buffer at the provided index is to be scaled relative to the current sample rate of the server.
+                {{{
+                buffer sample rate / server sample rate
+                }}}
+            </text>
+        </doc>
+        <rate name="control"/>
+        <doc>
+            <text>
+                Returns a ratio by which the playback of the buffer at the provided index is to be scaled relative to the current sample rate of the server.
+                {{{
+                buffer sample rate / server sample rate
+                }}}
+            </text>
+        </doc>
+        <arg name="buf" type="buf">
+            <doc>
+                Buffer index.
+            </doc>
+        </arg>
+    </ugen>
+    <ugen name="BufSamples">
+        <rate name="scalar"/>
+        <doc>
+            <text>
+                Returns the current number of allocated samples in the Buffer at the provided index. A sample is not the same as a frame (compare with [[ugen.BufFrames]] ); a frame includes the samples in each channel of the buffer. Only for a mono buffer are samples the same as frames.
+                {{{
+                samples = frames * numChannels
+                }}}
+            </text>
+        </doc>
+        <rate name="control"/>
+        <doc>
+            <text>
+                Returns the current number of allocated samples in the Buffer at the provided index. A sample is not the same as a frame (compare with [[ugen.BufFrames]] ); a frame includes the samples in each channel of the buffer. Only for a mono buffer are samples the same as frames.
+                {{{
+                samples = frames * numChannels
+                }}}
+            </text>
+        </doc>
+        <arg name="buf" type="buf">
+            <doc>
+                Buffer index.
+            </doc>
+        </arg>
+    </ugen>
+    <ugen name="BufFrames">
+        <rate name="scalar"/>
+        <doc>
+            <text>
+                Returns the number of allocated frames of the buffer at the provided index.
+            </text>
+        </doc>
+        <rate name="control"/>
+        <doc>
+            <text>
+                Returns the number of allocated frames of the buffer at the provided index.
+            </text>
+        </doc>
+        <arg name="buf" type="buf">
+            <doc>
+                Buffer index.
+            </doc>
+        </arg>
+    </ugen>
+    <ugen name="BufChannels">
+        <rate name="scalar"/>
+        <doc>
+            <text>
+                Returns the current number of channels of the buffer at the provided index.
+            </text>
+        </doc>
+        <rate name="control"/>
+        <doc>
+            <text>
+                Returns the current number of channels of the buffer at the provided index.
+            </text>
+        </doc>
+        <arg name="buf" type="buf">
+            <doc>
+                Buffer index.
+            </doc>
+        </arg>
+    </ugen>
+    <ugen name="BufDur">
+        <rate name="scalar"/>
+        <doc>
+            <text>
+                Returns the current duration of the buffer at the provided index.
+            </text>
+        </doc>
+        <rate name="control"/>
+        <doc>
+            <text>
+                Returns the current duration of the buffer at the provided index.
+            </text>
+        </doc>
+        <arg name="buf" type="buf">
+            <doc>
+                Buffer index.
+            </doc>
+        </arg>
+    </ugen>
+
+    <ugen name="PlayBuf" readsbuf="true" sideeffect="true" doneflag="true">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <output variadic="numChannels"/>
+        <arg name="numChannels" type="int">
+            <doc>
+                the number of channels that the buffer will be. Since
+                this is a constant, a change in number of channels of the underlying bus must
+                be reflected by creating different SynthDefs. If a buffer identifier is used of a buffer
+                that has a different numChannels then specified in the PlayBuf, it will fail silently.
+            </doc>
+        </arg>
+        <arg name="buf" type="buf">
+            <doc>
+                the identifier of the buffer to use
+            </doc>
+        </arg>
+        <arg name="speed" default="1.0">
+            <doc>
+                1 advances the play head by the server's sample rate each second.
+                So 2 means doubling speed (and pitch), and 0.5 means half speed (and half pitch).
+                Negative numbers can be used for backwards playback. If the underlying buffer
+                represents a sound at a different sample rate, the rate should be
+                multiplied by `BufRateScale.kr(bufID)` to obtain the correct speed.
+            </doc>
+        </arg>
+        <arg name="trig" default="high">
+            <doc>
+                a trigger which causes a jump to the given startPos. A trigger occurs when a
+                signal changes from non-positive to positive (e.g. &lt;= 0 to &gt; 0).
+            </doc>
+        </arg>
+        <arg name="startPos" default="0.0">
+            <doc>
+                sample frame to start playback. This is read when a trigger occurs. It may be fractional.
+            </doc>
+        </arg>
+        <arg name="loop" default="true">
+            <doc>
+                1 to loop after the play head reaches the buffer end, 0 to not loop. this can be modulated.
+            </doc>
+        </arg>
+        <arg name="doneAction" default="doNothing">
+            <doc>
+                what to do when the play head reaches the buffer end.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen to play back samples from a buffer in memory.
+
+                `PlayBuf` provides a kind of high-level interface to sample-playback, whereas `BufRd`
+                represents a kind of lower-level access. While `BufRd` has a random-access-pointer
+                in the form of a phase input, `PlayBuf` advances the phase automatically based on
+                a given playback speed. `PlayBuf` uses cubic interpolation.
+            </text>
+            <see>ugen.BufRd</see>
+            <see>ugen.DiskIn</see>
+            <see>ugen.RecordBuf</see>
+            <see>DoneAction</see>
+            <see>ugen.Done</see>
+            <see>ugen.BufRateScale</see>
+            <see>ugen.BufFrames</see>
+        </doc>
+    </ugen>
+    <!-- <ugen name="SimpleLoopBuf">
+    </ugen> -->
+    <ugen name="RecordBuf" writesbuf="true" sideeffect="true" doneflag="true">
+        <rate name="control"/>
+        <doc>
+            <text>
+                Records input into a Buffer.
+                If recLevel is 1.0 and preLevel is 0.0 then the new input overwrites the old data.
+                If they are both 1.0 then the new data is added to the existing data.
+                (Any other settings are also valid.)
+            </text>
+        </doc>
+        <rate name="audio"/>
+        <doc>
+            <text>
+                Records input into a Buffer.
+                If recLevel is 1.0 and preLevel is 0.0 then the new input overwrites the old data.
+                If they are both 1.0 then the new data is added to the existing data.
+                (Any other settings are also valid.)
+            </text>
+        </doc>
+        <arg name="buf" type="buf" pos="1"/>
+        <arg name="offset" default="0" pos="2"/>
+        <arg name="recLevel" default="1.0" pos="3"/>
+        <arg name="preLevel" default="0.0" pos="4"/>
+        <arg name="run" default="open" pos="5"/>
+        <arg name="loop" default="true" pos="6"/>
+        <arg name="trig" default="high" pos="7"/>
+        <arg name="doneAction" default="doNothing" pos="8"/>
+        <arg name="in" variadic="true" pos="0"/>
+    </ugen>
+    <ugen name="BufRd" readsbuf="true" doneflag="true">
+        <rate name="scalar"/>
+        <rate name="control"/>
+        <rate name="audio">
+            <arg name="index" rate="ugen"/>
+        </rate>
+        <output variadic="numChannels"/>
+        <arg name="numChannels" type="int">
+            <doc>
+                number of channels that the buffer will be.
+                Since this is an integer constant, a change in the number of channels must
+                be reflected by creating different SynthDefs.
+            </doc>
+        </arg>
+        <arg name="buf" type="buf">
+            <doc>
+                the identifier of the buffer to use
+            </doc>
+        </arg>
+        <arg name="index" default="0.0">
+            <doc>
+                audio rate frame-index into the buffer. Can be fractional.
+            </doc>
+        </arg>
+        <arg name="loop" default="true">
+            <doc>
+                1 to enable looping, 0 to disable looping. this can be modulated.
+            </doc>
+        </arg>
+        <arg name="interp" default="2">
+            <doc>
+                1 for no interpolation, 2 for linear, and 4 for cubic interpolation
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen which reads the content of a buffer, using an index pointer.
+
+                Warning: if the supplied `bufID` refers to a buffer whose number of channels
+                differs from `numChannels`, the UGen will fail silently.
+
+                An alternative to `BufRd` is `PlayBuf`. While `PlayBuf` plays
+                through the buffer by itself, `BufRd` only moves its read point by the phase input
+                and therefore has no pitch input. `PlayBuf` uses cubic interpolation, while
+                `BufRd` has variable interpolation. `PlayBuf` can determine the end of the buffer
+                and issue a done-action.
+            </text>
+            <see>ugen.PlayBuf</see>
+            <see>ugen.BufWr</see>
+            <see>ugen.Phasor</see>
+            <see>ugen.BufFrames</see>
+            <see>ugen.BufRateScale</see>
+        </doc>
+    </ugen>
+    <ugen name="BufWr" writesbuf="true" doneflag="true">
+        <rate name="scalar"/>
+        <rate name="control"/>
+        <rate name="audio">
+            <arg name="index" rate="ugen"/>
+        </rate>
+        <arg name="buf" type="buf" pos="1"/>
+        <arg name="index" default="0.0" pos="2"/>
+        <arg name="loop" default="true" pos="3"/>
+        <arg name="in" variadic="true" pos="0"/>
+    </ugen>
+    <ugen name="Pitch">
+        <rate name="control"/>
+        <output name="freq"/>
+        <output name="hasFreq"/>
+        <arg name="in">
+            <doc>
+                The signal to be analyzed.
+            </doc>
+        </arg>
+        <arg name="initFreq" default="440.0" init="true">
+            <doc>
+                The initial value of the `freq` output, until the first valid pitch is found.
+            </doc>
+        </arg>
+        <arg name="minFreq" default="60.0" init="true">
+            <doc>
+                The minimum frequency in Hertz to be considered for reporting.
+            </doc>
+        </arg>
+        <arg name="maxFreq" default="4000.0" init="true">
+            <doc>
+                The maximum frequency in Hertz to be considered for reporting.
+            </doc>
+        </arg>
+        <arg name="execFreq" default="100.0" init="true">
+            <doc>
+                The frequency at which the pitch is estimated. This will be
+                automatically clipped to be between `minFreq` and `maxFreq`.
+            </doc>
+        </arg>
+        <arg name="binsPerOct" default="16" init="true">
+            <doc>
+                A value which guides the search for the peak frequency in the first
+                coarse step. Its setting does *not* affect the final pitch resolution;
+                setting it larger will cause the coarse search to take longer, and setting
+                it smaller will cause the fine search to take longer.
+            </doc>
+        </arg>
+        <arg name="median" default="1" init="true">
+            <doc>
+                This specifies the length of a median filter applied to the frequency output
+                estimation. With the default value of `1` the filter is defeated. Median filtering
+                can help eliminating single spikes and jitter. This will however add latency to
+                the output.
+            </doc>
+        </arg>
+        <arg name="ampThresh" default="0.01" init="true">
+            <doc>
+                The minimum amplitude threshold above which the pitch follower
+                operates. An input signal below this threshold is not analyzed.
+            </doc>
+        </arg>
+        <arg name="peakThresh" default="0.5" init="true">
+            <doc>
+                This is a threshold used to find the first peak in the autocorrelation signal which
+                gives the reported frequency. It is a factor of the energy of the signal
+                (autocorrelation coefficient at zero). Set this value higher (e.g. to `1`) to
+                eliminate false frequencies corresponding to overtones.
+            </doc>
+        </arg>
+        <arg name="downSample" default="1" init="true">
+            <doc>
+                An integer factor by which the input signal is down sampled to reduce CPU overhead.
+                This will also reduce the pitch resolution. The default value of `1` means that
+                the input signal is not down sampled.
+            </doc>
+        </arg>
+        <!-- this should be a switch, but the implementation uses > 0.f -->
+        <!-- nevertheless, we'll present it as switch in the interface, that should be ok -->
+        <arg name="clarity" default="false" init="true">
+            <doc>
+                If the `clarity` argument is greater than zero (it is zero by default) then the `hasFreq`
+                output is given additional detail. Rather than simply being 1 when a pitch is detected,
+                it is a "clarity" measure in the range between zero and one. (Technically, it's the height
+                of the autocorrelation peak normalised by the height of the zero-lag peak.) It therefore
+                gives a kind of measure of "purity" of the pitched signal.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                An autocorrelation based pitch following UGen. It is more accurate than `ZeroCrossing`, but
+                more also more CPU costly. For most purposes the default settings can be used and only `in`
+                needs to be supplied.
+
+                The UGen has two outputs: The first output is the frequency estimate in Hertz, the second
+                output is a toggle `hasFreq`, which tells whether a pitch was found (1) or not (0). If
+                the `clarify` argument is used, `hasFreq` has more fine grained information.
+
+                The pitch follower executes periodically at the rate specified by `execFreq` in cps.
+                First it detects whether the input peak to peak amplitude is above the `ampThresh`.
+                If it is not then no pitch estimation is performed, the `hasFreq` output is set to zero
+                and the `freq` output is held at its previous value. Otherwise, the autocorrelation is
+                calculated, and the first peak after the peak around the lag of zero that is
+                above `peakThresh` times the amplitude of the peak at lag zero is reported.
+            </text>
+        </doc>
+    </ugen>
+
+    <ugen name="BufDelayN" readsbuf="true" writesbuf="true">
+        <rate name="control"/>
+        <rate name="audio">
+            <arg name="in" rate="ugen"/>
+        </rate>
+        <arg name="buf" type="buf">
+            <doc>
+                Buffer index.
+            </doc>
+        </arg>
+        <arg name="in">
+            <doc>
+                The input signal.
+            </doc>
+        </arg>
+        <arg name="delayTime" default="0.2">
+            <doc>
+                Delay time in seconds.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                Simple delay line with no interpolation which uses a buffer for its internal memory.
+            </text>
+            <see>ugen.BufDelayL</see>
+            <see>ugen.BufDelayC</see>
+        </doc>
+    </ugen>
+    <ugen name="BufDelayL" readsbuf="true" writesbuf="true">
+        <rate name="control"/>
+        <rate name="audio">
+            <arg name="in" rate="ugen"/>
+        </rate>
+        <arg name="buf" type="buf">
+            <doc>
+                Buffer index.
+            </doc>
+        </arg>
+        <arg name="in">
+            <doc>
+                The input signal.
+            </doc>
+        </arg>
+        <arg name="delayTime" default="0.2">
+            <doc>
+                Delay time in seconds.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                Simple delay line with linear interpolation which uses a buffer for its internal memory.
+            </text>
+            <see>ugen.BufDelayN</see>
+            <see>ugen.BufDelayC</see>
+        </doc>
+    </ugen>
+    <ugen name="BufDelayC" readsbuf="true" writesbuf="true">
+        <rate name="control"/>
+        <rate name="audio">
+            <arg name="in" rate="ugen"/>
+        </rate>
+        <arg name="buf" type="buf">
+            <doc>
+                Buffer index.
+            </doc>
+        </arg>
+        <arg name="in">
+            <doc>
+                The input signal.
+            </doc>
+        </arg>
+        <arg name="delayTime" default="0.2">
+            <doc>
+                Delay time in seconds.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                Simple delay line with cubic interpolation which uses a buffer for its internal memory.
+            </text>
+            <see>ugen.BufDelayN</see>
+            <see>ugen.BufDelayL</see>
+        </doc>
+    </ugen>
+    <ugen name="BufCombN" readsbuf="true" writesbuf="true">
+        <rate name="audio">
+            <arg name="in" rate="ugen"/>
+        </rate>
+        <arg name="buf" type="buf">
+            <doc>
+                Buffer index.
+            </doc>
+        </arg>
+        <arg name="in">
+            <doc>
+                The input signal.
+            </doc>
+        </arg>
+        <arg name="delayTime" default="0.2">
+            <doc>
+                Delay time in seconds.
+            </doc>
+        </arg>
+        <arg name="decayTime" default="1.0">
+            <doc>
+                Time for the echoes to decay by 60 decibels. If this time is negative then the feedback
+                coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                Comb delay line with no interpolation which uses a buffer for its internal memory.
+            </text>
+            <see>ugen.BufCombL</see>
+            <see>ugen.BufCombC</see>
+        </doc>
+    </ugen>
+    <ugen name="BufCombL" readsbuf="true" writesbuf="true">
+        <rate name="audio">
+            <arg name="in" rate="ugen"/>
+        </rate>
+        <arg name="buf" type="buf">
+            <doc>
+                Buffer index.
+            </doc>
+        </arg>
+        <arg name="in">
+            <doc>
+                The input signal.
+            </doc>
+        </arg>
+        <arg name="delayTime" default="0.2">
+            <doc>
+                Delay time in seconds.
+            </doc>
+        </arg>
+        <arg name="decayTime" default="1.0">
+            <doc>
+                Time for the echoes to decay by 60 decibels. If this time is negative then the feedback
+                coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                Comb delay line with linear interpolation which uses a buffer for its internal memory.
+            </text>
+            <see>ugen.BufCombN</see>
+            <see>ugen.BufCombC</see>
+        </doc>
+    </ugen>
+    <ugen name="BufCombC" readsbuf="true" writesbuf="true">
+        <rate name="audio">
+            <arg name="in" rate="ugen"/>
+        </rate>
+        <arg name="buf" type="buf">
+            <doc>
+                Buffer index.
+            </doc>
+        </arg>
+        <arg name="in">
+            <doc>
+                The input signal.
+            </doc>
+        </arg>
+        <arg name="delayTime" default="0.2">
+            <doc>
+                Delay time in seconds.
+            </doc>
+        </arg>
+        <arg name="decayTime" default="1.0">
+            <doc>
+                Time for the echoes to decay by 60 decibels. If this time is negative then the feedback
+                coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                Comb delay line with cubic interpolation which uses a buffer for its internal memory.
+            </text>
+            <see>ugen.BufCombN</see>
+            <see>ugen.BufCombL</see>
+        </doc>
+    </ugen>
+    <ugen name="BufAllpassN" readsbuf="true" writesbuf="true">
+        <rate name="audio">
+            <arg name="in" rate="ugen"/>
+        </rate>
+        <arg name="buf" type="buf">
+            <doc>
+                Buffer index.
+            </doc>
+        </arg>
+        <arg name="in">
+            <doc>
+                The input signal.
+            </doc>
+        </arg>
+        <arg name="delayTime" default="0.2">
+            <doc>
+                Delay time in seconds.
+            </doc>
+        </arg>
+        <arg name="decayTime" default="1.0">
+            <doc>
+                Time for the echoes to decay by 60 decibels. If this time is negative then the feedback
+                coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                All pass delay line with no interpolation which uses a buffer for its internal memory.
+            </text>
+            <see>ugen.BufAllpassL</see>
+            <see>ugen.BufAllpassC</see>
+        </doc>
+    </ugen>
+    <ugen name="BufAllpassL" readsbuf="true" writesbuf="true">
+        <rate name="audio">
+            <arg name="in" rate="ugen"/>
+        </rate>
+        <arg name="buf" type="buf">
+            <doc>
+                Buffer index.
+            </doc>
+        </arg>
+        <arg name="in">
+            <doc>
+                The input signal.
+            </doc>
+        </arg>
+        <arg name="delayTime" default="0.2">
+            <doc>
+                Delay time in seconds.
+            </doc>
+        </arg>
+        <arg name="decayTime" default="1.0">
+            <doc>
+                Time for the echoes to decay by 60 decibels. If this time is negative then the feedback
+                coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                All pass delay line with linear interpolation which uses a buffer for its internal memory.
+            </text>
+            <see>ugen.BufAllpassN</see>
+            <see>ugen.BufAllpassC</see>
+        </doc>
+    </ugen>
+    <ugen name="BufAllpassC" readsbuf="true" writesbuf="true">
+        <rate name="audio">
+            <arg name="in" rate="ugen"/>
+        </rate>
+        <arg name="buf" type="buf">
+            <doc>
+                Buffer index.
+            </doc>
+        </arg>
+        <arg name="in">
+            <doc>
+                The input signal.
+            </doc>
+        </arg>
+        <arg name="delayTime" default="0.2">
+            <doc>
+                Delay time in seconds.
+            </doc>
+        </arg>
+        <arg name="decayTime" default="1.0">
+            <doc>
+                Time for the echoes to decay by 60 decibels. If this time is negative then the feedback
+                coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                All pass delay line with cubic interpolation which uses a buffer for its internal memory.
+            </text>
+            <see>ugen.BufAllpassN</see>
+            <see>ugen.BufAllpassL</see>
+        </doc>
+    </ugen>
+    <ugen name="DelayN">
+        <rate name="control"/>
+        <rate name="audio">
+            <arg name="in" rate="ugen"/>
+        </rate>
+        <arg name="in">
+            <doc>
+                The input signal.
+            </doc>
+        </arg>
+        <arg name="maxDelayTime" default="0.2" init="true">
+            <doc>
+                The maximum delay time in seconds. used to initialize the delay buffer size.
+            </doc>
+        </arg>
+        <arg name="delayTime" default="0.2">
+            <doc>
+                Delay time in seconds.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                Simple delay line with no interpolation.
+            </text>
+            <see>ugen.DelayL</see>
+            <see>ugen.DelayC</see>
+        </doc>
+    </ugen>
+    <ugen name="DelayL">
+        <rate name="control"/>
+        <rate name="audio">
+            <arg name="in" rate="ugen"/>
+        </rate>
+        <arg name="in">
+            <doc>
+                The input signal.
+            </doc>
+        </arg>
+        <arg name="maxDelayTime" default="0.2" init="true">
+            <doc>
+                The maximum delay time in seconds. used to initialize the delay buffer size.
+            </doc>
+        </arg>
+        <arg name="delayTime" default="0.2">
+            <doc>
+                Delay time in seconds.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                Simple delay line with linear interpolation.
+            </text>
+            <see>ugen.DelayN</see>
+            <see>ugen.DelayC</see>
+        </doc>
+    </ugen>
+    <ugen name="DelayC">
+        <rate name="control"/>
+        <rate name="audio">
+            <arg name="in" rate="ugen"/>
+        </rate>
+        <arg name="in">
+            <doc>
+                The input signal.
+            </doc>
+        </arg>
+        <arg name="maxDelayTime" default="0.2" init="true">
+            <doc>
+                The maximum delay time in seconds. used to initialize the delay buffer size.
+            </doc>
+        </arg>
+        <arg name="delayTime" default="0.2">
+            <doc>
+                Delay time in seconds.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                Simple delay line with cubic interpolation.
+            </text>
+            <see>ugen.DelayN</see>
+            <see>ugen.DelayL</see>
+        </doc>
+    </ugen>
+    <ugen name="CombN">
+        <rate name="control"/>
+        <rate name="audio">
+            <arg name="in" rate="ugen"/>
+        </rate>
+        <arg name="in">
+            <doc>
+                The input signal.
+            </doc>
+        </arg>
+        <arg name="maxDelayTime" default="0.2" init="true">
+            <doc>
+                The maximum delay time in seconds. used to initialize the delay buffer size.
+            </doc>
+        </arg>
+        <arg name="delayTime" default="0.2">
+            <doc>
+                Delay time in seconds.
+            </doc>
+        </arg>
+        <arg name="decayTime" default="1.0">
+            <doc>
+                Time for the echoes to decay by 60 decibels. If this time is negative then the feedback
+                coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                Comb delay line with no interpolation.
+            </text>
+            <see>ugen.CombL</see>
+            <see>ugen.CombC</see>
+        </doc>
+    </ugen>
+    <ugen name="CombL">
+        <rate name="control"/>
+        <rate name="audio">
+            <arg name="in" rate="ugen"/>
+        </rate>
+        <arg name="in">
+            <doc>
+                The input signal.
+            </doc>
+        </arg>
+        <arg name="maxDelayTime" default="0.2" init="true">
+            <doc>
+                The maximum delay time in seconds. used to initialize the delay buffer size.
+            </doc>
+        </arg>
+        <arg name="delayTime" default="0.2">
+            <doc>
+                Delay time in seconds.
+            </doc>
+        </arg>
+        <arg name="decayTime" default="1.0">
+            <doc>
+                Time for the echoes to decay by 60 decibels. If this time is negative then the feedback
+                coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                Comb delay line with linear interpolation.
+            </text>
+            <see>ugen.CombN</see>
+            <see>ugen.CombC</see>
+        </doc>
+    </ugen>
+    <ugen name="CombC">
+        <rate name="control"/>
+        <rate name="audio">
+            <arg name="in" rate="ugen"/>
+        </rate>
+        <arg name="in">
+            <doc>
+                The input signal.
+            </doc>
+        </arg>
+        <arg name="maxDelayTime" default="0.2" init="true">
+            <doc>
+                The maximum delay time in seconds. used to initialize the delay buffer size.
+            </doc>
+        </arg>
+        <arg name="delayTime" default="0.2">
+            <doc>
+                Delay time in seconds.
+            </doc>
+        </arg>
+        <arg name="decayTime" default="1.0">
+            <doc>
+                Time for the echoes to decay by 60 decibels. If this time is negative then the feedback
+                coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                Comb delay line with cubic interpolation.
+            </text>
+            <see>ugen.CombN</see>
+            <see>ugen.CombL</see>
+        </doc>
+    </ugen>
+    <ugen name="AllpassN">
+        <rate name="control"/>
+        <rate name="audio">
+            <arg name="in" rate="ugen"/>
+        </rate>
+        <arg name="in">
+            <doc>
+                The input signal.
+            </doc>
+        </arg>
+        <arg name="maxDelayTime" default="0.2" init="true">
+            <doc>
+                The maximum delay time in seconds. used to initialize the delay buffer size.
+            </doc>
+        </arg>
+        <arg name="delayTime" default="0.2">
+            <doc>
+                Delay time in seconds.
+            </doc>
+        </arg>
+        <arg name="decayTime" default="1.0">
+            <doc>
+                Time for the echoes to decay by 60 decibels. If this time is negative then the feedback
+                coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                All pass delay line with no interpolation.
+            </text>
+            <see>ugen.AllpassL</see>
+            <see>ugen.AllpassC</see>
+        </doc>
+    </ugen>
+    <ugen name="AllpassL">
+        <rate name="control"/>
+        <rate name="audio">
+            <arg name="in" rate="ugen"/>
+        </rate>
+        <arg name="in">
+            <doc>
+                The input signal.
+            </doc>
+        </arg>
+        <arg name="maxDelayTime" default="0.2" init="true">
+            <doc>
+                The maximum delay time in seconds. used to initialize the delay buffer size.
+            </doc>
+        </arg>
+        <arg name="delayTime" default="0.2">
+            <doc>
+                Delay time in seconds.
+            </doc>
+        </arg>
+        <arg name="decayTime" default="1.0">
+            <doc>
+                Time for the echoes to decay by 60 decibels. If this time is negative then the feedback
+                coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                All pass delay line with linear interpolation.
+            </text>
+            <see>ugen.AllpassN</see>
+            <see>ugen.AllpassC</see>
+        </doc>
+    </ugen>
+    <ugen name="AllpassC">
+        <rate name="control"/>
+        <rate name="audio">
+            <arg name="in" rate="ugen"/>
+        </rate>
+        <arg name="in">
+            <doc>
+                The input signal.
+            </doc>
+        </arg>
+        <arg name="maxDelayTime" default="0.2" init="true">
+            <doc>
+                The maximum delay time in seconds. used to initialize the delay buffer size.
+            </doc>
+        </arg>
+        <arg name="delayTime" default="0.2">
+            <doc>
+                Delay time in seconds.
+            </doc>
+        </arg>
+        <arg name="decayTime" default="1.0">
+            <doc>
+                Time for the echoes to decay by 60 decibels. If this time is negative then the feedback
+                coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                All pass delay line with cubic interpolation.
+            </text>
+            <see>ugen.AllpassN</see>
+            <see>ugen.AllpassL</see>
+        </doc>
+    </ugen>
+    <ugen name="PitchShift">
+        <rate name="audio" implied="true"/>
+        <arg name="in">
+            <doc>
+                The input signal.
+            </doc>
+        </arg>
+        <arg name="winSize" default="0.2" init="true">
+            <doc>
+                The size of the grain window in seconds.
+            </doc>
+        </arg>
+        <arg name="pitchRatio" default="1.0">
+            <doc>
+                The ratio of the pitch shift. Must be from 0 to 4.
+            </doc>
+        </arg>
+        <arg name="pitchDispersion" default="0.0">
+            <doc>
+                The maximum random deviation of the pitch from the pitchRatio.
+            </doc>
+        </arg>
+        <arg name="timeDispersion" default="0.0">
+            <doc>
+                A random offset of from zero to timeDispersion seconds is added to the delay of each grain.
+                Use of some dispersion can alleviate a hard comb filter effect due to uniform grain placement.
+                It can also be an effect in itself. timeDispersion can be no larger than windowSize.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A time domain granular pitch shifter. Grains have a triangular amplitude
+                envelope and an overlap of 4:1.
+            </text>
+        </doc>
+    </ugen>
+    <!-- this should exist according to plugin sources...
+    <ugen name="GrainTap"/>
+    -->
+    <ugen name="TGrains" readsbuf="true">  <!-- accepts demand rate -->
+        <rate name="audio" implied="true"/>
+        <output variadic="numChannels"/>
+        <arg name="numChannels" type="int">
+            <doc>
+                Number of output channels.
+            </doc>
+        </arg>
+        <arg name="trig" type="trig">
+            <doc>
+                At each trigger, the following arguments are sampled and used as the arguments of a new grain.
+                A trigger occurs when a signal changes from non-positive to positive value.
+                If the trigger is audio rate then the grains will start with sample accuracy.
+            </doc>
+        </arg>
+        <arg name="buf" type="buf">
+            <doc>
+                The buffer index. It must be a one channel (mono) buffer.
+            </doc>
+        </arg>
+        <arg name="speed" default="1.0">
+            <doc>
+                1.0 is normal, 2.0 is one octave up, 0.5 is one octave down -1.0 is backwards normal rate etc.
+            </doc>
+        </arg>
+        <arg name="centerPos" default="0.0">
+            <doc>
+                The position in the buffer in seconds at which the grain envelope will reach maximum amplitude.
+            </doc>
+        </arg>
+        <arg name="dur" default="0.1">
+            <doc>
+                Duration of the grain in seconds.
+            </doc>
+        </arg>
+        <arg name="pan" default="0.0">
+            <doc>
+                A value from -1 to 1. Determines where to pan the output in the same manner as [[ugen.PanAz]].
+            </doc>
+        </arg>
+        <arg name="amp" default="0.1">
+            <doc>
+                Amplitude of the grain.
+            </doc>
+        </arg>
+        <arg name="interp" default="4">
+            <doc>
+                1, 2, or 4. Determines whether the grain uses (1) no interpolation, (2) linear interpolation,
+                or (4) cubic interpolation.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                Triggers generate grains from a buffer. Each grain has a Hanning envelope
+                {{{
+                (sin2(x) for x from 0 to π)
+                }}}
+                and is panned between two channels of multiple outputs.
+            </text>
+        </doc>
+    </ugen>
+    <ugen name="ScopeOut" writesbuf="true">
+        <no-outputs/>   <!-- XXX zero outputs? -->
+        <rate name="audio"/>
+        <rate name="control"/>
+        <arg name="buf" type="buf"/>
+        <arg name="in" variadic="true"/>
+    </ugen>
+    <ugen name="ScopeOut2" writesbuf="true">
+        <no-outputs/>   <!-- XXX zero outputs? -->
+        <rate name="audio"/>
+        <rate name="control"/>
+        <arg name="buf" type="buf" pos="0"/>
+        <arg name="maxFrames" default="4096" init="true" pos="2"/>
+        <arg name="frames" pos="3"/>
+        <arg name="in" variadic="true" pos="1"/>
+    </ugen>
+    <ugen name="Pluck">
+        <rate name="audio" implied="true"/>
+        <arg name="in">
+            <doc>
+                An excitation signal.
+            </doc>
+        </arg>
+        <arg name="trig" default="high">
+            <doc>
+                Upon a negative to positive transition, the excitation signal will be fed into the delay line.
+            </doc>
+        </arg>
+        <arg name="maxDelayTime" default="0.2" init="true">
+            <doc>
+                Maximum delay time in seconds (initializes the internal delay buffer).
+            </doc>
+        </arg>
+        <arg name="delayTime" default="0.2">
+            <doc>
+                Delay time in seconds.
+            </doc>
+        </arg>
+        <arg name="decayTime" default="1.0">
+            <doc>
+                Time for the echoes to decay by 60 decibels. Negative times emphasize odd partials.
+            </doc>
+        </arg>
+        <arg name="coeff" default="0.5">
+            <doc>
+                the coefficient of the internal OnePole filter. Values should be between -1 and +1
+                (larger values will be unstable... so be careful!).
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A Karplus-Strong UGen.
+            </text>
+        </doc>
+    </ugen>
+    <ugen name="DelTapWr" writesbuf="true">
+        <rate name="audio"/>
+        <rate name="control"/>
+        <arg name="buf" type="buf">
+            <doc>
+                The buffer to write signal into. Max delay time is based on buffer size.
+
+                `DelTapWr` outputs its current sample value for use in the `phase`
+                argument of `DelTapRd`.
+            </doc>
+        </arg>
+        <arg name="in">
+            <doc>
+                The input signal.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                Write to a buffer for a `DelTapRd` UGen
+            </text>
+            <see>ugen.DelTapRd</see>
+        </doc>
+    </ugen>
+    <ugen name="DelTapRd" readsbuf="true">
+        <rate name="audio"/>
+        <rate name="control"/>
+        <arg name="buf" type="buf">
+            <doc>
+                Buffer where DelTapWr has written signal. Max delay time is based on buffer size.
+            </doc>
+        </arg>
+        <arg name="phase">
+            <doc>
+                the current phase of the DelTapWr UGen. This is the output of DelTapWr.
+            </doc>
+        </arg>
+        <arg name="delayTime">
+            <doc>
+                Delay time in seconds.
+            </doc>
+        </arg>
+        <arg name="interp" default="1">
+            <doc>
+                The kind of interpolation to be used. 1 is none, 2 is linear, 4 is cubic..
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                Tap a delay line from a `DelTapWr` UGen.
+            </text>
+            <see>ugen.DelTapWr</see>
+        </doc>
+    </ugen>
+
+    <!-- XXX TODO
+    <ugen name="LocalBuf">
+    </ugen>
+    <ugen name="MaxLocalBufs">
+    </ugen>
+    <ugen name="SetBuf">
+    </ugen>
+    <ugen name="ClearBuf">
+    </ugen> -->
+</ugens>

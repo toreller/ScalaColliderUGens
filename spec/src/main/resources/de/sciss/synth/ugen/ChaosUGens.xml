@@ -1,0 +1,1238 @@
+<ugens revision="1">
+    <ugen name="CuspN">
+        <rate name="audio"/>
+        <doc>
+            <text>
+                A non-interpolating sound generator based on the difference equation:
+                {{{
+                x[n+1] = a - b * sqrt(abs(x[n]))
+                }}}
+            </text>
+            <example name="vary frequency">
+                CuspN.ar(MouseX.kr(20, SampleRate.ir), 1.0, 1.99) * 0.3
+            </example>
+            <example name="mouse-controlled parameters">
+                CuspN.ar(SampleRate.ir/4, MouseX.kr(0.9, 1.1, 1), MouseY.kr(1.8, 2, 1)) * 0.3
+            </example>
+            <example name="as a frequency control">
+                SinOsc.ar(CuspN.ar(40, MouseX.kr(0.9, 1.1, 1), MouseY.kr(1.8, 2,1)) * 800 + 900) * 0.4
+            </example>
+            <see>ugen.CuspL</see>
+        </doc>
+        <arg name="freq" default="nyquist">
+            <doc>
+                Iteration frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="a" default="1.0">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="b" default="1.9">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="xi" default="0.0">
+            <doc>
+                Initial value of x
+            </doc>
+        </arg>
+    </ugen>
+    <ugen name="CuspL">
+        <rate name="audio"/>
+        <doc>
+            <text>
+                A linear-interpolating sound generator based on the difference equation:
+                {{{
+                x[n+1] = a - b * sqrt(abs(x[n]))
+                }}}
+            </text>
+            <example name="vary frequency">
+                CuspL.ar(MouseX.kr(20, SampleRate.ir), 1.0, 1.99) * 0.3
+            </example>
+            <example name="mouse-controlled parameters">
+                CuspL.ar(SampleRate.ir/4, MouseX.kr(0.9, 1.1, 1), MouseY.kr(1.8, 2,1)) * 0.3
+            </example>
+            <example name="as a frequency control">
+                SinOsc.ar(CuspL.ar(40, MouseX.kr(0.9, 1.1, 1), MouseY.kr(1.8, 2, 1)) * 800 + 900) * 0.4
+            </example>
+            <see>ugen.CuspN</see>
+        </doc>
+        <arg name="freq" default="nyquist">
+            <doc>
+                Iteration frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="a" default="1.0">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="b" default="1.9">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="xi" default="0.0">
+            <doc>
+                Initial value of x
+            </doc>
+        </arg>
+    </ugen>
+    <ugen name="FBSineN">
+        <rate name="audio"/>
+        <doc>
+            <text>
+                A non-interpolating sound generator based on the difference equations:
+                {{{
+                x[n+1] = sin(im * y[n] + fb * x[n])
+                y[n+1] = (a * y[n] + c) % 2pi
+                }}}
+                This uses a linear congruential function to drive the phase indexing of a sine wave.
+                For  im = 1, fb = 0, and a = 1 a normal sine wave results.
+            </text>
+            <example name="default initial parameters">
+                FBSineN.ar(SampleRate.ir/4) * 0.2
+            </example>
+            <example name="increase feedback">
+                FBSineN.ar(SampleRate.ir, 1, Line.kr(0.01, 4, 10), 1, 0.1) * 0.2
+            </example>
+            <example name="increase phase multiplier">
+                FBSineN.ar(SampleRate.ir, 1, 0, XLine.kr(1, 2, 10), 0.1) * 0.2
+            </example>
+            <example name="modulate frequency and index multiplier">
+                FBSineN.ar(LFNoise2.kr(1).madd(1e4, 1e4), LFNoise2.kr(1).madd(16, 17), 1, 1.005, 0.7) * 0.2
+            </example>
+            <example name="randomly modulate parameters">
+                FBSineN.ar(
+                  LFNoise2.kr(1).madd(1e4, 1e4),
+                  LFNoise2.kr(1).madd(32, 33),
+                  LFNoise2.kr(1) * 0.5,
+                  LFNoise2.kr(1).madd(0.05, 1.05),
+                  LFNoise2.kr(1).madd(0.3, 0.3)
+                ) * 0.2
+            </example>
+            <see>ugen.FBSineL</see>
+            <see>ugen.FBSineC</see>
+        </doc>
+        <arg name="freq" default="nyquist">
+            <doc>
+                Iteration frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="im" default="1.0">
+            <doc>
+                Index multiplier amount
+            </doc>
+        </arg>
+        <arg name="fb" default="0.1">
+            <doc>
+                Feedback amount
+            </doc>
+        </arg>
+        <arg name="a" default="1.1">
+            <doc>
+                Phase multiplier amount
+            </doc>
+        </arg>
+        <arg name="c" default="0.5">
+            <doc>
+                Phase increment amount
+            </doc>
+        </arg>
+        <arg name="xi" default="0.1">
+            <doc>
+                Initial value of x
+            </doc>
+        </arg>
+        <arg name="yi" default="0.1">
+            <doc>
+                Initial value of y
+            </doc>
+        </arg>
+    </ugen>
+    <ugen name="FBSineL">
+        <rate name="audio"/>
+        <doc>
+            <text>
+                A non-interpolating sound generator based on the difference equations:
+                {{{
+                x[n+1] = sin(im * y[n] + fb * x[n])
+                y[n+1] = (a * y[n] + c) % 2pi
+                }}}
+                This uses a linear congruential function to drive the phase indexing of a sine wave.
+                For  im = 1, fb = 0, and a = 1 a normal sine wave results.
+            </text>
+            <example name="default initial parameters">
+                FBSineL.ar(SampleRate.ir/4) * 0.2
+            </example>
+            <example name="increase feedback">
+                FBSineL.ar(SampleRate.ir, 1, Line.kr(0.01, 4, 10), 1, 0.1) * 0.2
+            </example>
+            <example name="increase phase multiplier">
+                FBSineL.ar(SampleRate.ir, 1, 0, XLine.kr(1, 2, 10), 0.1) * 0.2
+            </example>
+            <example name="modulate frequency and index multiplier">
+                FBSineL.ar(LFNoise2.kr(1).madd(1e4, 1e4), LFNoise2.kr(1).madd(16, 17), 1, 1.005, 0.7) * 0.2
+            </example>
+            <example name="randomly modulate parameters">
+                FBSineL.ar(
+                  LFNoise2.kr(1).madd(1e4, 1e4),
+                  LFNoise2.kr(1).madd(32, 33),
+                  LFNoise2.kr(1) * 0.5,
+                  LFNoise2.kr(1).madd(0.05, 1.05),
+                  LFNoise2.kr(1).madd(0.3, 0.3)
+                ) * 0.2
+            </example>
+            <see>ugen.FBSineN</see>
+            <see>ugen.FBSineC</see>
+        </doc>
+        <arg name="freq" default="nyquist">
+            <doc>
+                Iteration frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="im" default="1.0">
+            <doc>
+                Index multiplier amount
+            </doc>
+        </arg>
+        <arg name="fb" default="0.1">
+            <doc>
+                Feedback amount
+            </doc>
+        </arg>
+        <arg name="a" default="1.1">
+            <doc>
+                Phase multiplier amount
+            </doc>
+        </arg>
+        <arg name="c" default="0.5">
+            <doc>
+                Phase increment amount
+            </doc>
+        </arg>
+        <arg name="xi" default="0.1">
+            <doc>
+                Initial value of x
+            </doc>
+        </arg>
+        <arg name="yi" default="0.1">
+            <doc>
+                Initial value of y
+            </doc>
+        </arg>
+    </ugen>
+    <ugen name="FBSineC">
+        <rate name="audio"/>
+        <doc>
+            <text>
+                A non-interpolating sound generator based on the difference equations:
+                {{{
+                x[n+1] = sin(im * y[n] + fb * x[n])
+                y[n+1] = (a * y[n] + c) % 2pi
+                }}}
+                This uses a linear congruential function to drive the phase indexing of a sine wave.
+                For im = 1, fb = 0 , and a = 1 a normal sine wave results.
+            </text>
+            <example name="default initial parameters">
+                FBSineC.ar(SampleRate.ir/4) * 0.2
+            </example>
+            <example name="increase feedback">
+                FBSineC.ar(SampleRate.ir, 1, Line.kr(0.01, 4, 10), 1, 0.1) * 0.2
+            </example>
+            <example name="increase phase multiplier">
+                FBSineC.ar(SampleRate.ir, 1, 0, XLine.kr(1, 2, 10), 0.1) * 0.2
+            </example>
+            <example name="modulate frequency and index multiplier">
+                FBSineC.ar(LFNoise2.kr(1).madd(1e4, 1e4), LFNoise2.kr(1).madd(16, 17), 1, 1.005, 0.7) * 0.2
+            </example>
+            <example name="randomly modulate parameters">
+                FBSineC.ar(
+                  LFNoise2.kr(1).madd(1e4, 1e4),
+                  LFNoise2.kr(1).madd(32, 33),
+                  LFNoise2.kr(1) * 0.5,
+                  LFNoise2.kr(1).madd(0.05, 1.05),
+                  LFNoise2.kr(1).madd(0.3, 0.3)
+                ) * 0.2
+            </example>
+            <see>ugen.FBSineN</see>
+            <see>ugen.FBSineL</see>
+        </doc>
+        <arg name="freq" default="nyquist">
+            <doc>
+                Iteration frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="im" default="1.0">
+            <doc>
+                Index multiplier amount
+            </doc>
+        </arg>
+        <arg name="fb" default="0.1">
+            <doc>
+                Feedback amount
+            </doc>
+        </arg>
+        <arg name="a" default="1.1">
+            <doc>
+                Phase multiplier amount
+            </doc>
+        </arg>
+        <arg name="c" default="0.5">
+            <doc>
+                Phase increment amount
+            </doc>
+        </arg>
+        <arg name="xi" default="0.1">
+            <doc>
+                Initial value of x
+            </doc>
+        </arg>
+        <arg name="yi" default="0.1">
+            <doc>
+                Initial value of y
+            </doc>
+        </arg>
+    </ugen>
+    <ugen name="GbmanN">
+        <rate name="audio"/>
+        <doc>
+            <text>
+                A non-interpolating sound generator based on the difference equations:
+                {{{
+                x[n+1] = 1 - y[n] + abs(x[n])
+                y[n+1] = x[n]
+                }}}
+                The behavior of the system is only dependent on its initial conditions.
+                Reference: Devaney, R. L. "The Gingerbreadman." Algorithm 3, 15-16, Jan. 1992.
+            </text>
+            <example name="default initial parameters">
+                GbmanN.ar(MouseX.kr(20, SampleRate.ir)) * 0.1
+            </example>
+            <example name="change initial parameters">
+                GbmanN.ar(MouseX.kr(20, SampleRate.ir), -0.7, -2.7) * 0.1
+            </example>
+            <example name="wait for it...">
+                GbmanN.ar(MouseX.kr(20, SampleRate.ir), 1.2, 2.0002) * 0.1
+            </example>
+            <example name="as a frequency control">
+                SinOsc.ar(GbmanN.ar(40) * 400 + 500) * 0.4
+            </example>
+            <see>ugen.GbmanL</see>
+        </doc>
+        <arg name="freq" default="nyquist">
+            <doc>
+                Iteration frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="xi" default="1.2">
+        </arg>
+        <doc>
+            Initial value of x
+        </doc>
+        <arg name="yi" default="2.1">
+            <doc>
+                Initial value of y
+            </doc>
+        </arg>
+    </ugen>
+    <ugen name="GbmanL">
+        <rate name="audio"/>
+        <arg name="freq" default="nyquist">
+            <doc>
+                Iteration frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="xi" default="1.2">
+        </arg>
+        <doc>
+            Initial value of x
+        </doc>
+        <arg name="yi" default="2.1">
+            <doc>
+                Initial value of y
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A linear-interpolating sound generator based on the difference equations:
+                {{{
+                x[n+1] = 1 - y[n] + abs(x[n])
+                y[n+1] = x[n]
+                }}}
+                The behavior of the system is only dependent on its initial conditions.
+                Reference: Devaney, R. L. "The Gingerbreadman." Algorithm 3, 15-16, Jan. 1992.
+            </text>
+            <example name="default initial parameters">
+                GbmanN.ar(MouseX.kr(20, SampleRate.ir)) * 0.1
+            </example>
+            <example name="change initial parameters">
+                GbmanN.ar(MouseX.kr(20, SampleRate.ir), -0.7, -2.7) * 0.1
+            </example>
+            <example name="wait for it...">
+                GbmanN.ar(MouseX.kr(20, SampleRate.ir), 1.2, 2.0002) * 0.1
+            </example>
+            <example name="as a frequency control">
+                SinOsc.ar(GbmanN.ar(40) * 400 + 500) * 0.4
+            </example>
+            <see>ugen.GbmanN</see>
+        </doc>
+    </ugen>
+    <ugen name="HenonN">
+        <rate name="audio"/>
+        <arg name="freq" default="nyquist">
+            <doc>
+                Iteration frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="a" default="1.4">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="b" default="0.3">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="x0" default="0.0">
+            <doc>
+                Initial value of x
+            </doc>
+        </arg>
+        <arg name="x1" default="0.0">
+            <doc>
+                Second value of x
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A non-interpolating sound generator based on the difference equation:
+                {{{
+                x[n+2] = 1 - a * pow(x[n+1], 2) + b * x[n]
+                }}}
+                This equation was discovered by French astronomer Michel Hénon while studying
+                the orbits of stars in globular clusters.
+            </text>
+            <example name="default initial parameters">
+                HenonN.ar(MouseX.kr(20, SampleRate.ir)) * 0.2
+            </example>
+            <example name="mouse-control of parameters">
+                HenonN.ar(SampleRate.ir/4, MouseX.kr(1,1.4), MouseY.kr(0,0.3)) * 0.2
+            </example>
+            <example name="randomly modulate parameters">
+                HenonN.ar(
+                  SampleRate.ir/8,
+                  LFNoise2.kr(1).madd(0.2, 1.2),
+                  LFNoise2.kr(1).madd(0.15, 0.15)
+                ) * 0.2
+            </example>
+            <example name="as a frequency control">
+                SinOsc.ar(HenonN.ar(40, MouseX.kr(1, 1.4), MouseY.kr(0, 0.3)) * 800 + 900) * 0.4
+            </example>
+            <see>ugen.HenonL</see>
+            <see>ugen.HenonC</see>
+        </doc>
+    </ugen>
+    <ugen name="HenonL">
+        <rate name="audio"/>
+        <arg name="freq" default="nyquist">
+            <doc>
+                Iteration frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="a" default="1.4">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="b" default="0.3">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="x0" default="0.0">
+            <doc>
+                Initial value of x
+            </doc>
+        </arg>
+        <arg name="x1" default="0.0">
+            <doc>
+                Second value of x
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A linear-interpolating sound generator based on the difference equation:
+                {{{
+                x[n+2] = 1 - a * pow(x[n+1], 2) + b * x[n]
+                }}}
+                This equation was discovered by French astronomer Michel Hénon while
+                studying the orbits of stars in globular clusters.
+            </text>
+            <example name="default initial parameters">
+                HenonL.ar(MouseX.kr(20, SampleRate.ir)) * 0.2
+            </example>
+            <example name="mouse-control of parameters">
+                HenonL.ar(SampleRate.ir/4, MouseX.kr(1,1.4), MouseY.kr(0,0.3)) * 0.2
+            </example>
+            <example name="randomly modulate parameters">
+                HenonL.ar(
+                  SampleRate.ir/8,
+                  LFNoise2.kr(1).madd(0.2, 1.2),
+                  LFNoise2.kr(1).madd(0.15, 0.15)
+                ) * 0.2
+            </example>
+            <example name="as a frequency control">
+                SinOsc.ar(HenonL.ar(40, MouseX.kr(1, 1.4), MouseY.kr(0, 0.3)) * 800 + 900) * 0.4
+            </example>
+            <see>ugen.HenonL</see>
+            <see>ugen.HenonC</see>
+        </doc>
+    </ugen>
+    <ugen name="HenonC">
+        <rate name="audio"/>
+        <arg name="freq" default="nyquist">
+            <doc>
+                Iteration frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="a" default="1.4">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="b" default="0.3">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="x0" default="0.0">
+            <doc>
+                Initial value of x
+            </doc>
+        </arg>
+        <arg name="x1" default="0.0">
+            <doc>
+                Second value of x
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A cubic-interpolating sound generator based on the difference equation:
+                {{{
+                x[n+2] = 1 - a * pow(x[n+1], 2) + b * x[n]
+                }}}
+                This equation was discovered by French astronomer Michel Hénon while studying
+                the orbits of stars in globular clusters.
+            </text>
+            <example name="default initial parameters">
+                HenonC.ar(MouseX.kr(20, SampleRate.ir)) * 0.2
+            </example>
+            <example name="mouse-control of parameters">
+                HenonC.ar(SampleRate.ir/4, MouseX.kr(1,1.4), MouseY.kr(0,0.3)) * 0.2
+            </example>
+            <example name="randomly modulate parameters">
+                HenonC.ar(
+                  SampleRate.ir/8,
+                  LFNoise2.kr(1).madd(0.2, 1.2),
+                  LFNoise2.kr(1).madd(0.15, 0.15)
+                ) * 0.2
+            </example>
+            <example name="as a frequency control">
+                SinOsc.ar(HenonC.ar(40, MouseX.kr(1, 1.4), MouseY.kr(0, 0.3)) * 800 + 900) * 0.4
+            </example>
+            <see>ugen.HenonL</see>
+            <see>ugen.HenonC</see>
+        </doc>
+    </ugen>
+    <ugen name="LatoocarfianN">
+        <rate name="audio"/>
+        <arg name="freq" default="nyquist">
+            <doc>
+                Iteration frequency in Hertz.
+            </doc>
+        </arg>
+        <arg name="a" default="1.0">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="b" default="3.0">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="c" default="0.5">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="d" default="0.5">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="xi" default="0.5">
+            <doc>
+                Initial value of x
+            </doc>
+        </arg>
+        <arg name="yi" default="0.5">
+            <doc>
+                Initial value of y
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A non-interpolating sound generator based on a function given in Clifford Pickover's book Chaos In
+                Wonderland, pg 26. The function is:
+                {{{
+                x[n+1] = sin(b * y[n]) + c * sin(b * x[n])
+                y[n+1] = sin(a * y[n]) + d * sin(a * x[n])
+                }}}
+                According to Pickover, parameters a and b should be in the range from -3 to +3, and parameters c and
+                d should be in the range from 0.5 to 1.5. The function can, depending on the parameters given, give
+                continuous chaotic output, converge to a single value (silence) or oscillate in a cycle (tone).
+                NOTE: This UGen is experimental and not optimized currently, so is rather hoggish of CPU.
+            </text>
+            <example name="default initial parameters">
+                LatoocarfianN.ar(MouseX.kr(20, SampleRate.ir)) * 0.2
+            </example>
+            <example name="randomly modulate all parameters">
+                LatoocarfianN.ar(
+                  SampleRate.ir/4,
+                  LFNoise2.kr(2).madd(1.5, 1.5),
+                  LFNoise2.kr(2).madd(1.5, 1.5),
+                  LFNoise2.kr(2).madd(0.5, 1.5),
+                  LFNoise2.kr(2).madd(0.5, 1.5)
+                ) * 0.2
+            </example>
+            <see>ugen.LatoocarfianL</see>
+            <see>ugen.LatoocarfianC</see>
+        </doc>
+    </ugen>
+    <ugen name="LatoocarfianL">
+        <rate name="audio"/>
+        <arg name="freq" default="nyquist">
+            <doc>
+                Iteration frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="a" default="1.0">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="b" default="3.0">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="c" default="0.5">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="d" default="0.5">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="xi" default="0.5">
+            <doc>
+                Initial value of x
+            </doc>
+        </arg>
+        <arg name="yi" default="0.5">
+            <doc>
+                Initial value of y
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A linear-interpolating sound generator based on a function given in Clifford Pickover's book Chaos
+                In Wonderland, pg 26. The function is:
+                {{{
+                x[n+1] = sin(b * y[n]) + c * sin(b * x[n])
+                y[n+1] = sin(a * y[n]) + d * sin(a * x[n])
+                }}}
+                According to Pickover, parameters a and b should be in the range from -3 to +3, and parameters c and
+                d should be in the range from 0.5 to 1.5. The function can, depending on the parameters given, give
+                continuous chaotic output, converge to a single value (silence) or oscillate in a cycle (tone).
+                NOTE: This UGen is experimental and not optimized currently, so is rather hoggish of CPU.
+            </text>
+            <example name="default initial parameters">
+                LatoocarfianL.ar(MouseX.kr(20, SampleRate.ir)) * 0.2
+            </example>
+            <example name="randomly modulate all parameters">
+                LatoocarfianL.ar(
+                  SampleRate.ir/4,
+                  LFNoise2.kr(2).madd(1.5, 1.5),
+                  LFNoise2.kr(2).madd(1.5, 1.5),
+                  LFNoise2.kr(2).madd(0.5, 1.5),
+                  LFNoise2.kr(2).madd(0.5, 1.5)
+                ) * 0.2
+            </example>
+            <see>ugen.LatoocarfianN</see>
+            <see>ugen.LatoocarfianC</see>
+        </doc>
+    </ugen>
+    <ugen name="LatoocarfianC">
+        <rate name="audio"/>
+        <arg name="freq" default="nyquist">
+            <doc>
+                Iteration frequency in Hertz.
+            </doc>
+        </arg>
+        <arg name="a" default="1.0">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="b" default="3.0">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="c" default="0.5">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="d" default="0.5">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="xi" default="0.5">
+            <doc>
+                Initial value of x
+            </doc>
+        </arg>
+        <arg name="yi" default="0.5">
+            <doc>
+                Initial value of y
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A cubic-interpolating sound generator based on a function given in Clifford Pickover's book Chaos In
+                Wonderland, pg 26. The function is:
+                {{{
+                x[n+1] = sin(b * y[n]) + c * sin(b * x[n])
+                y[n+1] = sin(a * y[n]) + d * sin(a * x[n])
+                }}}
+                According to Pickover, parameters a and b should be in the range from -3 to +3, and parameters c and
+                d should be in the range from 0.5 to 1.5. The function can, depending on the parameters given, give
+                continuous chaotic output, converge to a single value (silence) or oscillate in a cycle (tone).
+                NOTE: This UGen is experimental and not optimized currently, so is rather hoggish of CPU.
+            </text>
+            <example name="default initial parameters">
+                LatoocarfianC.ar(MouseX.kr(20, SampleRate.ir)) * 0.2
+            </example>
+            <example name="randomly modulate all parameters">
+                LatoocarfianC.ar(
+                  SampleRate.ir/4,
+                  LFNoise2.kr(2).madd(1.5, 1.5),
+                  LFNoise2.kr(2).madd(1.5, 1.5),
+                  LFNoise2.kr(2).madd(0.5, 1.5),
+                  LFNoise2.kr(2).madd(0.5, 1.5)
+                ) * 0.2
+            </example>
+            <see>ugen.LatoocarfianN</see>
+            <see>ugen.LatoocarfianL</see>
+        </doc>
+    </ugen>
+    <ugen name="LinCongN">
+        <rate name="audio"/>
+        <doc>
+            <text>
+                A non-interpolating sound generator based on the difference equation:
+                {{{
+                x[n+1] = (a * x[n] + c) % m
+                }}}
+                The output signal is automatically scaled to a range of [-1, 1].
+            </text>
+            <example name="default initial parameters">
+                LinCongN.ar(MouseX.kr(20, SampleRate.ir)) * 0.2
+            </example>
+            <example name="randomly modulate parameters">
+                LinCongN.ar(
+                  LFNoise2.kr(1.0).madd(1e4, 1e4),
+                  LFNoise2.kr(0.1).madd(0.5, 1.4),
+                  LFNoise2.kr(0.1).madd(0.1, 0.1),
+                  LFNoise2.kr(0.1)
+                ) * 0.2
+            </example>
+            <example name="as frequency control">
+                SinOsc.ar(
+                  LinCongN.ar(
+                    40,
+                    LFNoise2.kr(0.1).madd(0.1, 1),
+                    LFNoise2.kr(0.1).madd(0.1, 0.1),
+                    LFNoise2.kr(0.1)
+                  ).madd(500, 600)
+                ) * 0.4
+            </example>
+            <see>ugen.LinCongL</see>
+            <see>ugen.LinCongC</see>
+        </doc>
+        <arg name="freq" default="nyquist">
+            <doc>
+                Iteration frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="a" default="1.1">
+            <doc>
+                Multiplier amount
+            </doc>
+        </arg>
+        <arg name="c" default="0.13">
+            <doc>
+                Increment amount
+            </doc>
+        </arg>
+        <arg name="m" default="1.0">
+            <doc>
+                Modulus amount
+            </doc>
+        </arg>
+        <arg name="xi" default="0.0">
+            <doc>
+                Initial value of x
+            </doc>
+        </arg>
+    </ugen>
+    <ugen name="LinCongL">
+        <rate name="audio"/>
+        <doc>
+            <text>
+                A linear-interpolating sound generator based on the difference equation:
+                {{{
+                x[n+1] = (a * x[n] + c) % m
+                }}}
+                The output signal is automatically scaled to a range of [-1, 1].
+            </text>
+            <example name="default initial parameters">
+                LinCongL.ar(MouseX.kr(20, SampleRate.ir)) * 0.2
+            </example>
+            <example name="randomly modulate parameters">
+                LinCongL.ar(
+                  LFNoise2.kr(1.0).madd(1e4, 1e4),
+                  LFNoise2.kr(0.1).madd(0.5, 1.4),
+                  LFNoise2.kr(0.1).madd(0.1, 0.1),
+                  LFNoise2.kr(0.1)
+                ) * 0.2
+            </example>
+            <example name="as frequency control">
+                SinOsc.ar(
+                  LinCongL.ar(
+                    40,
+                    LFNoise2.kr(0.1).madd(0.1, 1),
+                    LFNoise2.kr(0.1).madd(0.1, 0.1),
+                    LFNoise2.kr(0.1)
+                  ).madd(500, 600)
+                ) * 0.4
+            </example>
+            <see>ugen.LinCongN</see>
+            <see>ugen.LinCongC</see>
+        </doc>
+        <arg name="freq" default="nyquist">
+            <doc>
+                Iteration frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="a" default="1.1">
+            <doc>
+                Multiplier amount
+            </doc>
+        </arg>
+        <arg name="c" default="0.13">
+            <doc>
+                Increment amount
+            </doc>
+        </arg>
+        <arg name="m" default="1.0">
+            <doc>
+                Modulus amount
+            </doc>
+        </arg>
+        <arg name="xi" default="0.0">
+            <doc>
+                Initial value of x
+            </doc>
+        </arg>
+    </ugen>
+    <ugen name="LinCongC">
+        <rate name="audio"/>
+        <doc>
+            <text>
+                A cubic-interpolating sound generator based on the difference equation:
+                {{{
+                x[n+1] = (a * x[n] + c) % m
+                }}}
+                The output signal is automatically scaled to a range of [-1, 1].
+            </text>
+            <example name="default initial parameters">
+                LinCongC.ar(MouseX.kr(20, SampleRate.ir)) * 0.2
+            </example>
+            <example name="randomly modulate parameters">
+                LinCongC.ar(
+                  LFNoise2.kr(1.0).madd(1e4, 1e4),
+                  LFNoise2.kr(0.1).madd(0.5, 1.4),
+                  LFNoise2.kr(0.1).madd(0.1, 0.1),
+                  LFNoise2.kr(0.1)
+                ) * 0.2
+            </example>
+            <example name="as frequency control">
+                SinOsc.ar(
+                  LinCongC.ar(
+                    40,
+                    LFNoise2.kr(0.1).madd(0.1, 1),
+                    LFNoise2.kr(0.1).madd(0.1, 0.1),
+                    LFNoise2.kr(0.1)
+                  ).madd(500, 600)
+                ) * 0.4
+            </example>
+            <see>ugen.LinCongN</see>
+            <see>ugen.LinCongL</see>
+        </doc>
+        <arg name="freq" default="nyquist">
+            <doc>
+                Iteration frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="a" default="1.1">
+            <doc>
+                Multiplier amount
+            </doc>
+        </arg>
+        <arg name="c" default="0.13">
+            <doc>
+                Increment amount
+            </doc>
+        </arg>
+        <arg name="m" default="1.0">
+            <doc>
+                Modulus amount
+            </doc>
+        </arg>
+        <arg name="xi" default="0.0">
+            <doc>
+                Initial value of x
+            </doc>
+        </arg>
+    </ugen>
+    <ugen name="LorenzL">
+        <rate name="audio"/>
+        <doc>
+            <text>
+                A strange attractor discovered by Edward N. Lorenz while studying mathematical models of the
+                atmosphere. The system is composed of three ordinary differential equations:
+                {{{
+                x' = s * (y - x)
+                y' = x * (r - z) - y
+                z' = x * y - b * z
+                }}}
+                The time step amount h determines the rate at which the ODE is evaluated. Higher values will
+                increase the rate, but cause more instability. A safe choice is the default amount of 0.05.
+            </text>
+            <example name="vary frequency">
+                LorenzL.ar(MouseX.kr(20, SampleRate.ir)) * 0.3
+            </example>
+            <example name="randomly modulate parameters">
+                LorenzL.ar(
+                  SampleRate.ir,
+                  LFNoise0.kr(1).madd(2, 10),
+                  LFNoise0.kr(1).madd(20, 38),
+                  LFNoise0.kr(1).madd(1.5, 2)
+                ) * 0.2
+            </example>
+            <example name="as a frequency control">
+                SinOsc.ar(Lag.ar(LorenzL.ar(MouseX.kr(1, 200)), 3e-3) * 800 + 900) * 0.4
+            </example>
+        </doc>
+        <arg name="freq" default="nyquist">
+            <doc>
+                Iteration frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="s" default="10.0">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="r" default="28.0">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="b" default="2.667">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="h" default="0.05">
+            <doc>
+                Integration time step
+            </doc>
+        </arg>
+        <arg name="xi" default="0.1">
+            <doc>
+                Initial value of x
+            </doc>
+        </arg>
+        <arg name="yi" default="0.0">
+            <doc>
+                Initial value of y
+            </doc>
+        </arg>
+        <arg name="zi" default="0.0">
+            <doc>
+                Initial value of z
+            </doc>
+        </arg>
+    </ugen>
+    <ugen name="QuadN">
+        <rate name="audio"/>
+        <doc>
+            <text>
+                A non-interpolating sound generator based on the difference equation:
+                {{{
+                x[n+1] = a * pow(x[n], 2) + b * x[n] + c
+                }}}
+            </text>
+            <example name="default parameters">
+                QuadN.ar(SampleRate.ir/4) * 0.2
+            </example>
+            <example name="logistic map">
+                // equation: x1 = -r*x0^2 + r*x0
+                val r = MouseX.kr(3.5441, 4)    // stable range
+                QuadN.ar(SampleRate.ir/4, -r, r, 0, 0.1) * 0.4
+            </example>
+            <example name="logistic map as frequency control">
+                val r = MouseX.kr(3.5441, 4)    // stable range
+                SinOsc.ar(QuadN.ar(40, -r, r, 0, 0.1).madd(800, 900)) * 0.4
+            </example>
+            <see>ugen.QuadL</see>
+            <see>ugen.QuadC</see>
+        </doc>
+        <arg name="freq" default="nyquist">
+            <doc>
+                Iteration frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="a" default="1.0">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="b" default="-1.0">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="c" default="-0.75">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="xi" default="0.0">
+            <doc>
+                Initial value of x
+            </doc>
+        </arg>
+    </ugen>
+    <ugen name="QuadL">
+        <rate name="audio"/>
+        <doc>
+            <text>
+                A linear-interpolating sound generator based on the difference equation:
+                {{{
+                x[n+1] = a * pow(x[n], 2) + b * x[n] + c
+                }}}
+            </text>
+            <example name="default parameters">
+                QuadL.ar(SampleRate.ir/4) * 0.2
+            </example>
+            <example name="logistic map">
+                // equation: x1 = -r*x0^2 + r*x0
+                val r = MouseX.kr(3.5441, 4)    // stable range
+                QuadL.ar(SampleRate.ir/4, -r, r, 0, 0.1) * 0.4
+            </example>
+            <example name="logistic map as frequency control">
+                val r = MouseX.kr(3.5441, 4)    // stable range
+                SinOsc.ar(QuadL.ar(40, -r, r, 0, 0.1).madd(800, 900)) * 0.4
+            </example>
+            <see>ugen.QuadN</see>
+            <see>ugen.QuadC</see>
+        </doc>
+        <arg name="freq" default="nyquist">
+            <doc>
+                Iteration frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="a" default="1.0">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="b" default="-1.0">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="c" default="-0.75">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="xi" default="0.0">
+            <doc>
+                Initial value of x
+            </doc>
+        </arg>
+    </ugen>
+    <ugen name="QuadC">
+        <rate name="audio"/>
+        <doc>
+            <text>
+                A cubic-interpolating sound generator based on the difference equation:
+                {{{
+                x[n+1] = a * pow(x[n], 2) + b * x[n] + c
+                }}}
+            </text>
+            <example name="default parameters">
+                QuadC.ar(SampleRate.ir/4) * 0.2
+            </example>
+            <example name="logistic map">
+                // equation: x1 = -r*x0^2 + r*x0
+                val r = MouseX.kr(3.5441, 4)    // stable range
+                QuadC.ar(SampleRate.ir/4, -r, r, 0, 0.1) * 0.4
+            </example>
+            <example name="logistic map as frequency control">
+                val r = MouseX.kr(3.5441, 4)    // stable range
+                SinOsc.ar(QuadC.ar(40, -r, r, 0, 0.1).madd(800, 900)) * 0.4
+            </example>
+            <see>ugen.QuadN</see>
+            <see>ugen.QuadL</see>
+        </doc>
+        <arg name="freq" default="nyquist">
+            <doc>
+                Iteration frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="a" default="1.0">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="b" default="-1.0">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="c" default="-0.75">
+            <doc>
+                Equation variable
+            </doc>
+        </arg>
+        <arg name="xi" default="0.0">
+            <doc>
+                Initial value of x
+            </doc>
+        </arg>
+    </ugen>
+    <ugen name="StandardN">
+        <rate name="audio"/>
+        <doc>
+            <text>
+                A non-interpolating sound generator based on the difference equations:
+                {{{
+                x[n+1] = (x[n] + y[n+1]) % 2pi
+                y[n+1] = (y[n] + k * sin(x[n])) % 2pi
+                }}}
+                The standard map is an area preserving map of a cylinder discovered by the plasma physicist Boris
+                Chirikov.
+            </text>
+            <example name="vary frequency">
+                StandardN.ar(MouseX.kr(20, SampleRate.ir)) * 0.3
+            </example>
+            <example name="mouse-controlled parameter">
+                StandardN.ar(SampleRate.ir/2, MouseX.kr(0.9, 4)) * 0.3
+            </example>
+            <example name="as a frequency control">
+                SinOsc.ar(StandardN.ar(40, MouseX.kr(0.9, 4)) * 800 + 900) * 0.4
+            </example>
+            <see>ugen.StandardL</see>
+        </doc>
+        <arg name="freq" default="nyquist">
+            <doc>
+                Iteration frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="k" default="1.0">
+            <doc>
+                Perturbation amount
+            </doc>
+        </arg>
+        <arg name="xi" default="0.5">
+            <doc>
+                Initial value of x
+            </doc>
+        </arg>
+        <arg name="yi" default="0.0">
+            <doc>
+                Initial value of y
+            </doc>
+        </arg>
+    </ugen>
+    <ugen name="StandardL">
+        <rate name="audio"/>
+        <doc>
+            <text>
+                A linear-interpolating sound generator based on the difference equations:
+                {{{
+                x[n+1] = (x[n] + y[n+1]) % 2pi
+                y[n+1] = (y[n] + k * sin(x[n])) % 2pi
+                }}}
+                The standard map is an area preserving map of a cylinder discovered by the plasma physicist Boris
+                Chirikov.
+            </text>
+            <example name="vary frequency">
+                StandardL.ar(MouseX.kr(20, SampleRate.ir)) * 0.3
+            </example>
+            <example name="mouse-controlled parameter">
+                StandardL.ar(SampleRate.ir/2, MouseX.kr(0.9, 4)) * 0.3
+            </example>
+            <example name="as a frequency control">
+                SinOsc.ar(StandardL.ar(40, MouseX.kr(0.9, 4)) * 800 + 900) * 0.4
+            </example>
+            <see>ugen.StandardN</see>
+        </doc>
+        <arg name="freq" default="nyquist">
+            <doc>
+                Iteration frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="k" default="1.0">
+            <doc>
+                Perturbation amount
+            </doc>
+        </arg>
+        <arg name="xi" default="0.5">
+            <doc>
+                Initial value of x
+            </doc>
+        </arg>
+        <arg name="yi" default="0.0">
+            <doc>
+                Initial value of y
+            </doc>
+        </arg>
+    </ugen>
+</ugens>

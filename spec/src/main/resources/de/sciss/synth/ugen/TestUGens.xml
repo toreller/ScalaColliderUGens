@@ -1,0 +1,33 @@
+<ugens revision="1">
+    <ugen name="CheckBadValues" sideeffect="true">
+        <rate name="scalar"/>
+        <rate name="control"/>
+        <rate name="audio">
+            <arg name="in" rate="ugen"/>
+        </rate>
+        <arg name="in">
+            <doc>
+                the signal to be tested
+            </doc>
+        </arg>
+        <arg name="id" default="0">
+            <doc>
+                an identifier showing up with the values in the console
+            </doc>
+        </arg>
+        <arg name="post" default="2">
+            <doc>
+                One of three post modes: 0 = no posting; 1 = post a line for every bad value;
+                2 = post a line only when the floating-point classification changes (e.g., normal -&gt; NaN and vice versa)
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen to test for infinity, not-a-number (NaN), and denormal numbers.
+                Its output is as follows: 0 = a normal float, 1 = NaN, 2 = infinity, and 3 = a denormal.
+                According to the post settings it will print the information to the console along
+                with a given identifier.
+            </text>
+        </doc>
+    </ugen>
+</ugens>

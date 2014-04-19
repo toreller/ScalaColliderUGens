@@ -16,9 +16,10 @@ package ugen
 
 import xml.XML
 import scopt.OptionParser
-import java.io.{IOException, File}
+import java.io.IOException
 import org.xml.sax.InputSource
 import scala.collection.immutable.{IndexedSeq => Vec}
+import de.sciss.file._
 
 object Gen extends App {
   case class Config(resources: Boolean = false, forceOverwrite: Boolean = false, outDir: File = new File("out"),
@@ -39,25 +40,23 @@ object Gen extends App {
 
   val config  = parser.parse(args, Config()) getOrElse sys.exit(1)
 
-  implicit final class RichFile(val f: File) extends AnyVal {
-    def / (sub: String) = new File(f, sub)
-  }
-
   import config._
   val outDir1 = config.outDir / "de" / "sciss" / "synth" / "ugen"
   if (!outDir1.isDirectory) if (!outDir1.mkdirs()) throw new IOException(s"Could not create directory $outDir1")
 
   val synth = new ClassGenerator
 
-  val inputs: Iterator[InputSource] = if (resources) {
-    Iterator.single(xml.Source.fromInputStream(getClass.getResourceAsStream("standard-ugens.xml")))
+  val inputs: Iterator[(String, InputSource)] = if (resources) {
+    UGenSpec.standardPlugins.iterator.map { name =>
+      name -> xml.Source.fromInputStream(getClass.getResourceAsStream(s"$name.xml"))
+    }
   } else {
-    inFiles.iterator.map(xml.Source.fromFile)
+    inFiles.iterator.map(f => f.base -> xml.Source.fromFile(f))
   }
 
-  inputs.foreach { source =>
+  inputs.foreach { case (name, source) =>
     val xml = XML.load(source)
-    synth.performFiles(xml, outDir1, docs = docs, forceOverwrite = forceOverwrite)
+    synth.performFile(xml, dir = outDir1, name = name, docs = docs, forceOverwrite = forceOverwrite)
   }
   // sys.exit()
 }

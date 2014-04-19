@@ -4,10 +4,11 @@ import sbt.File
 import sbtbuildinfo.Plugin._
 
 object Build extends sbt.Build {
-  def numbersVersion     = "0.1.1"
-  def scalaTestVersion   = "2.1.3"
-  def scoptVersion       = "3.2.0"
-  def refactoringVersion = "0.1.0"
+  def numbersVersion      = "0.1.1"
+  def scalaTestVersion    = "2.1.3"
+  def scoptVersion        = "3.2.0"
+  def refactoringVersion  = "0.1.0"
+  def fileUtilVersion     = "1.1.1"
 
   lazy val root: Project = Project(
     id        = "scalacolliderugens",
@@ -78,6 +79,7 @@ object Build extends sbt.Build {
       libraryDependencies ++= Seq(
         "com.github.scopt" %% "scopt"            % scoptVersion,
         "de.sciss"         %% "scalarefactoring" % refactoringVersion,
+        "de.sciss"         %% "fileutil"         % fileUtilVersion,
         "org.scalatest"    %% "scalatest"        % scalaTestVersion % "test"
       ),
 /*      libraryDependencies ++= { val sv = scalaVersion.value

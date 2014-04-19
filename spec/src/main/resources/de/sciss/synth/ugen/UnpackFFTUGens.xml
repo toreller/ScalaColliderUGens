@@ -1,0 +1,14 @@
+<ugens revision="1">
+    <ugen name="Unpack1FFT" readsfft="true">
+        <rate name="demand" implied="true" method="apply"/>
+        <arg name="chain" type="fft"/>
+        <arg name="fftSize" type="gint"/>
+        <arg name="bin" type="gint"/>
+        <arg name="which" default="0"/>
+    </ugen>
+
+    <!-- XXX TODO:
+    <ugen name="PackFFT"/>
+    NOTE: the multi arg is preceded by its size
+    -->  <!-- accepts demand rate -->
+</ugens>

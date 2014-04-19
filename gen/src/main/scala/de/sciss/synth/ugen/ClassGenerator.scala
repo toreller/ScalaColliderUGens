@@ -26,8 +26,10 @@ import tools.nsc.io.AbstractFile
 import UGenSpec.{SignalShape => Sig, _}
 import ArgumentType.GE
 import annotation.tailrec
-import java.io.{FileOutputStream, File}
+import java.io.FileOutputStream
 import scala.io.Source
+import de.sciss.file._
+import scala.util.control.NonFatal
 
 final class ClassGenerator
   extends Refactoring with Tracing with CompilerProvider with CompilerAccess with TreeFactory {
@@ -41,37 +43,40 @@ final class ClassGenerator
   val DocWidth      = 80
   val ParamColumns  = 24
 
-  def performFiles(node: xml.Node, dir: File, docs: Boolean = true, forceOverwrite: Boolean = false): Unit = {
-    val revision = (node \ "@revision").text.toInt
-    (node \ "file") foreach { fNode =>
-      val fName   = s"${(fNode \ "@name").text}.scala"
-      val f       = new File(dir, fName)
-      val write   = forceOverwrite || !f.isFile || {
-        val source = Source.fromFile(f, CHARSET)
-        try {
-          val it = source.getLines()
-          !it.hasNext || {
-            val line = it.next()
-            val i = line.indexOf("revision: ")
-            i < 0 || (line.substring(i + 10).toInt < revision)
-          }
-        } catch {
-          case _: NumberFormatException => true
-        } finally {
-          source.close()
+  def performFile(node: xml.Node, dir: File, name: String, docs: Boolean = true,
+                  forceOverwrite: Boolean = false): Unit = try {
+    val revision  = (node \ "@revision").text.toInt
+    val fName     = s"$name.scala"
+    val f         = new File(dir, fName)
+    val write     = forceOverwrite || !f.isFile || {
+      val source = Source.fromFile(f, CHARSET)
+      try {
+        val it = source.getLines()
+        !it.hasNext || {
+          val line = it.next()
+          val i = line.indexOf("revision: ")
+          i < 0 || (line.substring(i + 10).toInt < revision)
         }
+      } catch {
+        case _: NumberFormatException => true
+      } finally {
+        source.close()
       }
-      if (write) {
-        val specs = (fNode \ "ugen") map { uNode =>
-          UGenSpec.parse(uNode, docs = docs)
-        }
-        performFile(specs, f, revision)
-      }
-      println(f.getAbsolutePath)
     }
+    if (write) {
+      val specs = (node \ "ugen") map { uNode =>
+        UGenSpec.parse(uNode, docs = docs)
+      }
+      performSpecs(specs, f, revision)
+    }
+    println(f.absolutePath)
+  } catch {
+    case NonFatal(e) =>
+      Console.err.println(s"Error in '$name':")
+      throw e
   }
 
-  def performFile(specs: Seq[UGenSpec], file: File, revision: Int): Unit = {
+  def performSpecs(specs: Seq[UGenSpec], file: File, revision: Int): Unit = {
     val out = new FileOutputStream(file)
     try {
       // create class trees
@@ -208,7 +213,7 @@ final class ClassGenerator
 
     val bodyAndEx: List[String] = if (!examples || doc.examples.isEmpty) bodyAndWarn else {
       // Note: the @example tag isn't really helpful. All it does is prepend the text with
-      // an unstyled 'Examples:' line, plus inserting stupid commas.
+      // a plain 'Examples:' line, plus inserting stupid commas.
       //
       //      val exList = doc.examples.flatMap { ex =>
       //        (s"@example ${ex.name}" :: "{{{" :: ex.code) :+ "}}}"
@@ -221,10 +226,14 @@ final class ClassGenerator
           case multi =>
             ("play {" :: multi.map(ln => s"  $ln")) :+ "}"
         }
-        (ex.name :: "{{{" :: codeLines) :+ "}}}"
+        // ScalaDoc fails to keep indentation when we start with `play {` straight away.
+        // As a work-around move the example description into an initial comment.
+        //
+        // (ex.name :: "{{{" :: codeLines) :+ "}}}"
+        ("{{{" :: s"// ${ex.name}" :: codeLines) :+ "}}}"
       }
 
-      bodyAndWarn ++ ("===Examples===" :: "" :: exList)
+      bodyAndWarn ++ ("" :: "===Examples===" :: "" :: exList)
     }
 
     val bodyAndArgs = if (argDocs.isEmpty) bodyAndEx else {
@@ -245,7 +254,7 @@ final class ClassGenerator
     }
 
     // somehow Scala 2.11 eats a line feed for class and object comments...gen
-    val firstLine = if (body && BuildInfo.scalaVersion.startsWith("2.11")) "\n" else ""
+    val firstLine = if (body && BuildInfo.scalaVersion.startsWith("2.11")) "\n\n" else ""
     DocDef(DocComment(all.mkString(s"$firstLine/** ", "\n  * ", "\n  */\n"), NoPosition), tree)
   }
 

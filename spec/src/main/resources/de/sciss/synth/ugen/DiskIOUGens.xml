@@ -1,0 +1,125 @@
+<ugens revision="1">
+    <!-- // side-effect: advancing sf offset -->
+    <ugen name="DiskIn" readsbuf="true" sideeffect="true">
+        <rate name="audio"/> <!-- implied="true" -->
+        <output variadic="numChannels"/>
+        <arg name="numChannels" type="int">
+            <doc>
+                the amount of channels the file and the buffer will have. This is an Int and hence
+                must be pre-determined. Different SynthDefs must be created for different numbers of channels.
+            </doc>
+        </arg>
+        <arg name="buf" type="buf">
+            <doc>
+                the id of the buffer with the correct number of channels and frames
+            </doc>
+        </arg>
+        <arg name="loop" default="false">
+            <doc>
+                whether the file should loop when its end is reached
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen to stream in a signal from an audio file. Continuously plays a longer audio file
+                from disk. This requires a buffer to be preloaded with one buffer size of sound. If loop is
+                set to 1, the file will loop.
+
+                '''Note''': The buffer size must be a multiple of (2 * the server's block size). See
+                `Buffer#cue` for details.
+            </text>
+            <see>Buffer#cue</see>
+            <see>ugen.VDiskIn</see>
+            <see>ugen.PlayBuf</see>
+        </doc>
+    </ugen>
+
+    <ugen name="DiskOut" writesbuf="true">
+        <rate name="audio">
+            <arg name="in" rate="ugen"/>
+        </rate>
+        <arg name="buf" type="buf">
+            <doc>
+                the buffer used internally by the UGen. this number of frames in the buffer must
+                be a power of two (this is currently not checked!). The buffer must have been initialized
+                with a `write` command whose `leaveOpen` argument is true. Note that the number of channels of
+                the buffer and of the input signal must be the same, otherwise `DiskOut` will fail silently
+                (and not write anything to the file).
+            </doc>
+        </arg>
+        <arg name="in" variadic="true">
+            <doc>
+                the signal to be recorded
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen which writes a signal to a sound file on disk. To achieve this efficiently, a buffer is
+                needs to be provides which is used to buffer the incoming signal.
+
+                '''Note''': It might be that the buffer size must be a multiple of (2 * the server's block size).
+                We haven't currently verified this, but to be safe, you should make sure this property is met.
+
+                The signal output by the UGen represents the number of frames written.
+            </text>
+            <see>Buffer#write</see>
+            <see>ugen.DiskIn</see>
+            <see>ugen.RecordBuf</see>
+        </doc>
+    </ugen>
+
+    <!-- // side-effect: advancing sf offset -->
+    <ugen name="VDiskIn" readsbuf="true" sideeffect="true">
+        <!-- note: argument 'rate' renamed to 'speed' -->
+        <rate name="audio"/> <!-- implied="true" -->
+        <output variadic="numChannels"/>
+        <arg name="numChannels" type="int">
+            <doc>
+                the amount of channels the file and the buffer will have. This is an Int and hence
+                must be pre-determined. Different SynthDefs must be created for different numbers of channels
+            </doc>
+        </arg>
+        <arg name="buf" type="buf">
+            <doc>
+                the id of the buffer with the correct number of channels and frames
+            </doc>
+        </arg>
+        <arg name="speed" default="1.0">
+            <doc>
+                controls the speed of playback. The buffer is always streamed at a frequency of
+                `SampleRate.ir * speed`, so the buffer's own sample rate is irrelevant. Factors below 4 are
+                probably fine, but the higher the value, the more disk activity there is, and the more likelihood
+                there will be a problem. The following must be true: `rate &lt; bufFrames / (2 * blockSize)`,
+                e.g with typical default values, this will be `32768 / (2 * 64) = 256`.
+            </doc>
+        </arg>
+        <arg name="loop" default="false">
+            <doc>
+                whether the file should loop when its end is reached
+            </doc>
+        </arg>
+        <arg name="sendID" default="0">
+            <doc>
+                If a value other than zero is used, the UGen sends an OSC message with this id and the
+                file position each time it reloads the buffer: `OSCMessage("/diskin", nodeID, sendID, frame)`
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen to stream in a signal from an audio file with variable playback speed.
+                Continuously plays a longer audio file
+                from disk. This requires a buffer to be preloaded with one buffer size of sound. If loop is
+                set to 1, the file will loop.
+
+                '''Note''': The buffer size must be a multiple of (2 * the server's block size). See
+                `Buffer#cue` for details.
+
+                If the speed is too high, the UGen will not execute, posting a warning.
+            </text>
+            <see>Buffer#cue</see>
+            <see>ugen.DiskIn</see>
+            <see>ugen.DiskOut</see>
+            <see>ugen.PlayBuf</see>
+        </doc>
+    </ugen>
+</ugens>

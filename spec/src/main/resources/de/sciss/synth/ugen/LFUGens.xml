@@ -1,0 +1,403 @@
+<ugens revision="1">
+    <ugen name="Vibrato">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="freq" default="440.0"/>
+        <arg name="beat" default="6.0"/>
+        <arg name="depth" default="0.02"/>
+        <arg name="delay" default="0.0" init="true"/>
+        <arg name="onset" default="0.0" init="true"/>
+        <arg name="beatVar" default="0.04"/>
+        <arg name="depthVar" default="0.1"/>
+        <arg name="iphase" default="0.0" init="true"/>
+    </ugen>
+    <ugen name="LFPulse">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="freq" default="440.0">
+            <doc>
+                oscillator frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="iphase" default="0.0" init="true">
+            <doc>
+                initial phase offset in cycles (`0..1`). If you think
+                of a buffer of one cycle of the waveform, this is the starting offset
+                into this buffer. Hence, an `iphase` of `0.25` means that you will hear
+                the first impulse after `0.75` periods! If you prefer to specify the
+                perceived delay instead, you could use an `iphase` of `-0.25 + 1` which
+                is more intuitive. Note that the phase is not automatically wrapped
+                into the range of `0..1`, so putting an `iphase` of `-0.25` currently
+                results in a strange initial signal which only stabilizes to the
+                correct behaviour after one period!
+            </doc>
+        </arg>
+        <arg name="width" default="0.5">
+            <doc>
+                pulse width duty cycle from zero to one. If you want to
+                specify the width rather in seconds, you can use the formula
+                `width = freq * dur`, e.g. for a single sample impulse use
+                `width = freq * SampleDur.ir`.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A non-band-limited pulse oscillator UGen.
+                Outputs a high value of one and a low value of zero.
+            </text>
+            <see>ugen.Pulse</see>
+        </doc>
+    </ugen>
+    <ugen name="LFSaw">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="freq" default="440.0">
+            <doc>
+                oscillator frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="iphase" default="0.0" init="true">
+            <doc>
+                initial phase offset. For efficiency reasons this is a
+                value ranging from -1 to 1 (thus equal to the initial output value).
+                Note that a phase of zero (default) means the wave starts at 0 and
+                rises to +1 before jumping down to -1. Use a phase of 1 to have the wave start at -1.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A sawtooth oscillator UGen. The oscillator is creating an aliased sawtooth,
+                that is it does not use band-limiting. For a band-limited version use
+                `Saw` instead. The signal range is -1 to +1.
+            </text>
+            <see>ugen.Saw</see>
+        </doc>
+    </ugen>
+    <ugen name="LFPar">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="freq" default="440.0"/>
+        <arg name="iphase" default="0.0" init="true"/>
+    </ugen>
+    <ugen name="LFCub">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="freq" default="440.0"/>
+        <arg name="iphase" default="0.0" init="true"/>
+    </ugen>
+    <ugen name="LFTri">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="freq" default="440.0">
+            <doc>
+                Frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="iphase" default="0.0" init="true">
+            <doc>
+                Initial phase of the oscillator. A full phase (2 Pi or 360 degrees) is represented by
+                an `iphase` value of 4. The initial phase cannot be modulated.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A triangle oscillator designed for low frequency control signals (being non-band-limited).
+                The output varies from -1 to 1.
+
+                With an initial phase of zero, the oscillator begins at 0, rises to 1, then falls to -1 and goes
+                back to zero after one complete phase. With an initial phase of 1 (corresponding to 90 degrees),
+                the oscillator begins at 1 and then falls to -1. With an initial phase of 3 (or 270 degrees),
+                the oscillator begins at -1 and then rises to 1.
+            </text>
+        </doc>
+    </ugen>
+    <ugen name="LFGauss">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="dur" default="1.0"/>
+        <arg name="width" default="0.1"/>
+        <arg name="phase" default="0.0"/>   <!-- in the current implementation can be modulated! -->
+        <arg name="loop" default="true"/>
+        <arg name="doneAction" default="doNothing"/>
+    </ugen>
+    <ugen name="Impulse">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="freq" default="440.0"/>
+        <arg name="phase" default="0.0"/>
+    </ugen>
+    <ugen name="VarSaw">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="freq" default="440.0"/>
+        <arg name="iphase" default="0.0"/>
+        <arg name="width" default="0.5"/>
+    </ugen>
+    <ugen name="SyncSaw">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="syncFreq" default="440.0"/>
+        <arg name="sawFreq" default="440.0"/>
+    </ugen>
+    <ugen name="K2A">
+        <rate name="audio" implied="true"/>
+        <arg name="in"/>
+    </ugen>
+    <ugen name="A2K">
+        <rate name="control" implied="true"/>
+        <arg name="in"/>
+    </ugen>
+    <ugen name="T2K">
+        <rate name="control" implied="true"/>
+        <arg name="in" rate="audio"/>
+    </ugen>
+    <ugen name="T2A">
+        <rate name="audio" implied="true"/>
+        <arg name="in"/>
+    </ugen>
+    <ugen name="DC">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <output variadic="in"/>
+        <arg name="in" variadic="true"/>
+    </ugen>
+    <!--        <ugen name="Silent">
+                <rate name="audio" implied="true"/>
+                <output variadic="numChannels"/>
+                <arg name="numChannels" type="int" default="1"/>
+            </ugen> -->
+    <ugen name="Line" sideeffect="true" doneflag="true">
+        <rate name="audio"/>
+        <rate name="control"/>
+        <arg name="start" default="0.0" init="true">
+            <doc>
+                Starting value
+            </doc>
+        </arg>
+        <arg name="end" default="1.0" init="true">
+            <doc>
+                Ending value
+            </doc>
+        </arg>
+        <arg name="dur" default="1.0" init="true">
+            <doc>
+                Duration in seconds
+            </doc>
+        </arg>
+        <arg name="doneAction" default="doNothing">
+            <doc>
+                A done-action that is evaluated when the Line has reached the end value after the
+                given duration
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A line generator UGen that moves from a start value to the end value in a given duration.
+            </text>
+            <see>ugen.XLine</see>
+            <see>ugen.EnvGen</see>
+            <see>ugen.Ramp</see>
+        </doc>
+    </ugen>
+    <ugen name="XLine" sideeffect="true" doneflag="true">
+        <rate name="audio"/>
+        <rate name="control"/>
+        <arg name="start" default="1.0" init="true">
+            <doc>
+                Starting value
+            </doc>
+        </arg>
+        <arg name="end" default="2.0" init="true">
+            <doc>
+                Ending value
+            </doc>
+        </arg>
+        <arg name="dur" default="1.0" init="true">
+            <doc>
+                Duration in seconds
+            </doc>
+        </arg>
+        <arg name="doneAction" default="doNothing">
+            <doc>
+                A done-action that is evaluated when the Line has reached the end value after the
+                given duration
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A exponential curve generator UGen that moves from a start value to the end value in a given duration.
+
+                At a given point in time `0 &lt;= t &lt;= dur`, the output value is `start * (stop/start).pow(t/dur)`.
+
+                '''Warning''': It must be ensured that the both `start` is not zero and `start` and `end` have the
+                same sign (e.g. a `start` of `-1` and an end of `-0.001` are valid),
+                otherwise the UGen will output a `NaN`! While in the case of `end` being zero the UGen will also
+                output zero, it is recommended to treat this case as pathological as well.
+            </text>
+        </doc>
+    </ugen>
+
+    <ugen name="Wrap">
+        <rate name="scalar"/>
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in"/>
+        <arg name="lo" default="0.0"/>
+        <arg name="hi" default="1.0"/>
+    </ugen>
+    <ugen name="Fold">
+        <rate name="scalar"/>
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in"/>
+        <arg name="lo" default="0.0"/>
+        <arg name="hi" default="1.0"/>
+    </ugen>
+    <ugen name="Clip">
+        <rate name="scalar"/>
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in"/>
+        <arg name="lo" default="0.0"/>
+        <arg name="hi" default="1.0"/>
+    </ugen>
+    <!-- this should exist according to plugin sources...
+    <ugen name="Unwrap"/>
+    -->
+    <ugen name="AmpComp">
+        <rate name="scalar"/>
+        <rate name="control"/>
+        <rate name="audio">
+            <arg name="freq" rate="ugen"/>
+        </rate>
+        <arg name="freq" default="261.626"/>
+        <arg name="root" default="261.626"/>
+        <arg name="expon" default="0.3333"/>
+    </ugen>
+    <ugen name="AmpCompA">
+        <rate name="scalar"/>
+        <rate name="control"/>
+        <rate name="audio">
+            <arg name="freq" rate="ugen"/>
+        </rate>
+        <arg name="freq" default="1000.0"/>
+        <arg name="root" default="0.0"/>
+        <arg name="minAmp" default="0.32"/>
+        <arg name="rootAmp" default="1.0"/>
+    </ugen>
+    <ugen name="InRange">
+        <rate name="scalar"/>
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in"/>
+        <arg name="lo" default="0.0"/>
+        <arg name="hi" default="1.0"/>
+    </ugen>
+    <ugen name="InRect">
+        <rate name="scalar"/>
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="x"/>
+        <arg name="y"/>
+        <arg name="left" default="0.0"/>
+        <arg name="top" default="0.0"/>
+        <arg name="right" default="1.0"/>
+        <arg name="bottom" default="1.0"/>
+    </ugen>
+    <ugen name="LinExp"> <!-- TODO: first arg rate has to be rate ? -->
+        <rate name="scalar"/>
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen">
+            The input signal to convert.
+        </arg>
+        <arg name="srcLo" default="0.0">
+            The lower limit of input range.
+        </arg>
+        <arg name="srcHi" default="1.0">
+            The upper limit of input range.
+        </arg>
+        <arg name="dstLo" default="1.0">
+            The lower limit of output range.
+        </arg>
+        <arg name="dstHi" default="2.0">
+            The upper limit of output range.
+        </arg>
+        <doc>
+            <text>
+                A UGen which maps a linear range to an exponential range.
+                The equivalent formula is `(dstHi / dstLo).pow((in - srcLo) / (srcHi - srcLo)) * dstLo`.
+
+                '''Note''': No clipping is performed. If the input signal exceeds the input range, the output will also exceed its range.
+            </text>
+            <see>ugen.LinExp</see>
+            <see>ugen.Clip</see>
+        </doc>
+    </ugen>
+    <!--        <ugen name="LinLin">
+                <rate name="scalar"/>
+                <rate name="control"/>
+                <rate name="audio"/>
+                <arg name="in" rate="ugen">
+                    <doc>
+                        The input signal to convert.
+                    </doc>
+                </arg>
+                <arg name="srcLo" default="0">
+                    <doc>
+                        The lower limit of input range.
+                    </doc>
+                </arg>
+                <arg name="srcHi" default="1">
+                    <doc>
+                        The upper limit of input range.
+                    </doc>
+                </arg>
+                <arg name="dstLo" default="0">
+                    <doc>
+                        The lower limit of output range.
+                    </doc>
+                </arg>
+                <arg name="dstHi" default="1">
+                    <doc>
+                        The upper limit of output range.
+                    </doc>
+                </arg>
+                <doc>
+                    <text>
+                        A UGen which maps a linear range to another linear range.
+                        The equivalent formula is `(in - srcLo) / (srcHi - srcLo) * (dstHi - dstLo) + dstLo`.
+
+                        '''Note''': No clipping is performed. If the input signal exceeds the input range, the output will also exceed its range.
+                    </text>
+                    <see>ugen.LinExp</see>
+                    <see>ugen.Clip</see>
+                </doc>
+            </ugen>
+    -->
+    <ugen name="EnvGen" sideeffect="true" doneflag="true">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="gate" default="open" pos="1"/>       <!-- negative values have special meaning, though... -->
+        <arg name="levelScale" default="1.0" pos="2"/>  <!-- like init="true" but can be re-triggered... -->
+        <arg name="levelBias" default="0.0" pos="3"/>
+        <arg name="timeScale" default="1.0" pos="4"/>
+        <arg name="doneAction" default="doNothing" pos="5"/>
+        <arg name="envelope" variadic="true" pos="0"/>
+    </ugen>
+    <ugen name="Linen" sideeffect="true" doneflag="true">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="gate" default="open"/>
+        <arg name="attack" default="0.01"/>
+        <arg name="sustain" default="1.0"/>
+        <arg name="release" default="1.0"/>
+        <arg name="doneAction" default="doNothing"/>
+    </ugen>
+    <ugen name="IEnvGen">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="index" pos="1"/>  <!-- default="1.0" -->
+        <arg name="envelope" variadic="true" pos="0"/>
+    </ugen>
+</ugens>

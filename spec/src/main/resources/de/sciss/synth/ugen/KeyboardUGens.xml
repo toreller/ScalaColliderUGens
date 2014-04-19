@@ -1,0 +1,9 @@
+<ugens revision="1">
+    <ugen name="KeyState">
+        <rate name="control" implied="true"/>
+        <arg name="keyCode"/>
+        <arg name="lo" default="0.0"/>
+        <arg name="hi" default="1.0"/>
+        <arg name="lag" default="0.2"/>
+    </ugen>
+</ugens>

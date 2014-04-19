@@ -1,0 +1,45 @@
+<ugens revision="1">
+    <ugen name="Gendy1" random="true">
+        <rate name="audio"/>
+        <rate name="control"/>
+        <arg name="ampDist" default="1.0"/>
+        <arg name="durDist" default="1.0"/>
+        <arg name="adParam" default="1.0"/>
+        <arg name="ddParam" default="1.0"/>
+        <arg name="minFreq" default="440.0"/>
+        <arg name="maxFreq" default="660.0"/>
+        <arg name="ampScale" default="0.5"/>
+        <arg name="durScale" default="0.5"/>
+        <arg name="initCPs" default="12" init="true"/>
+        <arg name="kNum" default="12"/>
+    </ugen>
+    <ugen name="Gendy2" random="true">
+        <rate name="audio"/>
+        <rate name="control"/>
+        <arg name="ampDist" default="1.0"/>
+        <arg name="durDist" default="1.0"/>
+        <arg name="adParam" default="1.0"/>
+        <arg name="ddParam" default="1.0"/>
+        <arg name="minFreq" default="440.0"/>
+        <arg name="maxFreq" default="660.0"/>
+        <arg name="ampScale" default="0.5"/>
+        <arg name="durScale" default="0.5"/>
+        <arg name="initCPs" default="12" init="true"/>
+        <arg name="kNum" default="12"/>
+        <arg name="a" default="1.17"/>
+        <arg name="c" default="0.31"/>
+    </ugen>
+    <ugen name="Gendy3" random="true">
+        <rate name="audio"/>
+        <rate name="control"/>
+        <arg name="ampDist" default="1.0"/>
+        <arg name="durDist" default="1.0"/>
+        <arg name="adParam" default="1.0"/>
+        <arg name="ddParam" default="1.0"/>
+        <arg name="freq" default="440.0"/>
+        <arg name="ampScale" default="0.5"/>
+        <arg name="durScale" default="0.5"/>
+        <arg name="initCPs" default="12" init="true"/>
+        <arg name="kNum" default="12"/>
+    </ugen>
+</ugens>

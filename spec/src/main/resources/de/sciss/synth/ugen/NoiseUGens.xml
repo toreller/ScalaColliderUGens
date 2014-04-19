@@ -1,0 +1,210 @@
+<ugens revision="1">
+    <ugen name="WhiteNoise" random="true">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="mul" default="1.0" type="mul"/>
+    </ugen>
+    <ugen name="GrayNoise" random="true">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="mul" default="1.0" type="mul"/>
+    </ugen>
+    <ugen name="ClipNoise" random="true">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="mul" default="1.0" type="mul"/>
+    </ugen>
+    <ugen name="PinkNoise" random="true">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="mul" default="1.0" type="mul"/>
+    </ugen>
+    <ugen name="BrownNoise" random="true">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="mul" default="1.0" type="mul"/>
+    </ugen>
+    <ugen name="Dust" random="true">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="density" default="1.0">
+            <doc>
+                the average number of impulses per second
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen generating random impulses with values ranging from
+                `0` to `+1`. The pulse duration is one sample for audio-rate
+                and one block for control-rate operation.
+            </text>
+            <see>ugen.Dust2</see>
+            <see>ugen.TRand</see>
+        </doc>
+    </ugen>
+    <ugen name="Dust2" random="true">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="density" default="1.0">
+            <doc>
+                the average number of impulses per second
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen generating random impulses with values ranging from
+                `-1` to `+1`. The pulse duration is one sample for audio-rate
+                and one block for control-rate operation.
+            </text>
+            <see>ugen.Dust</see>
+            <see>ugen.TRand</see>
+        </doc>
+    </ugen>
+    <ugen name="Crackle">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="chaos" default="1.5"/>
+    </ugen>
+    <ugen name="Logistic">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="chaos" default="3.0"/>
+        <arg name="freq" default="1000.0"/>
+        <arg name="init" default="0.5"/>
+    </ugen>
+    <ugen name="Hasher">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in"/>
+    </ugen>
+    <ugen name="MantissaMask">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in"/>
+        <arg name="bits" default="3"/>
+    </ugen>
+    <ugen name="LFClipNoise" random="true">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="freq" default="500.0"/>
+    </ugen>
+    <ugen name="LFNoise0" random="true">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="freq" default="500.0">
+            <doc>
+                rate at which to generate random values.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A step noise UGen. It generates abruptly changing random values
+                between `-1` and `+1` at a rate given by the `freq` argument.
+
+                The frequency is quantized to the nearest integer division of the sample rate, and
+                changes in frequency are only picked up at the next trigger. In contrast,
+                variant `LFDNoise0` has precise frequency and reacts to frequency changes instantly.
+            </text>
+            <see>ugen.LFDNoise0</see>
+            <see>ugen.LFNoise1</see>
+            <see>ugen.LFNoise2</see>
+            <see>ugen.TRand</see>
+        </doc>
+    </ugen>
+    <ugen name="LFNoise1" random="true">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="freq" default="500.0">
+            <doc>
+                rate at which to generate new breakpoints.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A ramp noise UGen. It generates line segments whose start and
+                end points are chosen randomly between `-1` and `+1`. New breakpoints are generated at
+                a specified frequency.
+
+                The frequency is quantized to the nearest integer division of the sample rate, and
+                changes in frequency are only picked up at the next trigger. In contrast,
+                variant `LFDNoise1` has precise frequency and reacts to frequency changes instantly.
+            </text>
+            <see>ugen.LFDNoise1</see>
+            <see>ugen.LFNoise0</see>
+            <see>ugen.LFNoise2</see>
+            <see>ugen.Ramp</see>
+        </doc>
+
+    </ugen>
+    <ugen name="LFNoise2" random="true">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="freq" default="500.0"/>
+    </ugen>
+    <ugen name="Rand" random="true">
+        <rate name="scalar" implied="true" method="apply"/>
+        <arg name="lo" default="0.0"/>
+        <arg name="hi" default="1.0"/>
+    </ugen>
+    <ugen name="IRand" random="true">
+        <rate name="scalar" implied="true" method="apply"/>
+        <arg name="lo" default="0"/>
+        <arg name="hi" default="127"/>
+    </ugen>
+    <ugen name="TRand" random="true">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="lo" default="0.0"/>
+        <arg name="hi" default="1.0"/>
+        <arg name="trig" type="trig"/>
+    </ugen>
+    <ugen name="TExpRand" random="true">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="lo" default="0.01"/>
+        <arg name="hi" default="1.0"/>
+        <arg name="trig" type="trig"/>
+    </ugen>
+    <ugen name="TIRand" random="true">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="lo" default="0"/>
+        <arg name="hi" default="127"/>
+        <arg name="trig" type="trig"/>
+    </ugen>
+    <ugen name="NRand" random="true">
+        <rate name="scalar" implied="true" method="apply"/>
+        <arg name="lo" default="0.0"/>
+        <arg name="hi" default="1.0"/>
+        <arg name="n" default="0"/>
+    </ugen>
+    <ugen name="LinRand" random="true">
+        <rate name="scalar" implied="true" method="apply"/>
+        <arg name="lo" default="0.0"/>
+        <arg name="hi" default="1.0"/>
+        <arg name="minMax" default="0"/>
+    </ugen>
+    <ugen name="ExpRand" random="true">
+        <rate name="scalar" implied="true" method="apply"/>
+        <arg name="lo" default="0.01"/>
+        <arg name="hi" default="1.0"/>
+    </ugen>
+    <ugen name="CoinGate" random="true">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="prob" default="0.5" pos="1"/>
+        <arg name="in" type="trig" pos="0"/>
+        <doc warnpos="true"/>
+    </ugen>
+    <ugen name="RandSeed" sideeffect="true">
+        <rate name="scalar"/>
+        <rate name="control"/>
+        <arg name="trig" default="high"/>
+        <arg name="seed" default="56789"/>
+    </ugen>
+    <ugen name="RandID" sideeffect="true">
+        <rate name="scalar"/>
+        <rate name="control"/>
+        <arg name="id" default="0"/>
+    </ugen>
+</ugens>

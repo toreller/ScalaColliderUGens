@@ -1,0 +1,66 @@
+<ugens name="GrainUGens" revision="1">
+    <ugen name="GrainIn" readsbuf="true">  <!-- accepts demand rate -->
+        <rate name="audio" implied="true"/>
+        <output variadic="numChannels"/>
+        <arg name="numChannels" type="int" default="1" pos="1"/>
+        <arg name="trig" type="trig" pos="2"/>  <!-- default="low" -->
+        <arg name="dur" default="1.0" pos="3"/>
+        <arg name="in" pos="0"/>
+        <arg name="pan" default="0.0" pos="4"/>
+        <arg name="envBuf" default="-1" pos="5"/> <!-- type="buf" ? -->
+        <arg name="maxGrains" default="512" pos="6"/>
+        <doc warnpos="true"/>
+    </ugen>
+    <ugen name="GrainSin" readsbuf="true">  <!-- accepts demand rate -->
+        <rate name="audio" implied="true"/>
+        <output variadic="numChannels"/>
+        <arg name="numChannels" type="int" default="1"/>
+        <arg name="trig" type="trig"/>    <!-- default="low" -->
+        <arg name="dur" default="1.0"/>
+        <arg name="freq" default="440.0"/>
+        <arg name="pan" default="0.0"/>
+        <arg name="envBuf" default="-1"/> <!-- type="buf" ? -->
+        <arg name="maxGrains" default="512"/>
+    </ugen>
+    <ugen name="GrainFM" readsbuf="true"> <!-- accepts demand rate -->
+        <rate name="audio" implied="true"/>
+        <output variadic="numChannels"/>
+        <arg name="numChannels" type="int" default="1"/>
+        <arg name="trig" type="trig"/>  <!-- default="low" -->
+        <arg name="dur" default="1.0"/>
+        <arg name="carFreq" default="440.0"/>
+        <arg name="modFreq" default="200.0"/>
+        <arg name="index" default="1.0"/>
+        <arg name="pan" default="0.0"/>
+        <arg name="envBuf" default="-1"/> <!-- type="buf" ? -->
+        <arg name="maxGrains" default="512"/>
+    </ugen>
+    <ugen name="GrainBuf" readsbuf="true">  <!-- accepts demand rate -->
+        <rate name="audio" implied="true"/>
+        <output variadic="numChannels"/>
+        <arg name="numChannels" type="int" default="1" pos="1"/>
+        <arg name="trig" type="trig" pos="2"/>  <!-- default="0" -->
+        <arg name="dur" default="1.0" pos="3"/>
+        <arg name="buf" type="buf" pos="0"/>
+        <arg name="speed" default="1.0" pos="4"/>
+        <arg name="pos" default="0.0" pos="5"/>
+        <arg name="interp" default="2" pos="6"/>
+        <arg name="pan" default="0.0" pos="7"/>
+        <arg name="envBuf" default="-1" pos="8"/>
+        <arg name="maxGrains" default="512" pos="9"/>
+        <doc warnpos="true"/>
+    </ugen>
+    <ugen name="Warp1" readsbuf="true">  <!-- accepts demand rate -->
+        <rate name="audio" implied="true"/>
+        <output variadic="numChannels"/>
+        <arg name="numChannels" type="int"/>
+        <arg name="buf" type="buf"/>
+        <arg name="pos" default="0.0"/>
+        <arg name="speed" default="1.0"/>
+        <arg name="winSize" default="0.2"/>
+        <arg name="envBuf" default="-1"/>
+        <arg name="overlaps" default="8.0"/>
+        <arg name="winRand" default="0.0"/>
+        <arg name="interp" default="1"/>
+    </ugen>
+</ugens>

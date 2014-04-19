@@ -1,0 +1,179 @@
+<ugens revision="1">
+    <ugen name="Convolution" readsbuf="true">
+        <rate name="audio"/>
+        <arg name="in"/>
+        <arg name="kernel"/>
+        <arg name="frameSize" type="gint" init="true"/>
+        <doc>
+            <see>ugen.Convolution2L</see>
+            <see>ugen.Convolution3</see>
+            <see>ugen.Convolution2</see>
+            <see>ugen.StereoConvolution2L</see>
+        </doc>
+    </ugen>
+    <ugen name="Convolution2" readsbuf="true">
+        <rate name="audio"/>
+        <arg name="in">
+            <doc>
+                the realtime input to be convolved
+            </doc>
+        </arg>
+        <arg name="kernel">
+            <doc>
+                buffer identifier for the fixed kernel, which may be modulated in combination with the trigger
+            </doc>
+        </arg>
+        <arg name="trig" default="high">
+            <doc>
+                updates the kernel on a change from non-positive to positive (&lt;= 0 to &gt;0)
+            </doc>
+        </arg>
+        <arg name="frameSize" type="gint" init="true">
+            <doc>
+                size of the kernel. this must be a power of two. the FFT calculated internally
+                by the UGen has a size of twice this value. The maximum allowed frameSize
+                is 65536(?).
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A frequency-domain convolution UGen using a fixed kernel which can be updated
+                by a trigger signal. The delay caused by the convolution when the kernel is a dirac impulse
+                is equal to `frameSize - (controlBlockSize + 1)` (measured august 2010), so for a frameSize
+                of 2048 and a controlBlockSize of 64, this is 1983 sample frames.
+            </text>
+            <see>ugen.Convolution2L</see>
+            <see>ugen.Convolution3</see>
+            <see>ugen.Convolution</see>
+            <see>ugen.StereoConvolution2L</see>
+        </doc>
+    </ugen>
+    <ugen name="Convolution2L" readsbuf="true">
+        <rate name="audio"/>
+        <arg name="in"/>
+        <arg name="kernel"/>
+        <arg name="trig" default="high"/>
+        <arg name="frameSize" type="gint" init="true"/>
+        <arg name="fadePeriods" default="1" init="true"/>
+        <doc>
+            <see>ugen.Convolution2</see>
+            <see>ugen.Convolution3</see>
+            <see>ugen.Convolution</see>
+            <see>ugen.StereoConvolution2L</see>
+        </doc>
+    </ugen>
+    <ugen name="StereoConvolution2L" readsbuf="true">
+        <rate name="audio"/>
+        <output name="left"/>
+        <output name="right"/>
+        <arg name="in">
+            <doc>
+                the realtime input to be convolved
+            </doc>
+        </arg>
+        <arg name="kernelL">
+            <doc>
+                buffer identifier for the left channel's fixed kernel, which may be modulated in combination
+                with the trigger
+            </doc>
+        </arg>
+        <arg name="kernelR">
+            <doc>
+                buffer identifier for the right channel's fixed kernel, which may be modulated in combination
+                with the trigger
+            </doc>
+        </arg>
+        <arg name="trig" default="high">
+            <doc>
+                updates the kernel on a change from non-positive to positive (&lt;= 0 to &gt;0), and starts a new
+                cross-fade from the previous kernel to the new one over the given amount of periods.
+            </doc>
+        </arg>
+        <arg name="frameSize" type="gint" init="true">
+            <doc>
+                size of each kernel. this must be a power of two. the FFT calculated internally
+                by the UGen has a size of twice this value. The maximum allowed frameSize
+                is 65536(?).
+            </doc>
+        </arg>
+        <arg name="fadePeriods" default="1" init="true">
+            <doc>
+                The number of periods over which a cross-fade is performed. This must be an integer
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A frequency domain stereo convolution UGen, capable of performing linear cross-fades between kernel updates.
+                When receiving a trigger, there is a linear cross-fade between the old kernel the new buffer contents.
+                It operates similar to Convolution2L, however uses two buffers and outputs a stereo signal, resulting
+                in better CPU usage than two discrete instances of Convolution2L as this way one FFT transformation per period
+                is saved.
+            </text>
+            <see>ugen.Convolution2</see>
+            <see>ugen.Convolution3</see>
+            <see>ugen.Convolution</see>
+            <see>ugen.Convolution2L</see>
+        </doc>
+    </ugen>
+    <ugen name="Convolution3" readsbuf="true">
+        <rate name="audio"/>
+        <arg name="in"/>
+        <arg name="kernel"/>
+        <arg name="trig" default="high"/>
+        <arg name="frameSize" type="gint" init="true"/>
+        <doc>
+            <text>
+                A UGen for triggered convolution in the time domain.
+            </text>
+        </doc>
+    </ugen>
+
+    <ugen name="PV_ConformalMap" readsfft="true" writesfft="true">
+        <rate name="control" implied="true" method="apply"/>
+        <output name="chain" type="fft"/>
+        <arg name="chain" type="fft"/>
+        <arg name="real" default="0.0"/>
+        <arg name="imag" default="0.0"/>
+    </ugen>
+
+    <ugen name="PV_JensenAndersen" readsfft="true">
+        <rate name="audio"/>
+        <arg name="chain" type="fft"/>
+        <arg name="propSC" default="0.25"/>
+        <arg name="propHFE" default="0.25"/>
+        <arg name="propHFC" default="0.25"/>
+        <arg name="propSF" default="0.25"/>
+        <arg name="thresh" default="1.0"/>
+        <arg name="waitTime" default="0.04"/>
+    </ugen>
+    <ugen name="PV_HainsworthFoote" readsfft="true">
+        <rate name="audio"/>
+        <arg name="chain" type="fft"/>
+        <arg name="propH" default="0.0"/>
+        <arg name="propF" default="0.0"/>
+        <arg name="thresh" default="1.0"/>
+        <arg name="waitTime" default="0.04"/>
+    </ugen>
+
+    <ugen name="RunningSum">
+        <rate name="control"/>
+        <rate name="audio"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                the input signal to sum up
+            </doc>
+        </arg>
+        <arg name="length" default="440" init="true">
+            <doc>
+                the length of the sliding window over the input signal.
+                these are the number of audio sample-frames for audio-rate calculation,
+                or the number of blocks for control-rate calculation summed up.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen calculating the running sum of an input signal over a given number of samples.
+            </text>
+        </doc>
+    </ugen>
+</ugens>

@@ -1,0 +1,22 @@
+<ugens revision="1">
+    <ugen name="MouseX">
+        <rate name="control" implied="true"/>
+        <arg name="lo" default="0.0"/>
+        <arg name="hi" default="1.0"/>
+        <arg name="warp" default="0.0"/>
+        <arg name="lag" default="0.2"/>
+    </ugen>
+    <ugen name="MouseY">
+        <rate name="control" implied="true"/>
+        <arg name="lo" default="0.0"/>
+        <arg name="hi" default="1.0"/>
+        <arg name="warp" default="0.0"/>
+        <arg name="lag" default="0.2"/>
+    </ugen>
+    <ugen name="MouseButton">
+        <rate name="control" implied="true"/>
+        <arg name="lo" default="0.0"/>
+        <arg name="hi" default="1.0"/>
+        <arg name="lag" default="0.2"/>
+    </ugen>
+</ugens>

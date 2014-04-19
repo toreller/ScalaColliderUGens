@@ -15,7 +15,7 @@ package de.sciss.synth
 package impl
 
 import collection.immutable.{IndexedSeq => Vec}
-import collection.breakOut
+import scala.collection.{SeqLike, breakOut}
 import de.sciss.synth.UGenSpec.{ArgumentValue, ArgumentType}
 
 private[synth] object UGenSpecParser {
@@ -287,11 +287,32 @@ private[synth] object UGenSpecParser {
   private val DEFAULT_OUTPUTS =
     Vector(UGenSpec.Output(name = None, shape = UGenSpec.SignalShape.Generic, variadic = None))
 
+  private def trimWhile[A, Repr <: SeqLike[A, Repr]](xs: SeqLike[A, Repr])(pred: A => Boolean): Repr = {
+    val left  = xs.dropWhile(pred)
+    val idx   = left.lastIndexWhere(pred) // why there's no dropRightWhile?
+    if (idx >= 0) left.dropRight(left.size - idx) else left
+  }
+
+  private def trimCode(codeText: String): List[String] = {
+    val trim0: Vec[String] = codeText.lines.toIndexedSeq
+    val trim  = trimWhile(trim0)(_.trim().isEmpty)
+    if (trim .isEmpty) return Nil
+
+    val trimH   = trim.head
+    val indent  = trimH.indexOf(trimH.trim())
+    trim.map { ln =>
+      val t = ln.trim()
+      val i = ln.indexOf(t) - indent
+      if (i <= 0) t else {
+        val pad = " " * i
+        s"$pad$t"
+      }
+    } (breakOut)
+  }
+
   private def trimDoc(docText: String): List[String] = {
     val trim0 = docText.lines.map(_.trim).toIndexedSeq
-    val trim1 = trim0.dropWhile(_.isEmpty)
-    val idx   = trim1.lastIndexWhere(_.isEmpty) // why there's no dropRightWhile?
-    val trim  = if (idx >= 0) trim1.dropRight(trim1.size - idx) else trim1
+    val trim  = trimWhile(trim0)(_.isEmpty)
     val b     = List.newBuilder[String]
     val sb    = new StringBuilder
 
@@ -330,7 +351,7 @@ private[synth] object UGenSpecParser {
       val dEx: List[UGenSpec.Example] = (dNode \ "example").map { n =>
         val a     = n.attributes.asAttrMap
         val name  = a.string("name")
-        val code  = trimDoc(n.text)
+        val code  = trimCode(n.text)
         UGenSpec.Example(name = name, code = code)
       } (breakOut)
       val dAttr     = dNode.attributes.asAttrMap

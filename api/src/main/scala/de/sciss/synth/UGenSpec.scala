@@ -20,19 +20,27 @@ import collection.breakOut
 import impl.{UGenSpecParser => ParserImpl}
 
 object UGenSpec {
+  /** List of standard UGen plugin names. */
+  final val standardPlugins = List(
+    "ChaosUGens", "DelayUGens", "DemandUGens", "DiskIOUGens", "DynNoiseUGens", "FFT2_UGens", "FFT_UGens",
+    "FilterUGens", "GendynUGens", "GrainUGens", "IOUGens", "KeyboardUGens", "LFUGens", "MachineListening",
+    "MouseUGens", "NoiseUGens", "OSCUGens", "PanUGens", "PhysicalModellingUGens", "ReverbUGens", "TestUGens",
+    "TriggerUGens", "UnpackFFTUGens"
+  )
+
   /** Lazily computes the specs of the UGens bundled with the standard SuperCollider distribution.
     * This reads and parses the `standard-ugens.xml` resource. The result maps from UGen names
     * to their specifications.
     */
-  lazy val standardUGens: Map[String, UGenSpec] = {
-    val is = ugen.Control.getClass.getResourceAsStream("standard-ugens.xml")
+  lazy val standardUGens: Map[String, UGenSpec] = standardPlugins.flatMap { name =>
+    val is = ugen.Control.getClass.getResourceAsStream(s"$name.xml")
     try {
       val source = xml.Source.fromInputStream(is)
       parseAll(source, docs = true)
     } finally {
       is.close()
     }
-  }
+  } (breakOut)
 
   /** Parses a complete XML file containing a number of UGen specifications.
     *
