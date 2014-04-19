@@ -4,11 +4,10 @@ import sbt.File
 import sbtbuildinfo.Plugin._
 
 object Build extends sbt.Build {
-  def numbersVersion   = "0.1.1"
-
-  def scalaTestVersion = "2.1.3"
-
-  def scoptVersion     = "3.2.0"
+  def numbersVersion     = "0.1.1"
+  def scalaTestVersion   = "2.1.3"
+  def scoptVersion       = "3.2.0"
+  def refactoringVersion = "0.1.0"
 
   lazy val root: Project = Project(
     id        = "scalacolliderugens",
@@ -77,10 +76,11 @@ object Build extends sbt.Build {
       description := "Source code generator for ScalaCollider UGens",
       licenseURL("GPL v2+", "gen"),
       libraryDependencies ++= Seq(
-        "com.github.scopt" %% "scopt"     % scoptVersion,
-        "org.scalatest"    %% "scalatest" % scalaTestVersion % "test"
+        "com.github.scopt" %% "scopt"            % scoptVersion,
+        "de.sciss"         %% "scalarefactoring" % refactoringVersion,
+        "org.scalatest"    %% "scalatest"        % scalaTestVersion % "test"
       ),
-      libraryDependencies ++= { val sv = scalaVersion.value
+/*      libraryDependencies ++= { val sv = scalaVersion.value
         val refOrg     = "org.scala-refactoring"
         val refArt     = s"$refOrg.library"
         val ref = if (sv startsWith "2.11") {
@@ -92,7 +92,7 @@ object Build extends sbt.Build {
           "org.scala-lang" % "scala-compiler" % sv,
           ref
         )
-      },
+      }, */
       publishLocal := {},
       publish := {}
     )
