@@ -220,11 +220,16 @@ final class ClassGenerator
       //      }
 
       val exList: List[String] = doc.examples.flatMap { ex =>
-        val codeLines: List[String] = ex.code match {
-          case single :: Nil =>
-            s"play { $single }" :: Nil
-          case multi =>
-            ("play {" :: multi.map(ln => s"  $ln")) :+ "}"
+        val codeLines: List[String] = ex.tpe match {
+          case UGenSpec.Example.Simple =>
+            ex.code match {
+              case single :: Nil =>
+                s"play { $single }" :: Nil
+              case multi =>
+                ("play {" :: multi.map(ln => s"  $ln")) :+ "}"
+            }
+
+          case UGenSpec.Example.Full => ex.code
         }
         // ScalaDoc fails to keep indentation when we start with `play {` straight away.
         // As a work-around move the example description into an initial comment.

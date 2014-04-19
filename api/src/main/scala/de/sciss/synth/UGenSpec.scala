@@ -379,7 +379,14 @@ object UGenSpec {
     }
   }
 
-  final case class Example(name: String, code: List[String])
+  object Example {
+    sealed trait Type
+    /** Example specifies UGens which can be wrapped in a `play { ... }` block */
+    case object Simple extends Type
+    /** A full scale example which should be executed by itself without wrapping. */
+    case object Full   extends Type
+  }
+  final case class Example(name: String, code: List[String], tpe: Example.Type)
 
   /** Documentation of a UGen.
     *

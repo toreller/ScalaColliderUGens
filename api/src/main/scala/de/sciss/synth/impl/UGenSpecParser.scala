@@ -348,11 +348,17 @@ private[synth] object UGenSpecParser {
     val docOpt = (node \ "doc").headOption
     docOpt.flatMap { dNode =>
       val dSees: List[String] = (dNode \ "see").map(_.text)(breakOut)
-      val dEx: List[UGenSpec.Example] = (dNode \ "example").map { n =>
+      import UGenSpec.Example
+      val dEx: List[Example] = (dNode \ "example").map { n =>
         val a     = n.attributes.asAttrMap
         val name  = a.string("name")
         val code  = trimCode(n.text)
-        UGenSpec.Example(name = name, code = code)
+        val tpe   = a.getOrElse("type", "simple") match {
+          case "simple" => Example.Simple
+          case "full"   => Example.Full
+          case other    => sys.error(s"Unsupported example type '$other'")
+        }
+        Example(name = name, code = code, tpe = tpe)
       } (breakOut)
       val dAttr     = dNode.attributes.asAttrMap
       val dWarnPos  = dAttr.boolean("warnpos")
