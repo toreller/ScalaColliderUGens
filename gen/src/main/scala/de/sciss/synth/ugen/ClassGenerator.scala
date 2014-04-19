@@ -122,11 +122,9 @@ final class ClassGenerator
     }
 
     val words = words0.map { w =>
-      // val w = w0.trim
       if (w.startsWith("[[")) {
         val i     = w.indexOf("]]")
         val link0 = w.substring(2, i)
-        // if (link0.endsWith("]")) sys.error(s"FAIL '$w'")
         mkLink(link0) + w.substring(i + 2)
       } else {
         w
@@ -167,7 +165,13 @@ final class ClassGenerator
         case head :: tail =>
           val isPre = head.startsWith("{{{")
           val headL = if (isPre) {
-            head.split('\n').toList
+            val i     = head.indexOf("}}}") + 3
+            val headC = head.substring(0, i)
+            val headN = head.substring(i)
+            val code  = headC.split('\n').toList
+            val norm  = linesWrap(headN, width)
+            code ++ norm
+
           } else {
             if (feed) b += ""
             linesWrap(head, width)
@@ -182,7 +186,7 @@ final class ClassGenerator
     b.result()
   }
 
-  private def wrapDoc(spec: UGenSpec, tree: Tree, body: Boolean, args: Boolean): Tree = {
+  private def wrapDoc(spec: UGenSpec, tree: Tree, body: Boolean, args: Boolean, examples: Boolean): Tree = {
     if (spec.doc.isEmpty) return tree
     val doc       = spec.doc.get
     val bodyDoc   = if (body) doc.body  else Nil
@@ -202,7 +206,28 @@ final class ClassGenerator
       feed(bodyLines, "@note The argument order is different from its sclang counterpart." :: Nil)
     }
 
-    val bodyAndArgs = if (argDocs.isEmpty) bodyAndWarn else {
+    val bodyAndEx: List[String] = if (!examples || doc.examples.isEmpty) bodyAndWarn else {
+      // Note: the @example tag isn't really helpful. All it does is prepend the text with
+      // an unstyled 'Examples:' line, plus inserting stupid commas.
+      //
+      //      val exList = doc.examples.flatMap { ex =>
+      //        (s"@example ${ex.name}" :: "{{{" :: ex.code) :+ "}}}"
+      //      }
+
+      val exList: List[String] = doc.examples.flatMap { ex =>
+        val codeLines: List[String] = ex.code match {
+          case single :: Nil =>
+            s"play { $single }" :: Nil
+          case multi =>
+            ("play {" :: multi.map(ln => s"  $ln")) :+ "}"
+        }
+        (ex.name :: "{{{" :: codeLines) :+ "}}}"
+      }
+
+      bodyAndWarn ++ ("===Examples===" :: "" :: exList)
+    }
+
+    val bodyAndArgs = if (argDocs.isEmpty) bodyAndEx else {
       val argLines = argDocs.flatMap { case (aName, aDoc) =>
         val aDocL = linesWrap(aDoc, DocWidth - ParamColumns) // 80 - 23 = 57 columns
         aDocL.zipWithIndex.map { case (ln, idx) =>
@@ -211,7 +236,7 @@ final class ClassGenerator
           tab + ln
         }
       }
-      feed(bodyAndWarn, argLines)
+      feed(bodyAndEx, argLines)
     }
 
     val all = if (linkDocs.isEmpty) bodyAndArgs else {
@@ -221,7 +246,7 @@ final class ClassGenerator
 
     // somehow Scala 2.11 eats a line feed for class and object comments...gen
     val firstLine = if (body && BuildInfo.scalaVersion.startsWith("2.11")) "\n" else ""
-    DocDef(DocComment(all.mkString(s"$firstLine/**\n * ", "\n * ", "\n */\n"), NoPosition), tree)
+    DocDef(DocComment(all.mkString(s"$firstLine/** ", "\n  * ", "\n  */\n"), NoPosition), tree)
   }
 
   private def mkLink(link0: String): String = {
@@ -422,7 +447,7 @@ final class ClassGenerator
           TypeDef(NoMods, name: TypeName, Nil, EmptyTree),
           methodBody             // rhs
         )
-        mName -> wrapDoc(spec, df, /* indent = 1, */ body = false, args = true)
+        mName -> wrapDoc(spec, df, /* indent = 1, */ body = false, args = true, examples = false)
       }
 
       // whether the number of arguments is non-zero and there are defaults for all of them
@@ -463,7 +488,7 @@ final class ClassGenerator
           objectMethodDefs  // body
         )
       )
-      wrapDoc(spec, mod, /* indent = 0, */ body = true, args = false) :: Nil
+      wrapDoc(spec, mod, /* indent = 0, */ body = true, args = false, examples = true) :: Nil
     } else Nil
 
     // a `MaybeRate` is used when no rate is implied and an input generally uses a same-as-ugen constraint.
@@ -763,7 +788,7 @@ final class ClassGenerator
       )
     }
 
-    val caseClassWithDoc = wrapDoc(spec, caseClassDef, body = true, args = true)
+    val caseClassWithDoc = wrapDoc(spec, caseClassDef, body = true, args = true, examples = false)
     objectDef ::: (caseClassWithDoc :: Nil)
   }
 }
