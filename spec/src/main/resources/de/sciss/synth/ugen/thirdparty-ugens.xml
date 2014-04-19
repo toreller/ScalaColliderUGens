@@ -25,7 +25,7 @@
             </arg>
             <arg name="mode" default="0">
                 <doc>
-                    The filter can be used in lowpass (`0`) or highpass (`1`) mode.
+                    The filter can be used in low-pass (`0`) or high-pass (`1`) mode.
                 </doc>
             </arg>
             <arg name="noise" default="0.0003">

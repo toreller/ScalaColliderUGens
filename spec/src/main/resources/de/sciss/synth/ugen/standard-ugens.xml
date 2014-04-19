@@ -9,6 +9,15 @@
                     x[n+1] = a - b * sqrt(abs(x[n]))
                     }}}
                 </text>
+                <example name="vary frequency">
+                    CuspN.ar(MouseX.kr(20, SampleRate.ir), 1.0, 1.99) * 0.3
+                </example>
+                <example name="mouse-controlled parameters">
+                    CuspN.ar(SampleRate.ir/4, MouseX.kr(0.9,1.1,1), MouseY.kr(1.8,2,1)) * 0.3
+                </example>
+                <example name="as a frequency control">
+                    SinOsc.ar(CuspN.ar(40, MouseX.kr(0.9,1.1,1), MouseY.kr(1.8,2,1))*800+900)*0.4
+                </example>
                 <see>ugen.CuspL</see>
             </doc>
             <arg name="freq" default="nyquist">
@@ -41,6 +50,15 @@
                     x[n+1] = a - b * sqrt(abs(x[n]))
                     }}}
                 </text>
+                <example name="vary frequency">
+                    CuspL.ar(MouseX.kr(20, SampleRate.ir), 1.0, 1.99) * 0.3
+                </example>
+                <example name="mouse-controlled parameters">
+                    CuspL.ar(SampleRate.ir/4, MouseX.kr(0.9,1.1,1), MouseY.kr(1.8,2,1)) * 0.3
+                </example>
+                <example name="as a frequency control">
+                    SinOsc.ar(CuspL.ar(40, MouseX.kr(0.9,1.1,1), MouseY.kr(1.8,2,1))*800+900)*0.4
+                </example>
                 <see>ugen.CuspN</see>
             </doc>
             <arg name="freq" default="nyquist">
@@ -73,7 +91,8 @@
                         x[n+1] = sin(im * y[n] + fb * x[n])
                         y[n+1] = (a * y[n] + c) % 2pi
                     }}}
-                    This uses a linear congruential function to drive the phase indexing of a sine wave. For  im = 1 ,  fb = 0 , and  a = 1 a normal sinewave results.
+                    This uses a linear congruential function to drive the phase indexing of a sine wave.
+                    For  im = 1 ,  fb = 0 , and  a = 1 a normal sine wave results.
                 </text>
                 <see>ugen.FBSineL</see>
                 <see>ugen.FBSineC</see>
@@ -123,7 +142,8 @@
                         x[n+1] = sin(im * y[n] + fb * x[n])
                         y[n+1] = (a * y[n] + c) % 2pi
                     }}}
-                    This uses a linear congruential function to drive the phase indexing of a sine wave. For  im = 1 ,  fb = 0 , and  a = 1 a normal sinewave results.
+                    This uses a linear congruential function to drive the phase indexing of a sine wave.
+                    For  im = 1 ,  fb = 0 , and  a = 1 a normal sine wave results.
                 </text>
                 <see>ugen.FBSineN</see>
                 <see>ugen.FBSineC</see>
@@ -173,7 +193,8 @@
                         x[n+1] = sin(im * y[n] + fb * x[n])
                         y[n+1] = (a * y[n] + c) % 2pi
                     }}}
-                    This uses a linear congruential function to drive the phase indexing of a sine wave. For  im = 1 ,  fb = 0 , and  a = 1 a normal sinewave results.
+                    This uses a linear congruential function to drive the phase indexing of a sine wave.
+                    For im = 1, fb = 0 , and a = 1 a normal sine wave results.
                 </text>
                 <see>ugen.FBSineN</see>
                 <see>ugen.FBSineL</see>
@@ -307,7 +328,8 @@
                    {{{
                        x[n+2] = 1 - a * pow(x[n+1], 2) + b * x[n]
                    }}}
-                   This equation was discovered by French astronomer Michel Hénon while studying the orbits of stars in globular clusters.
+                   This equation was discovered by French astronomer Michel Hénon while studying
+                   the orbits of stars in globular clusters.
                 </text>
                 <see>ugen.HenonL</see>
                 <see>ugen.HenonC</see>
@@ -346,7 +368,8 @@
                     {{{
                         x[n+2] = 1 - a * pow(x[n+1], 2) + b * x[n]
                     }}}
-                    This equation was discovered by French astronomer Michel Hénon while studying the orbits of stars in globular clusters.
+                    This equation was discovered by French astronomer Michel Hénon while
+                    studying the orbits of stars in globular clusters.
                 </text>
                 <see>ugen.HenonL</see>
                 <see>ugen.HenonC</see>
@@ -385,7 +408,8 @@
                     {{{
                         x[n+2] = 1 - a * pow(x[n+1], 2) + b * x[n]
                     }}}
-                    This equation was discovered by French astronomer Michel Hénon while studying the orbits of stars in globular clusters.
+                    This equation was discovered by French astronomer Michel Hénon while studying
+                    the orbits of stars in globular clusters.
                 </text>
                 <see>ugen.HenonL</see>
                 <see>ugen.HenonC</see>
@@ -986,7 +1010,7 @@
         <ugen name="NumInputBuses">
             <rate name="scalar" implied="true"/>     <!-- method="" -->
             <doc>
-                <text>Number of input busses.</text>
+                <text>Number of input buses.</text>
                 <see>ugen.NumAudioBuses</see>
                 <see>ugen.NumControlBuses</see>
                 <see>ugen.NumBuffers</see>
@@ -997,7 +1021,7 @@
         <ugen name="NumOutputBuses">
             <rate name="scalar" implied="true"/>     <!-- method="" -->
             <doc>
-                <text>Number of output busses.</text>
+                <text>Number of output buses.</text>
                 <see>ugen.NumAudioBuses</see>
                 <see>ugen.NumControlBuses</see>
                 <see>ugen.NumBuffers</see>
@@ -1008,7 +1032,7 @@
         <ugen name="NumAudioBuses">
             <rate name="scalar" implied="true"/>     <!-- method="" -->
             <doc>
-                <text>Number of audio busses.</text>
+                <text>Number of audio buses.</text>
                 <see>ugen.NumControlBuses</see>
                 <see>ugen.NumBuffers</see>
                 <see>ugen.NumInputBuses</see>
@@ -1019,7 +1043,7 @@
         <ugen name="NumControlBuses">
             <rate name="scalar" implied="true"/>     <!-- method="" -->
             <doc>
-                <text>Number of control busses.</text>
+                <text>Number of control buses.</text>
                 <see>ugen.NumAudioBuses</see>
                 <see>ugen.NumBuffers</see>
                 <see>ugen.NumInputBuses</see>
@@ -1316,7 +1340,7 @@
 
                     An alternative to `BufRd` is `PlayBuf`. While `PlayBuf` plays
                     through the buffer by itself, `BufRd` only moves its read point by the phase input
-                    and therefore has no pitch input. `PlayBuf` uses cubic interplation, while
+                    and therefore has no pitch input. `PlayBuf` uses cubic interpolation, while
                     `BufRd` has variable interpolation. `PlayBuf` can determine the end of the buffer
                     and issue a done-action.
                 </text>
@@ -2296,7 +2320,7 @@
             </arg>
             <doc warnpos="true">
                 <text>
-                    A UGen which polls results from demand-rate ugens in intervals specified by a durational input.
+                    A UGen which polls results from demand-rate ugens in intervals specified by a duration input.
                     A value from the `level` ugen is demanded and output according to a stream
                     of duration values. When there is a trigger at the reset input, the `level`
                     and the `dur` input are reset.
@@ -2335,14 +2359,14 @@
             <arg name="gapFirst" default="false" pos="4">
                 <doc>
                     when 0 (default), the UGen does the first level poll immediately and then
-                    waits for the first durational value. When this is 1, the UGen initially polls the first
-                    durational value, waits for that duration, and then polls the first level
-                    (along with polling the next durational value).
+                    waits for the first duration value. When this is 1, the UGen initially polls the first
+                    duration value, waits for that duration, and then polls the first level
+                    (along with polling the next duration value).
                 </doc>
             </arg>
             <doc warnpos="true">
                 <text>
-                    A UGen which polls results from demand-rate ugens in intervals specified by a durational input,
+                    A UGen which polls results from demand-rate ugens in intervals specified by a duration input,
                     and outputs them as trigger values.
                     A value from the `level` ugen is demanded and output for one sample (when
                     running at audio-rate) or one block (when running at control-rate) according to a stream
@@ -2369,7 +2393,7 @@
             </arg>
             <arg name="durs">
                 <doc>
-                    demand-rate ugen (or other ugen) returning durational values
+                    demand-rate ugen (or other ugen) returning duration values
                 </doc>
             </arg>
             <arg name="shapes" default="1">
@@ -2659,7 +2683,7 @@
             </arg>
             <doc>
                 <text>
-                    A UGen which writes a signal to a soundfile on disk. To achieve this efficiently, a buffer is
+                    A UGen which writes a signal to a sound file on disk. To achieve this efficiently, a buffer is
                     needs to be provides which is used to buffer the incoming signal.
 
                     '''Note''': It might be that the buffer size must be a multiple of (2 * the server's block size).
@@ -2745,10 +2769,10 @@
                     There is no time quantization, and it there is fast recovery from low freq values.
 
                     In contrast, `LFNoise0`, `LFNoise1`, and `LFNoise2` quantize to the nearest integer division
-                    of the samplerate, and they poll the freq argument only when scheduled, and thus seem
-                    to hang when freqs get very low.
+                    of the sample rate, and they poll the freq argument only when scheduled, and thus seem
+                    to hang when the frequencies get very low.
 
-                    If very high or very low freqs are not needed, or fixed freqs are used,
+                    If very high or very low frequencies are not needed, or fixed frequencies are used,
                     `LFNoise0` is more efficient.
                 </text>
                 <see>ugen.LFNoise0</see>
@@ -2772,10 +2796,10 @@
                     There is no time quantization, and it there is fast recovery from low freq values.
 
                     In contrast, `LFNoise0`, `LFNoise1`, and `LFNoise2` quantize to the nearest integer division
-                    of the samplerate, and they poll the freq argument only when scheduled, and thus seem
-                    to hang when freqs get very low.
+                    of the sampl erate, and they poll the freq argument only when scheduled, and thus seem
+                    to hang when the frequencies get very low.
 
-                    If very high or very low freqs are not needed, or fixed freqs are used,
+                    If very high or very low frequencies are not needed, or fixed frequencies are used,
                     `LFNoise1` is more efficient.
                 </text>
                 <see>ugen.LFNoise1</see>
@@ -2860,7 +2884,7 @@
                     In other words, the first 'full' FFT of the input happens after fftSize/controlBlockSize
                     cycles, no matter what hop size was chosen.
 
-                    If you use FFT for performing signal analysis and not phase vocoding effects, make sure
+                    If you use FFT for performing signal analysis and not phase vocoder effects, make sure
                     you change the window type accordingly.
                 </text>
                 <see>ugen.IFFT</see>
@@ -3280,7 +3304,7 @@
                     This is done by multiplying the spectrum with a kind of
                     rectangle wave that goes from zero to nyquist. The high slope
                     of the rectangle lets the input bins pass (quasi pass-band),
-                    the low slope filteres them out (quasi stop-band).
+                    the low slope filters them out (quasi stop-band).
                 </text>
                 <see>ugen.PV_RectComb2</see>
             </doc>
@@ -3330,7 +3354,7 @@
                     A phase vocoder UGen that switches between two input spectra
                     according to a rectangle wave.
                     This is basically identical to `PV_RectComb`, however during the
-                    low slopes of the rectangle wavewave, instead of clearing out the bins,
+                    low slopes of the rectangle wave, instead of clearing out the bins,
                     it copies over the corresponding bins of the second fft input buffer.
                 </text>
                 <see>ugen.PV_RectComb</see>
@@ -3382,7 +3406,7 @@
             <doc>
                 <text>
                     A phase vocoder UGen that combine low and high bins from two inputs.
-                    It does so by copiying low bins from one input and the high bins of the other,
+                    It does so by copying low bins from one input and the high bins of the other,
                     thus realizes a kind of "wipe" between the two input signals.
                 </text>
                 <see>ugen.PV_RandWipe</see>
@@ -3566,7 +3590,7 @@
             </arg>
             <doc>
                 <text>
-                    A phase vocoder UGen that crossfades between two input spectra
+                    A phase vocoder UGen that cross-fades between two input spectra
                     by taking bins randomly from them according to a given probability.
                 </text>
                 <see>ugen.PV_BinWipe</see>
@@ -3741,7 +3765,7 @@
             <arg name="trig" default="high">
                 <doc>
                     updates the kernel on a change from non-positive to positive (&lt;= 0 to &gt;0), and starts a new
-                    crossfade from the previous kernel to the new one over the given amount of periods.
+                    cross-fade from the previous kernel to the new one over the given amount of periods.
                 </doc>
             </arg>
             <arg name="frameSize" type="gint" init="true">
@@ -3753,13 +3777,13 @@
             </arg>
             <arg name="fadePeriods" default="1" init="true">
                 <doc>
-                    The number of periods over which a crossfade is performed. This must be an integer
+                    The number of periods over which a cross-fade is performed. This must be an integer
                 </doc>
             </arg>
             <doc>
                 <text>
-                    A frequency domain stereo convolution UGen, capable of performing linear crossfades between kernel updates.
-                    When receiving a trigger, there is a linear crossfade between the old kernel the new buffer contents.
+                    A frequency domain stereo convolution UGen, capable of performing linear cross-fades between kernel updates.
+                    When receiving a trigger, there is a linear cross-fade between the old kernel the new buffer contents.
                     It operates similar to Convolution2L, however uses two buffers and outputs a stereo signal, resulting
                     in better CPU usage than two discrete instances of Convolution2L as this way one FFT transformation per period
                     is saved.
@@ -4583,7 +4607,7 @@
             </arg>
             <doc>
                 <text>
-                    A 2nd order (12db per oct rolloff) resonant low pass filter UGen.
+                    A 2nd order (12db per oct roll-off) resonant low pass filter UGen.
                     The B equalization suite is based on the Second Order Section (SOS) biquad UGen.
 
                     Note: Biquad coefficient calculations imply certain amount of CPU overhead. These
@@ -4612,7 +4636,7 @@
             </arg>
             <doc>
                 <text>
-                    A 2nd order (12db per oct rolloff) resonant high pass filter UGen.
+                    A 2nd order (12db per oct roll-off) resonant high pass filter UGen.
                     The B equalization suite is based on the Second Order Section (SOS) biquad UGen.
 
                     Note: Biquad coefficient calculations imply certain amount of CPU overhead. These
@@ -4980,7 +5004,7 @@
                 <arg name="in" rate="ugen"/>
             </rate>
             <rate name="control"/>
-            <rate name="scalar"/>
+            <!-- <rate name="scalar"/> -->
             <arg name="bus" type="bus"/>
             <arg name="in" variadic="true"/>
         </ugen>
@@ -5526,9 +5550,9 @@
                     detected tempo. Note that the sixteenth note output won't necessarily make much sense if the music
                     being tracked has swing; it is provided just as a convenience.
 
-                    This beat tracker determines the beat, biased to the midtempo range by weighting functions. It does not
+                    This beat tracker determines the beat, biased to the mid-tempo range by weighting functions. It does not
                     determine the measure level, only a tactus. It is also slow reacting, using a 6 second temporal window for
-                    its autocorrelation maneouvres. Don't expect human musician level predictive tracking.
+                    its autocorrelation maneuvres. Don't expect human musician level predictive tracking.
 
                     On the other hand, it is tireless, relatively general (though obviously best at transient 4/4 heavy material
                     without much expressive tempo variation), and can form the basis of computer processing that is decidedly
@@ -5549,13 +5573,13 @@
             <arg name="smask" default="0.25">
                 <doc>
                     Spectral masking parameter: lower bins mask higher bin power within ERB bands, with a power
-                    falloff (leaky integration multiplier) of smask per bin. Can be control-rate modulated.
+                    falloff (leaky integration multiplier) of `smask` per bin. Can be control-rate modulated.
                 </doc>
             </arg>
             <arg name="tmask" default="1.0">
                 <doc>
                     Temporal masking parameter: the phon level let through in an ERB band is the maximum of
-                    the new measurement, and the previous minus tmask phons. Can be control-rate modulated.
+                    the new measurement, and the previous minus `tmask` phons. Can be control-rate modulated.
                 </doc>
             </arg>
             <doc>
@@ -5589,7 +5613,7 @@
             </arg>
             <arg name="chromaLeak" default="0.5">
                 <doc>
-                    Each frame, the chroma values are set to the previous value multiplied by the chromadecay.
+                    Each frame, the chroma values are set to the previous value multiplied by this chroma decay.
                     0.0 will start each frame afresh with no memory. Can be control-rate modulated.
                 </doc>
             </arg>
@@ -5780,8 +5804,8 @@
                     A template matching beat tracker UGen.
                     This beat tracker is based on exhaustively testing particular template patterns against feature streams;
                     the testing takes place every 0.5 seconds. The two basic templates are a straight (groove=0) and a swung
-                    triplet (groove=1) pattern of 16th notes; this pattern is tried out at scalings corresponding to the tempi
-                    from 60 to 180 bpm. This is the cross-corellation method of beat tracking. A majority vote is taken on the
+                    triplet (groove=1) pattern of 16th notes; this pattern is tried out at scaling factors corresponding to the tempi
+                    from 60 to 180 bpm. This is the cross-correlation method of beat tracking. A majority vote is taken on the
                     best tempo detected, but this must be confirmed by a consistency check after a phase estimate. Such a
                     consistency check helps to avoid wild fluctuating estimates, but is at the expense of an additional half
                     second delay. The latency of the beat tracker with default settings is thus at least 2.5 seconds; because
@@ -6010,7 +6034,7 @@
                     A step noise UGen. It generates abruptly changing random values
                     between `-1` and `+1` at a rate given by the `freq` argument.
 
-                    The frequency is quantized to the nearest integer division of the samplerate, and
+                    The frequency is quantized to the nearest integer division of the sample rate, and
                     changes in frequency are only picked up at the next trigger. In contrast,
                     variant `LFDNoise0` has precise frequency and reacts to frequency changes instantly.
                 </text>
@@ -6034,7 +6058,7 @@
                     end points are chosen randomly between `-1` and `+1`. New breakpoints are generated at
                     a specified frequency.
 
-                    The frequency is quantized to the nearest integer division of the samplerate, and
+                    The frequency is quantized to the nearest integer division of the sample rate, and
                     changes in frequency are only picked up at the next trigger. In contrast,
                     variant `LFDNoise1` has precise frequency and reacts to frequency changes instantly.
                 </text>
@@ -6166,7 +6190,7 @@
             <arg name="prob">
                 <doc>
                     a multi-channel graph element, where the output channels correspond to
-                    to the probabilites of their respective indices being chosen.
+                    to the probabilities of their respective indices being chosen.
                 </doc>
             </arg>
             <arg name="normalize" default="false">
@@ -6602,7 +6626,7 @@
             </arg>
             <arg name="pan" default="0.0">
                 <doc>
-                    the xfade position from `-1` (only input A audible) to
+                    the cross-fade position from `-1` (only input A audible) to
                     `+1` (only input B audible)
                 </doc>
             </arg>
@@ -6639,7 +6663,7 @@
             </arg>
             <arg name="pan" default="0.0">
                 <doc>
-                    the xfade position from `-1` (only input A audible) to
+                    the cross-fade position from `-1` (only input A audible) to
                     `+1` (only input B audible)
                 </doc>
             </arg>
@@ -6740,7 +6764,7 @@
                     the offset in the output channels regarding a pan position of zero.
                     Note that ScalaCollider uses a default of zero which means that a pan pos of zero outputs
                     the signal exactly on the first output channel. This is different in sclang where the default is
-                    0.5 which means that a pan position of zero will output the signal inbetween the first and second
+                    0.5 which means that a pan position of zero will output the signal between the first and second
                     speaker. Accordingly, an `orient` of `1.0` would result in a channel offset of one, where a
                     pan position of zero would output the signal exactly on the second output channel, and so forth.
                 </doc>
@@ -6750,13 +6774,13 @@
                     An azimuth-based panorama UGen. It uses vector-based-amplitude panning where
                     the arbitrary number of speakers is supposed to be distributed in a circle
                     with even spacing between them. It uses an equal-power-curve to transition
-                    between adjectant speakers. '''Note''' the different default value for
+                    between adjacent speakers. '''Note''' the different default value for
                     the `orient` argument!
 
                     Use case: To spread an multi-channel input signal across an output bus
                     with a different number of channels, such that the first input channel is played on the
-                    first output channel (no spread to adjectant channels) and the last input channel is played
-                    to the last output channel (no spread to adjectant channels), you would create a dedicated `PanAz` per
+                    first output channel (no spread to adjacent channels) and the last input channel is played
+                    to the last output channel (no spread to adjacent channels), you would create a dedicated `PanAz` per
                     input channel where the pan position
                     is `inChanIdx * 2f / (inChannels - 1) * (outChannels - 1) / outChannels`.
                 </text>
@@ -6869,7 +6893,7 @@
             </arg>
             <doc>
                 <text>
-                    A UGen to test for infinity, not-a-number (NaN), and denormals.
+                    A UGen to test for infinity, not-a-number (NaN), and denormal numbers.
                     Its output is as follows: 0 = a normal float, 1 = NaN, 2 = infinity, and 3 = a denormal.
                     According to the post settings it will print the information to the console along
                     with a given identifier.
@@ -7033,7 +7057,7 @@
             <doc>
                 <text>
                     A UGen that toggles like a flip-flop between zero and one upon receiving a trigger.
-                    The flip-flop is initially outputing zero, so changes to one when the first trigger
+                    The flip-flop initially outputs zero and changes to one when the first trigger
                     arrives.
                 </text>
             </doc>
@@ -7482,7 +7506,7 @@
 
         <!-- XXX TODO:
         <ugen name="PackFFT"/>
-        NOTE: the multi arg is preceded by its size for fuck's sake
+        NOTE: the multi arg is preceded by its size
         -->  <!-- accepts demand rate -->
     </file>
 </ugens>

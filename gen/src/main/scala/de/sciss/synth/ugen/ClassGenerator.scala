@@ -44,7 +44,7 @@ final class ClassGenerator
   def performFiles(node: xml.Node, dir: File, docs: Boolean = true, forceOverwrite: Boolean = false): Unit = {
     val revision = (node \ "@revision").text.toInt
     (node \ "file") foreach { fNode =>
-      val fName   = (fNode \ "@name").text + ".scala"
+      val fName   = s"${(fNode \ "@name").text}.scala"
       val f       = new File(dir, fName)
       val write   = forceOverwrite || !f.isFile || {
         val source = Source.fromFile(f, CHARSET)
@@ -199,7 +199,7 @@ final class ClassGenerator
     val bodyLines = linesFromParagraphs(bodyDoc)
 
     val bodyAndWarn = if (!warnPos) bodyLines else {
-      feed(bodyLines, "'''Warning''': The argument order is different from its sclang counterpart." :: Nil)
+      feed(bodyLines, "@note The argument order is different from its sclang counterpart." :: Nil)
     }
 
     val bodyAndArgs = if (argDocs.isEmpty) bodyAndWarn else {

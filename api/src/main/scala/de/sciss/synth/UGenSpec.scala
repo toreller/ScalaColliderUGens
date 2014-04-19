@@ -65,7 +65,7 @@ object UGenSpec {
       * Individuality means that two instances of a UGen, even when having the same arguments,
       * cannot be reduced to one. An example is reading buffers. If two UGens A and B
       * read from the same buffer, they could still be at different positions within the UGen
-      * graph, with another UGen inbetween them which writes to that buffer; hence they could
+      * graph, with another UGen between them which writes to that buffer; hence they could
       * in fact see two different signals.
       */
     sealed trait ImpliesIndividual extends Attribute
@@ -118,22 +118,22 @@ object UGenSpec {
                             defaults: Map[MaybeRate, ArgumentValue],
                             rates   : Map[MaybeRate, RateConstraint]) {
     override def toString = {
-      val base = s"${name}: ${tpe}"
+      val base = s"$name: $tpe"
       val s1 = defaults.get(UndefinedRate) match {
-        case Some(v)  => s"${base} = ${v}"
+        case Some(v)  => s"$base = $v"
         case _        => base
       }
       val md = defaults - UndefinedRate
       val s2 = if (md.isEmpty) s1 else {
-        s"${s1} ${md.mkString("[", ", ", "]")}"
+        s"$s1 ${md.mkString("[", ", ", "]")}"
       }
       val s3 = rates.get(UndefinedRate) match {
-        case Some(v)  => s"${s2} @${v}"
+        case Some(v)  => s"$s2 @$v"
         case _        => s2
       }
       val mr = rates - UndefinedRate
       if (mr.isEmpty) s3 else {
-        s"${s3} -> ${mr.mkString("[", ", ", "]")}"
+        s"$s3 -> ${mr.mkString("[", ", ", "]")}"
       }
     }
   }
@@ -319,7 +319,7 @@ object UGenSpec {
         val base = "implied: " + rate
         method match {
           case RateMethod.Default => base
-          case _                  => s"${base} (method = ${method})"
+          case _                  => s"$base (method = $method)"
         }
       }
     }
@@ -363,13 +363,15 @@ object UGenSpec {
   final case class Output(name: Option[String], shape: SignalShape, variadic: Option[String]) {
     override def toString = {
       val base  = name getOrElse "<out>"
-      val s1    = if (shape != SignalShape.Generic) s"${base}: ${shape}" else base
+      val s1    = if (shape != SignalShape.Generic) s"$base: $shape" else base
       variadic match {
-        case Some(id) => s"${s1}... (${id})"
+        case Some(id) => s"$s1... ($id)"
         case _ => s1
       }
     }
   }
+
+  final case class Example(name: String, code: List[String])
 
   /** Documentation of a UGen.
     *
@@ -381,7 +383,7 @@ object UGenSpec {
     *                 warranting an explicit warning to the user to raise awareness.
     */
   final case class Doc(body: List[String], args: Map[String, List[String]], outputs: Map[String, List[String]],
-                       links: List[String], warnPos: Boolean)
+                       links: List[String], warnPos: Boolean, examples: List[Example])
 }
 
 /** Specification of a Unit Generator.
@@ -411,7 +413,7 @@ final case class UGenSpec(name: String,
   /** A convenience field which maps from input argument names to inputs. */
   lazy val inputMap: Map[String, UGenSpec.Input   ] = inputs.map(i => i.arg  -> i)(breakOut)
 
-  override def toString = s"${productPrefix}(${name}, attr = ${attr.mkString("[", ", ", "]")}, rates = ${rates}, " +
+  override def toString = s"$productPrefix($name, attr = ${attr.mkString("[", ", ", "]")}, rates = $rates, " +
                           s"args = ${args.mkString("[", ", ", "]")}, inputs = ${inputs.mkString("[", ", ", "]")}, " +
                           s"outputs = ${outputs.mkString("[", ", ", "]")})"
 }

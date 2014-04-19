@@ -63,7 +63,7 @@ private[synth] object UGenSpecParser {
   )
 
   private implicit final class RichAttrMap(val map: Map[String, String]) extends AnyVal {
-    def string (key: String): String = map.getOrElse(key, sys.error(s"Missing required attribute '${key}'"))
+    def string (key: String): String = map.getOrElse(key, sys.error(s"Missing required attribute '$key'"))
     def boolean(key: String, default: Boolean = false): Boolean = map.get(key).map(_.toBoolean).getOrElse(default)
     def intOption(key: String): Option[Int] = map.get(key).map(_.toInt)
   }
@@ -127,10 +127,10 @@ private[synth] object UGenSpecParser {
   }
 
   private def incompatibleTypeDefault(uName: String, aName: String, tpe: Any, df: Any): Nothing =
-    sys.error(s"Mismatch between argument type and default value for ugen ${uName}, argument ${aName}, type is ${tpe}, default is ${df}")
+    sys.error(s"Mismatch between argument type and default value for ugen $uName, argument $aName, type is $tpe, default is $df")
 
   private def errorScalarType(uName: String, aName: String, tpe: ArgumentType): Nothing =
-    sys.error(s"Cannot use scalar declaration with arguments of type ${tpe}, in ${uName}, argument ${aName}")
+    sys.error(s"Cannot use scalar declaration with arguments of type $tpe, in $uName, argument $aName")
 
   // poor man's type inference
   private def inferArgType(uName: String, aName: String,
@@ -152,7 +152,7 @@ private[synth] object UGenSpecParser {
       case "action"   => GE(Sig.DoneAction)
       case "doneflag" => GE(Sig.DoneFlag)
       case "int"      => ArgumentType.Int
-      case other      => sys.error(s"Unsupported type for ugen ${uName}, argument ${aName}: ${other}")
+      case other      => sys.error(s"Unsupported type for ugen $uName, argument $aName: $other")
     }
 
     val isInit    = aAttrs.boolean("init")
@@ -278,7 +278,7 @@ private[synth] object UGenSpecParser {
         aTypeExp match {
           case Some(GE(Sig.String,_)) =>
           case _ =>
-            sys.error(s"Unsupported default value for ugen ${uName}, argument ${aName}: ${default}")
+            sys.error(s"Unsupported default value for ugen $uName, argument $aName: $default")
         }
         GE(Sig.String, scalar = isInit) -> ArgumentValue.String(default)
     }
@@ -327,13 +327,20 @@ private[synth] object UGenSpecParser {
     val docOpt = (node \ "doc").headOption
     docOpt.flatMap { dNode =>
       val dSees: List[String] = (dNode \ "see").map(_.text)(breakOut)
+      val dEx: List[UGenSpec.Example] = (dNode \ "example").map { n =>
+        val a     = n.attributes.asAttrMap
+        val name  = a.string("name")
+        val code  = trimDoc(n.text)
+        UGenSpec.Example(name = name, code = code)
+      } (breakOut)
       val dAttr     = dNode.attributes.asAttrMap
       val dWarnPos  = dAttr.boolean("warnpos")
       val dText     = (dNode \ "text").text
       val hasAny    = !dText.isEmpty || dSees.nonEmpty || dWarnPos || argDocs.nonEmpty || outputDocs.nonEmpty
       if (hasAny) {
         val dTextT  = trimDoc(dText)
-        val doc     = UGenSpec.Doc(body = dTextT, args = argDocs, outputs = Map.empty, links = dSees, warnPos = dWarnPos)
+        val doc     = UGenSpec.Doc(body = dTextT, args = argDocs, outputs = Map.empty, links = dSees,
+          warnPos = dWarnPos, examples = dEx)
         Some(doc)
       } else {
         None
@@ -342,7 +349,7 @@ private[synth] object UGenSpecParser {
   }
 
   def parse(node: xml.Node, docs: Boolean = false, verify: Boolean = false): UGenSpec = {
-    if (node.label != "ugen") throw new IllegalArgumentException(s"Not a 'ugen' node: ${node}")
+    if (node.label != "ugen") throw new IllegalArgumentException(s"Not a 'ugen' node: $node")
 
     import UGenSpec.{SignalShape => Sig, _}
 
@@ -351,10 +358,10 @@ private[synth] object UGenSpecParser {
 
     if (verify) {
       val unknown = attrs.keySet -- nodeAttrKeys
-      require(unknown.isEmpty, s"Unsupported ugen attributes in ${uName}: ${unknown.mkString(",")}")
+      require(unknown.isEmpty, s"Unsupported ugen attributes in $uName: ${unknown.mkString(",")}")
 
       val unknownN = (node.child.collect({ case e: xml.Elem => e.label })(breakOut): Set[String]) -- nodeChildKeys
-      require(unknownN.isEmpty, s"Unsupported ugen child nodes in ${uName}: ${unknownN.mkString(",")}")
+      require(unknownN.isEmpty, s"Unsupported ugen child nodes in $uName: ${unknownN.mkString(",")}")
     }
 
     // ---- attributes ----
@@ -396,18 +403,18 @@ private[synth] object UGenSpecParser {
 
     var argRatesMap = Map.empty[String, Map[Rate, (Option[String], Option[RateConstraint])]] withDefaultValue Map.empty
 
-    def getRateContraint(map: Map[String, String]): Option[RateConstraint] = map.get("rate").map {
+    def getRateConstraint(map: Map[String, String]): Option[RateConstraint] = map.get("rate").map {
       case "ugen"   => RateConstraint.SameAsUGen
       case "audio"  => RateConstraint.Fixed(audio)
     }
 
     def getRate(map: Map[String, String]): Rate = {
-      map.get("name").getOrElse(sys.error(s"Missing rate name in ugen ${uName}")) match {
+      map.get("name").getOrElse(sys.error(s"Missing rate name in ugen $uName")) match {
         case "audio"    => audio
         case "control"  => control
         case "scalar"   => scalar
         case "demand"   => demand
-        case other      => sys.error(s"Invalid rate in ugen ${uName}: ${other}")
+        case other      => sys.error(s"""Invalid rate in ugen $uName: $other""")
       }
     }
 
@@ -416,17 +423,17 @@ private[synth] object UGenSpecParser {
         val raAttr  = raNode.attributes.asAttrMap
         val raName  = raAttr.string("name")
         val raDef   = raAttr.get("default")
-        val raCons  = getRateContraint(raAttr)
+        val raCons  = getRateConstraint(raAttr)
 
         if (verify) {
           val unknown = raAttr -- argRateAttrKeys
           if (unknown.nonEmpty) {
-            sys.error(s"Unsupported attribute in rate specific argument settings, ugen ${uName}, rate ${r}, argument ${raName}: ${unknown.mkString(",")}")
+            sys.error(s"Unsupported attribute in rate specific argument settings, ugen $uName, rate $r, argument $raName: ${unknown.mkString(",")}")
           }
         }
 
         if (raDef.isEmpty && raCons.isEmpty) {
-          sys.error(s"Empty rate specific argument setting, ugen ${uName}, rate ${r}, argument ${raName}")
+          sys.error(s"Empty rate specific argument setting, ugen $uName, rate $r, argument $raName")
         }
 
         val oldMap  = argRatesMap(raName)
@@ -435,7 +442,7 @@ private[synth] object UGenSpecParser {
       }
 
     val rNodes = node \ "rate"
-    if (rNodes.isEmpty) sys.error(s"No rates specified for ${uName}")
+    if (rNodes.isEmpty) sys.error(s"No rates specified for $uName")
     val impliedRate = (rNodes.size == 1) && rNodes.head.attributes.asAttrMap.boolean("implied")
     val rates = if (impliedRate) {
       val rNode   = rNodes.head
@@ -445,19 +452,19 @@ private[synth] object UGenSpecParser {
       if (verify) {
         val unknown = rAttr -- impliedRateAttrKeys
         if (unknown.nonEmpty)
-          sys.error(s"Unsupported ugen rate attributes, in ugen ${uName}, rate ${r}: ${unknown.mkString(",")}")
+          sys.error(s"Unsupported ugen rate attributes, in ugen $uName, rate $r: ${unknown.mkString(",")}")
       }
 
       val rMethod = (rAttr.get("method"), rAttr.get("methodalias")) match {
         case (None, None)     => RateMethod.Default
         case (Some(""), None) =>
           if (aNodes.nonEmpty || indIndiv)
-            sys.error(s"Cannot produce singleton for ugen ${uName} that has arguments or is individual")
+            sys.error(s"Cannot produce singleton for ugen $uName that has arguments or is individual")
           RateMethod.None
         case (Some(m), None)  => RateMethod.Custom(m)
         case (None, Some(m))  => RateMethod.Alias(m)
         case other            =>
-          sys.error(s"Cannot use both method and methodalias attributes, in ugen ${uName}, rate ${r}")
+          sys.error(s"Cannot use both method and methodalias attributes, in ugen $uName, rate $r")
       }
       addArgRate(r, rNode)
       Rates.Implied(r, rMethod)
@@ -470,7 +477,7 @@ private[synth] object UGenSpecParser {
         if (verify) {
           val unknown = rAttr -- rateAttrKeys
           if (unknown.nonEmpty)
-            sys.error(s"Unsupported ugen rate attributes, in ugen ${uName}, rate ${r}: ${unknown.mkString(",")}")
+            sys.error(s"Unsupported ugen rate attributes, in ugen $uName, rate $r: ${unknown.mkString(",")}")
         }
         addArgRate(r, rNode)
         r
@@ -518,7 +525,7 @@ private[synth] object UGenSpecParser {
 
       // constraints and rate specific defaults
 
-      getRateContraint(aAttrs).foreach { cons =>
+      getRateConstraint(aAttrs).foreach { cons =>
         aRates += UndefinedRate -> RateConstraint.SameAsUGen
       }
 
@@ -537,14 +544,14 @@ private[synth] object UGenSpecParser {
       }
 
       def errorMixPos(): Nothing =
-        sys.error(s"Cannot mix positional and non-positional arguments, in ugen ${uName}, argument ${aName}")
+        sys.error(s"Cannot mix positional and non-positional arguments, in ugen $uName, argument $aName")
 
       val arg = Argument(aName, aType, aDefaults, aRates)
       aAttrs.intOption("pos") match {                                                 // handles "pos"
         case Some(pos) =>
           if (args.nonEmpty) errorMixPos()
           if (argsOrd.contains(pos)) {
-            sys.error(s"Duplicate argument input position, in ugen ${uName}, argument ${aName}")
+            sys.error(s"Duplicate argument input position, in ugen $uName, argument $aName")
           }
           argsOrd += pos -> arg
 
@@ -565,15 +572,15 @@ private[synth] object UGenSpecParser {
 
     if (argsOrd.nonEmpty) {
       val sq = argsOrd.keys.toIndexedSeq.sorted
-      if (sq != (0 until sq.size)) sys.error(s"Non contiguous argument positions, in ugen ${uName}: ${sq.mkString(",")}")
+      if (sq != (0 until sq.size)) sys.error(s"Non contiguous argument positions, in ugen $uName: ${sq.mkString(",")}")
       args = sq.map(argsOrd)
     }
 
     if (verify) {
       val hasV = inputs.filter(_.variadic)
       if (hasV.nonEmpty) {
-        if (hasV.size > 1) sys.error(s"Can only have one variadic argument, in ugen ${uName}: ${hasV.map(_.arg).mkString(",")}")
-        if (hasV.head != inputs.last) sys.error(s"Variadic input must come last, in ugen ${uName}, argument ${hasV.head.arg}")
+        if (hasV.size > 1) sys.error(s"Can only have one variadic argument, in ugen $uName: ${hasV.map(_.arg).mkString(",")}")
+        if (hasV.head != inputs.last) sys.error(s"Variadic input must come last, in ugen $uName, argument ${hasV.head.arg}")
       }
     }
 
@@ -583,7 +590,7 @@ private[synth] object UGenSpecParser {
 
     val oNodes  =  node \ "output"
     val zeroOut = (node \ "no-outputs").nonEmpty
-    if (zeroOut && oNodes.nonEmpty) sys.error(s"Cannot mix no-outputs and output nodes, in ugen ${uName}")
+    if (zeroOut && oNodes.nonEmpty) sys.error(s"Cannot mix no-outputs and output nodes, in ugen $uName")
 
     if (!zeroOut && oNodes.isEmpty) {
       outputs = DEFAULT_OUTPUTS
@@ -605,14 +612,14 @@ private[synth] object UGenSpecParser {
         case "switch"   => Sig.Switch
         case "gate"     => Sig.Gate
         case other      =>
-          sys.error(s"Unsupported type, in ugen ${uName}, output ${oName}: ${other}")
+          sys.error(s"Unsupported type, in ugen $uName, output $oName: $other")
       }
       val oShape  = oShape0 getOrElse Sig.Generic
 
       val variadic  = oAttrs.get("variadic")
       variadic.foreach { id =>
         if (!argMap.contains(id))
-          sys.error(s"Variadic output refers to unknown argument, in ugen ${uName}, output ${oName}, ref ${id}")
+          sys.error(s"Variadic output refers to unknown argument, in ugen $uName, output $oName, ref $id")
       }
 
       if (variadic.isDefined) oShape match {
@@ -622,7 +629,7 @@ private[synth] object UGenSpecParser {
         case Sig.Switch   =>
         case Sig.Gate     =>
         case other        =>
-          sys.error(s"Variadic output has unsupported type, in ugen ${uName}, output ${oName}: ${other}")
+          sys.error(s"Variadic output has unsupported type, in ugen $uName, output $oName: $other")
       }
 
       val out = Output(oName, shape = oShape, variadic = variadic)
@@ -636,7 +643,7 @@ private[synth] object UGenSpecParser {
               val oDocT = trimDoc(oDoc)
               if (oDocT .nonEmpty) outputDocs += n -> oDocT
             case _ =>
-              sys.error(s"Documented outputs must be named, in ${uName}")
+              sys.error(s"Documented outputs must be named, in $uName")
           }
         }
       }

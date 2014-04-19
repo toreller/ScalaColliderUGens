@@ -12,9 +12,9 @@ scalaVersion       in ThisBuild := "2.11.0"
 
 crossScalaVersions in ThisBuild := Seq("2.11.0", "2.10.4")
 
-retrieveManaged in ThisBuild := true
+retrieveManaged    in ThisBuild := true
 
-scalacOptions in ThisBuild ++= Seq("-deprecation", "-unchecked", "-feature")
+scalacOptions      in ThisBuild ++= Seq("-deprecation", "-unchecked", "-feature", "-Xfuture")
 
 initialCommands in console in ThisBuild := """import de.sciss.synth._"""
 
