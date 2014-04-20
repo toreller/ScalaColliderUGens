@@ -1,5 +1,5 @@
 <ugens revision="1">
-    <ugen name="FFT" writesfft="true">
+    <ugen name="FFT" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="buf" type="buf" init="true">
@@ -61,14 +61,14 @@
             <see>ugen.FFTTrigger</see>
         </doc>
     </ugen>
-    <ugen name="IFFT" readsfft="true"> <!-- outputs something, like phase? -->
+    <ugen name="IFFT" reads-fft="true"> <!-- outputs something, like phase? -->
         <rate name="control"/>
-        <rate name="audio"/> <!-- methodalias="apply" -->
+        <rate name="audio"/> <!-- method-alias="apply" -->
         <arg name="chain" type="fft"/>
         <arg name="winType" default="0" init="true"/>
         <arg name="winSize" default="0" init="true"/>
     </ugen>
-    <ugen name="FFTTrigger" writesfft="true">
+    <ugen name="FFTTrigger" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <arg name="buf" type="buf" init="true">
             <doc>
@@ -97,7 +97,7 @@
     <!-- </file> -->
 
     <!-- <file name="PV_UGens"> -->
-    <ugen name="PV_MagAbove" readsfft="true" writesfft="true">
+    <ugen name="PV_MagAbove" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chain" type="fft">
@@ -116,7 +116,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="PV_MagBelow" readsfft="true" writesfft="true">
+    <ugen name="PV_MagBelow" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chain" type="fft">
@@ -135,7 +135,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="PV_MagClip" readsfft="true" writesfft="true">
+    <ugen name="PV_MagClip" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chain" type="fft">
@@ -155,7 +155,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="PV_MagMul" readsfft="true" writesfft="true">
+    <ugen name="PV_MagMul" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chainA" type="fft">
@@ -176,7 +176,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="PV_MagDiv" readsfft="true" writesfft="true">
+    <ugen name="PV_MagDiv" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chainA" type="fft">
@@ -205,7 +205,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="PV_MagSquared" readsfft="true" writesfft="true">
+    <ugen name="PV_MagSquared" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chain" type="fft">
@@ -220,7 +220,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="PV_MagNoise" readsfft="true" writesfft="true" random="true">
+    <ugen name="PV_MagNoise" reads-fft="true" writes-fft="true" random="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chain" type="fft">
@@ -234,7 +234,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="PV_Copy" readsfft="true" writesfft="true">
+    <ugen name="PV_Copy" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chainA" type="fft">
@@ -259,7 +259,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="PV_CopyPhase" readsfft="true" writesfft="true">
+    <ugen name="PV_CopyPhase" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chainA" type="fft">
@@ -280,7 +280,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="PV_PhaseShift" readsfft="true" writesfft="true">
+    <ugen name="PV_PhaseShift" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chain" type="fft">
@@ -299,7 +299,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="PV_PhaseShift90" readsfft="true" writesfft="true">
+    <ugen name="PV_PhaseShift90" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chain" type="fft">
@@ -313,7 +313,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="PV_PhaseShift270" readsfft="true" writesfft="true">
+    <ugen name="PV_PhaseShift270" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chain" type="fft">
@@ -327,7 +327,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="PV_Min" readsfft="true" writesfft="true">
+    <ugen name="PV_Min" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chainA" type="fft">
@@ -348,7 +348,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="PV_Max" readsfft="true" writesfft="true">
+    <ugen name="PV_Max" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chainA" type="fft">
@@ -369,7 +369,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="PV_Mul" readsfft="true" writesfft="true">
+    <ugen name="PV_Mul" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chainA" type="fft">
@@ -391,7 +391,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="PV_Div" readsfft="true" writesfft="true">
+    <ugen name="PV_Div" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chainA" type="fft">
@@ -413,7 +413,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="PV_Add" readsfft="true" writesfft="true">
+    <ugen name="PV_Add" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chainA" type="fft">
@@ -435,7 +435,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="PV_RectComb" readsfft="true" writesfft="true">
+    <ugen name="PV_RectComb" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chain" type="fft">
@@ -479,7 +479,7 @@
             <see>ugen.PV_RectComb2</see>
         </doc>
     </ugen>
-    <ugen name="PV_RectComb2" readsfft="true" writesfft="true">
+    <ugen name="PV_RectComb2" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chainA" type="fft">
@@ -530,7 +530,7 @@
             <see>ugen.PV_RectComb</see>
         </doc>
     </ugen>
-    <ugen name="PV_BrickWall" readsfft="true" writesfft="true">
+    <ugen name="PV_BrickWall" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chain" type="fft">
@@ -552,7 +552,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="PV_BinWipe" readsfft="true" writesfft="true">
+    <ugen name="PV_BinWipe" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chainA" type="fft">
@@ -582,7 +582,7 @@
             <see>ugen.PV_RandWipe</see>
         </doc>
     </ugen>
-    <ugen name="PV_LocalMax" readsfft="true" writesfft="true">
+    <ugen name="PV_LocalMax" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chain" type="fft">
@@ -604,7 +604,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="PV_Conj" readsfft="true" writesfft="true">
+    <ugen name="PV_Conj" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chain" type="fft">
@@ -621,7 +621,7 @@
         </doc>
     </ugen>
 
-    <ugen name="PV_BinScramble" readsfft="true" writesfft="true" random="true">
+    <ugen name="PV_BinScramble" reads-fft="true" writes-fft="true" random="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chain" type="fft">
@@ -653,7 +653,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="PV_MagSmear" readsfft="true" writesfft="true">
+    <ugen name="PV_MagSmear" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chain" type="fft">
@@ -672,7 +672,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="PV_MagShift" readsfft="true" writesfft="true">
+    <ugen name="PV_MagShift" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chain" type="fft">
@@ -699,7 +699,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="PV_BinShift" readsfft="true" writesfft="true">
+    <ugen name="PV_BinShift" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chain" type="fft">
@@ -728,7 +728,7 @@
         </doc>
     </ugen>
 
-    <ugen name="PV_RandWipe" readsfft="true" writesfft="true" random="true">
+    <ugen name="PV_RandWipe" reads-fft="true" writes-fft="true" random="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chainA" type="fft">
@@ -766,7 +766,7 @@
             <see>ugen.PV_BinWipe</see>
         </doc>
     </ugen>
-    <ugen name="PV_Diffuser" readsfft="true" writesfft="true" random="true">
+    <ugen name="PV_Diffuser" reads-fft="true" writes-fft="true" random="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chain" type="fft">
@@ -787,7 +787,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="PV_RandComb" readsfft="true" writesfft="true" random="true">
+    <ugen name="PV_RandComb" reads-fft="true" writes-fft="true" random="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chain" type="fft">
@@ -816,7 +816,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="PV_MagFreeze" readsfft="true" writesfft="true">
+    <ugen name="PV_MagFreeze" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chain" type="fft">
@@ -839,10 +839,10 @@
     <!-- </file> -->
 
     <!-- <file name="PartitionedConvolution"> -->
-    <ugen name="PartConv" readsbuf="true">
+    <ugen name="PartConv" reads-buf="true">
         <rate name="audio"/>
         <arg name="in"/>
-        <arg name="fftSize" type="gint" init="true"/>
+        <arg name="fftSize" type="ge-int" init="true"/>
         <arg name="buf" type="buf" init="true"/>
     </ugen>
 </ugens>

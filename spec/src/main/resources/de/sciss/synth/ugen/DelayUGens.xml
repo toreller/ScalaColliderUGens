@@ -292,7 +292,7 @@
         </arg>
     </ugen>
 
-    <ugen name="PlayBuf" readsbuf="true" sideeffect="true" doneflag="true">
+    <ugen name="PlayBuf" reads-buf="true" side-effect="true" done-flag="true">
         <rate name="control"/>
         <rate name="audio"/>
         <output variadic="numChannels"/>
@@ -360,7 +360,7 @@
     </ugen>
     <!-- <ugen name="SimpleLoopBuf">
     </ugen> -->
-    <ugen name="RecordBuf" writesbuf="true" sideeffect="true" doneflag="true">
+    <ugen name="RecordBuf" writes-buf="true" side-effect="true" done-flag="true">
         <rate name="audio"/>
         <rate name="control"/>
         <doc>
@@ -443,7 +443,7 @@
             </doc>
         </arg>
     </ugen>
-    <ugen name="BufRd" readsbuf="true" doneflag="true">
+    <ugen name="BufRd" reads-buf="true" done-flag="true">
         <rate name="scalar"/>
         <rate name="control"/>
         <rate name="audio">
@@ -497,7 +497,7 @@
             <see>ugen.BufRateScale</see>
         </doc>
     </ugen>
-    <ugen name="BufWr" writesbuf="true" doneflag="true">
+    <ugen name="BufWr" writes-buf="true" done-flag="true">
         <rate name="scalar"/>
         <rate name="control"/>
         <rate name="audio">
@@ -662,18 +662,16 @@
                 // be careful and use headphones!
                 val in      = Mix(PhysicalIn.ar(0, 2))
                 val amp     = Amplitude.kr(in, 0.05, 0.05)
-                val pch     = Pitch.kr(in, ampThresh = 0.02, median = 7)
-                val freq    = pch \ 0
-                val hasFreq = pch \ 1
-                val saw     = Mix(VarSaw.ar(freq * Seq(0.5, 1, 2), 0, LFNoise1.kr(0.3,0.1,0.1)) * amp)
-                Mix.fold(6)(saw) { res =>
+                val p       = Pitch.kr(in, ampThresh = 0.02, median = 7)
+                val saw     = Mix(VarSaw.ar(p.freq * Seq(0.5, 1, 2), 0, LFNoise1.kr(0.3,0.1,0.1)) * amp)
+                Mix.fold(saw, 6) { res =>
                   AllpassN.ar(res, 0.040, Rand(0, 0.040), Rand(0, 0.040), 2)
                 }
             </example>
         </doc>
     </ugen>
 
-    <ugen name="BufDelayN" readsbuf="true" writesbuf="true">
+    <ugen name="BufDelayN" reads-buf="true" writes-buf="true">
         <rate name="control"/>
         <rate name="audio">
             <arg name="in" rate="ugen"/>
@@ -701,7 +699,7 @@
             <see>ugen.BufDelayC</see>
         </doc>
     </ugen>
-    <ugen name="BufDelayL" readsbuf="true" writesbuf="true">
+    <ugen name="BufDelayL" reads-buf="true" writes-buf="true">
         <rate name="control"/>
         <rate name="audio">
             <arg name="in" rate="ugen"/>
@@ -729,7 +727,7 @@
             <see>ugen.BufDelayC</see>
         </doc>
     </ugen>
-    <ugen name="BufDelayC" readsbuf="true" writesbuf="true">
+    <ugen name="BufDelayC" reads-buf="true" writes-buf="true">
         <rate name="control"/>
         <rate name="audio">
             <arg name="in" rate="ugen"/>
@@ -757,7 +755,7 @@
             <see>ugen.BufDelayL</see>
         </doc>
     </ugen>
-    <ugen name="BufCombN" readsbuf="true" writesbuf="true">
+    <ugen name="BufCombN" reads-buf="true" writes-buf="true">
         <rate name="audio">
             <arg name="in" rate="ugen"/>
         </rate>
@@ -790,7 +788,7 @@
             <see>ugen.BufCombC</see>
         </doc>
     </ugen>
-    <ugen name="BufCombL" readsbuf="true" writesbuf="true">
+    <ugen name="BufCombL" reads-buf="true" writes-buf="true">
         <rate name="audio">
             <arg name="in" rate="ugen"/>
         </rate>
@@ -823,7 +821,7 @@
             <see>ugen.BufCombC</see>
         </doc>
     </ugen>
-    <ugen name="BufCombC" readsbuf="true" writesbuf="true">
+    <ugen name="BufCombC" reads-buf="true" writes-buf="true">
         <rate name="audio">
             <arg name="in" rate="ugen"/>
         </rate>
@@ -856,7 +854,7 @@
             <see>ugen.BufCombL</see>
         </doc>
     </ugen>
-    <ugen name="BufAllpassN" readsbuf="true" writesbuf="true">
+    <ugen name="BufAllpassN" reads-buf="true" writes-buf="true">
         <rate name="audio">
             <arg name="in" rate="ugen"/>
         </rate>
@@ -889,7 +887,7 @@
             <see>ugen.BufAllpassC</see>
         </doc>
     </ugen>
-    <ugen name="BufAllpassL" readsbuf="true" writesbuf="true">
+    <ugen name="BufAllpassL" reads-buf="true" writes-buf="true">
         <rate name="audio">
             <arg name="in" rate="ugen"/>
         </rate>
@@ -922,7 +920,7 @@
             <see>ugen.BufAllpassC</see>
         </doc>
     </ugen>
-    <ugen name="BufAllpassC" readsbuf="true" writesbuf="true">
+    <ugen name="BufAllpassC" reads-buf="true" writes-buf="true">
         <rate name="audio">
             <arg name="in" rate="ugen"/>
         </rate>
@@ -1282,7 +1280,7 @@
     <!-- this should exist according to plugin sources...
     <ugen name="GrainTap"/>
     -->
-    <ugen name="TGrains" readsbuf="true">  <!-- accepts demand rate -->
+    <ugen name="TGrains" reads-buf="true">  <!-- accepts demand rate -->
         <rate name="audio" implied="true"/>
         <output variadic="numChannels"/>
         <arg name="numChannels" type="int">
@@ -1343,14 +1341,14 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="ScopeOut" writesbuf="true">
+    <ugen name="ScopeOut" writes-buf="true">
         <no-outputs/>   <!-- XXX zero outputs? -->
         <rate name="audio"/>
         <rate name="control"/>
         <arg name="buf" type="buf"/>
         <arg name="in" variadic="true"/>
     </ugen>
-    <ugen name="ScopeOut2" writesbuf="true">
+    <ugen name="ScopeOut2" writes-buf="true">
         <no-outputs/>   <!-- XXX zero outputs? -->
         <rate name="audio"/>
         <rate name="control"/>
@@ -1398,7 +1396,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="DelTapWr" writesbuf="true">
+    <ugen name="DelTapWr" writes-buf="true">
         <rate name="audio"/>
         <rate name="control"/>
         <arg name="buf" type="buf">
@@ -1421,7 +1419,7 @@
             <see>ugen.DelTapRd</see>
         </doc>
     </ugen>
-    <ugen name="DelTapRd" readsbuf="true">
+    <ugen name="DelTapRd" reads-buf="true">
         <rate name="audio"/>
         <rate name="control"/>
         <arg name="buf" type="buf">

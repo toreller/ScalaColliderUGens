@@ -73,14 +73,14 @@ sealed abstract class MaybeRate extends Product {
 
   /** A `getOrElse` operator that returns a defined rate, and if this object is `UndefinedRate` will evaluate the
     * method argument. */
-  def ?|(r: => Rate): Rate
+  def getOrElse(r: => Rate): Rate
 }
 
 /** An undefined rate signifies that a rate is either unknown or will be implicitly resolved. */
 case object UndefinedRate extends MaybeRate {
   final val id = -1
   val toOption: Option[Rate] = None
-  def ?|(r: => Rate): Rate = r
+  def getOrElse(r: => Rate): Rate = r
 }
 
 object Rate {
@@ -112,7 +112,7 @@ sealed abstract class Rate extends MaybeRate with Ordered[Rate] {
   final val toIndexedSeq: Vec[Rate] = Vec(this)
 
   /** Returns `this` object without resolving the argument. */
-  final def ?|(r: => Rate): Rate = this
+  final def getOrElse(r: => Rate): Rate = this
 
   /** Returns the minimum of this and another rate, based on their identifiers
     * (e.g., `scalar < control`).

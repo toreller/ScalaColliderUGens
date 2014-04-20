@@ -1,9 +1,9 @@
 <ugens revision="1">
-    <ugen name="Convolution" readsbuf="true">
+    <ugen name="Convolution" reads-buf="true">
         <rate name="audio"/>
         <arg name="in"/>
         <arg name="kernel"/>
-        <arg name="frameSize" type="gint" init="true"/>
+        <arg name="frameSize" type="ge-int" init="true"/>
         <doc>
             <see>ugen.Convolution2L</see>
             <see>ugen.Convolution3</see>
@@ -11,7 +11,7 @@
             <see>ugen.StereoConvolution2L</see>
         </doc>
     </ugen>
-    <ugen name="Convolution2" readsbuf="true">
+    <ugen name="Convolution2" reads-buf="true">
         <rate name="audio"/>
         <arg name="in">
             <doc>
@@ -28,7 +28,7 @@
                 updates the kernel on a change from non-positive to positive (&lt;= 0 to &gt;0)
             </doc>
         </arg>
-        <arg name="frameSize" type="gint" init="true">
+        <arg name="frameSize" type="ge-int" init="true">
             <doc>
                 size of the kernel. this must be a power of two. the FFT calculated internally
                 by the UGen has a size of twice this value. The maximum allowed frameSize
@@ -48,12 +48,12 @@
             <see>ugen.StereoConvolution2L</see>
         </doc>
     </ugen>
-    <ugen name="Convolution2L" readsbuf="true">
+    <ugen name="Convolution2L" reads-buf="true">
         <rate name="audio"/>
         <arg name="in"/>
         <arg name="kernel"/>
         <arg name="trig" default="high"/>
-        <arg name="frameSize" type="gint" init="true"/>
+        <arg name="frameSize" type="ge-int" init="true"/>
         <arg name="fadePeriods" default="1" init="true"/>
         <doc>
             <see>ugen.Convolution2</see>
@@ -62,7 +62,7 @@
             <see>ugen.StereoConvolution2L</see>
         </doc>
     </ugen>
-    <ugen name="StereoConvolution2L" readsbuf="true">
+    <ugen name="StereoConvolution2L" reads-buf="true">
         <rate name="audio"/>
         <output name="left"/>
         <output name="right"/>
@@ -89,7 +89,7 @@
                 cross-fade from the previous kernel to the new one over the given amount of periods.
             </doc>
         </arg>
-        <arg name="frameSize" type="gint" init="true">
+        <arg name="frameSize" type="ge-int" init="true">
             <doc>
                 size of each kernel. this must be a power of two. the FFT calculated internally
                 by the UGen has a size of twice this value. The maximum allowed frameSize
@@ -115,12 +115,12 @@
             <see>ugen.Convolution2L</see>
         </doc>
     </ugen>
-    <ugen name="Convolution3" readsbuf="true">
+    <ugen name="Convolution3" reads-buf="true">
         <rate name="audio"/>
         <arg name="in"/>
         <arg name="kernel"/>
         <arg name="trig" default="high"/>
-        <arg name="frameSize" type="gint" init="true"/>
+        <arg name="frameSize" type="ge-int" init="true"/>
         <doc>
             <text>
                 A UGen for triggered convolution in the time domain.
@@ -128,7 +128,7 @@
         </doc>
     </ugen>
 
-    <ugen name="PV_ConformalMap" readsfft="true" writesfft="true">
+    <ugen name="PV_ConformalMap" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
         <arg name="chain" type="fft"/>
@@ -136,7 +136,7 @@
         <arg name="imag" default="0.0"/>
     </ugen>
 
-    <ugen name="PV_JensenAndersen" readsfft="true">
+    <ugen name="PV_JensenAndersen" reads-fft="true">
         <rate name="audio"/>
         <arg name="chain" type="fft"/>
         <arg name="propSC" default="0.25"/>
@@ -146,7 +146,7 @@
         <arg name="thresh" default="1.0"/>
         <arg name="waitTime" default="0.04"/>
     </ugen>
-    <ugen name="PV_HainsworthFoote" readsfft="true">
+    <ugen name="PV_HainsworthFoote" reads-fft="true">
         <rate name="audio"/>
         <arg name="chain" type="fft"/>
         <arg name="propH" default="0.0"/>

@@ -38,17 +38,17 @@
     <ugen name="Balance2">
         <rate name="control"/>
         <rate name="audio">
-            <arg name="left" rate="ugen"/>
-            <arg name="right" rate="ugen"/>
+            <arg name="inL" rate="ugen"/>
+            <arg name="inR" rate="ugen"/>
         </rate>
         <output name="left"/>
         <output name="right"/>
-        <arg name="left">
+        <arg name="inL">
             <doc>
                 The left input signal
             </doc>
         </arg>
-        <arg name="right">
+        <arg name="inR">
             <doc>
                 The right input signal
             </doc>
@@ -73,8 +73,8 @@
     <ugen name="Rotate2">
         <rate name="control"/>
         <rate name="audio">
-            <arg name="left" rate="ugen"/>
-            <arg name="right" rate="ugen"/>
+            <arg name="x" rate="ugen"/>
+            <arg name="y" rate="ugen"/>
         </rate>
         <output name="xr"/>
         <output name="yr"/>
@@ -87,7 +87,7 @@
         <rate name="audio">
             <arg name="inA" rate="ugen"/>
             <!-- DC.ar(0) and K2A.ar(0) take about the same amount of CPU,
-              where the latter is favorable as it is a singleout ugen.
+              where the latter is favorable as it is a single-out ugen.
               In contrast, Silent.ar takes about 20% more CPU (measured 07-jan-10) -->
             <arg name="inB" rate="ugen"/>  <!-- default="K2A.ar(0)" -->
         </rate>

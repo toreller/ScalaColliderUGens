@@ -1,9 +1,9 @@
 <ugens revision="1">
-    <ugen name="Unpack1FFT" readsfft="true">
+    <ugen name="Unpack1FFT" reads-fft="true">
         <rate name="demand" implied="true" method="apply"/>
         <arg name="chain" type="fft"/>
-        <arg name="fftSize" type="gint"/>
-        <arg name="bin" type="gint"/>
+        <arg name="fftSize" type="ge-int"/>
+        <arg name="bin" type="ge-int"/>
         <arg name="which" default="0"/>
     </ugen>
 

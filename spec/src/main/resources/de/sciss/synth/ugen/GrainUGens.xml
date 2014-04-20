@@ -1,5 +1,5 @@
 <ugens name="GrainUGens" revision="1">
-    <ugen name="GrainIn" readsbuf="true">  <!-- accepts demand rate -->
+    <ugen name="GrainIn" reads-buf="true">  <!-- accepts demand rate -->
         <rate name="audio" implied="true"/>
         <output variadic="numChannels"/>
         <arg name="numChannels" type="int" default="1" pos="1"/>
@@ -9,9 +9,9 @@
         <arg name="pan" default="0.0" pos="4"/>
         <arg name="envBuf" default="-1" pos="5"/> <!-- type="buf" ? -->
         <arg name="maxGrains" default="512" pos="6"/>
-        <doc warnpos="true"/>
+        <doc warn-pos="true"/>
     </ugen>
-    <ugen name="GrainSin" readsbuf="true">  <!-- accepts demand rate -->
+    <ugen name="GrainSin" reads-buf="true">  <!-- accepts demand rate -->
         <rate name="audio" implied="true"/>
         <output variadic="numChannels"/>
         <arg name="numChannels" type="int" default="1"/>
@@ -22,7 +22,7 @@
         <arg name="envBuf" default="-1"/> <!-- type="buf" ? -->
         <arg name="maxGrains" default="512"/>
     </ugen>
-    <ugen name="GrainFM" readsbuf="true"> <!-- accepts demand rate -->
+    <ugen name="GrainFM" reads-buf="true"> <!-- accepts demand rate -->
         <rate name="audio" implied="true"/>
         <output variadic="numChannels"/>
         <arg name="numChannels" type="int" default="1"/>
@@ -35,7 +35,7 @@
         <arg name="envBuf" default="-1"/> <!-- type="buf" ? -->
         <arg name="maxGrains" default="512"/>
     </ugen>
-    <ugen name="GrainBuf" readsbuf="true">  <!-- accepts demand rate -->
+    <ugen name="GrainBuf" reads-buf="true">  <!-- accepts demand rate -->
         <rate name="audio" implied="true"/>
         <output variadic="numChannels"/>
         <arg name="numChannels" type="int" default="1" pos="1"/>
@@ -48,9 +48,9 @@
         <arg name="pan" default="0.0" pos="7"/>
         <arg name="envBuf" default="-1" pos="8"/>
         <arg name="maxGrains" default="512" pos="9"/>
-        <doc warnpos="true"/>
+        <doc warn-pos="true"/>
     </ugen>
-    <ugen name="Warp1" readsbuf="true">  <!-- accepts demand rate -->
+    <ugen name="Warp1" reads-buf="true">  <!-- accepts demand rate -->
         <rate name="audio" implied="true"/>
         <output variadic="numChannels"/>
         <arg name="numChannels" type="int"/>

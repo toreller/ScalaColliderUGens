@@ -77,24 +77,24 @@ UGen Attributes (`ugenAttr`) are boolean flags (all false by default) which can 
 
 |Attribute Name|Meaning when value is `"true"`   |Example   |
 |--------------|---------------------------------|----------|
-|`readsbus`    |UGen reads from a bus            |`In`      |
-|`writesbus`   |UGen writes to a bus             |`Out`     |
-|`readsbuf`    |UGen reads audio buffer data     |`BufRd`   |
-|`writesbuf`   |UGen overwrites audio buffer data|`BufWr`   |
-|`readsfft`    |UGen reads from an FFT buffer    |`IFFT`    |
-|`writesfft`   |UGen writes to an FFT buffer     |`FFT`     |
-|`doneflag`    |UGen sets a 'done flag'          |`Line`    |
-|`sideeffect`  |UGen has another side effect, for example causing a 'done-action', sending OSC commands, or printing to the console |`SendTrig`|
+|`reads-bus`   |UGen reads from a bus            |`In`      |
+|`writes-bus`  |UGen writes to a bus             |`Out`     |
+|`reads-buf`   |UGen reads audio buffer data     |`BufRd`   |
+|`writes-buf`  |UGen overwrites audio buffer data|`BufWr`   |
+|`reads-fft`   |UGen reads from an FFT buffer    |`IFFT`    |
+|`writes-fft`  |UGen writes to an FFT buffer     |`FFT`     |
+|`done-flag`   |UGen sets a 'done flag'          |`Line`    |
+|`side-effect` |UGen has another side effect, for example causing a 'done-action', sending OSC commands, or printing to the console |`SendTrig`|
 |`random`      |UGen depends on random seeding   |`WhiteNoise`|
 |`indiv`       |Each UGen is otherwise individual, even with identical inputs|Demand UGens advance their inputs|
 
-Part of this information is used by ScalaCollider when building the UGen graph. For example, subtrees which do not have any side effects are automatically removed. UGens which have side effects are those for which either of the following flags is set: `writesbus` | `writesbuf` | `writesfft` | `sideeffect`. Furthermore, multiple occurrences of UGens which are functionally equivalent are collapsed. UGens are _functionally not equivalent_ if either of the following flags is set: _any of the side effects_ | _any of the resource readers_ | `random` | `indiv`. That is to say, if there are two `WhiteNoise` UGens, they are functionally distinct by definition and will thus not be collapsed. The same is true for two `Out` UGens, even if their inputs are the same, as they have accumulative side effects on the bus to which they write. On the other hand, two `SinOsc` UGens with the same frequency and rate inputs are functionally equivalent and thus one can be replaced for the other.
+Part of this information is used by ScalaCollider when building the UGen graph. For example, subtrees which do not have any side effects are automatically removed. UGens which have side effects are those for which either of the following flags is set: `writes-bus` | `writes-buf` | `writes-fft` | `side-effect`. Furthermore, multiple occurrences of UGens which are functionally equivalent are collapsed. UGens are _functionally not equivalent_ if either of the following flags is set: _any of the side effects_ | _any of the resource readers_ | `random` | `indiv`. That is to say, if there are two `WhiteNoise` UGens, they are functionally distinct by definition and will thus not be collapsed. The same is true for two `Out` UGens, even if their inputs are the same, as they have accumulative side effects on the bus to which they write. On the other hand, two `SinOsc` UGens with the same frequency and rate inputs are functionally equivalent and thus one can be replaced for the other.
 
 More flags and meta data are planned in future version, e.g. oscillator signal ranges, filter coefficients.
 
 #### UGen Rates
 
-The possible rate names are `"scalar"`, `"control"`, `"audio"`, and `"demand"`. Each supported rate should have its own element. There are three extra attributes, `implied`, `method`, and `methodalias`.
+The possible rate names are `"scalar"`, `"control"`, `"audio"`, and `"demand"`. Each supported rate should have its own element. There are three extra attributes, `implied`, `method`, and `method-alias`.
 
 `implied` says that the UGen not only has exactly one supported rate (an exception is thrown if you have a UGen with multiple rate elements and an `implied` attribute), but that this a natural precondition for the type of UGen. That way, the `case class` for that UGen does not carry a `rate` argument, but mixes in a trait which provides it. As a consequence, there is no argument for the rate when using pattern matching against that UGen. For example, `K2A` makes only sense at audio rate, `A2K` makes only sense at control rate, `FreeVerb` and `Pitch` make only sense at audio rate. Using this attribute, we have `case class K2A(in: GE)` (with mixin `AudioRated`) instead of the redundant `case class K2A(rate: Rate, in: GE)`.
 
@@ -102,7 +102,7 @@ Be very __careful__ with this attribute, it should not be used if another rate c
 
 The second attribute, `method`, builds up `implied` and requires that `implied` has been specified. It states that instead of the default method name in the companion object&mdash;`ir` for scalar rate, `kr` for control rate, `ar` for audio rate, and `dr` for demand rate&mdash;an alternative method name is used. The method name is typically `apply`, so that instead of `FFT.kr(buf, sig)` you have to write `FFT.apply(buf, sig)` or short `FFT(buf, sig)`, which is more convenient.
 
-`methodalias` adds _an additional_ method for the rate. An example is `IFFT` which specifies `<rate name="audio" methodalias="apply"/>`. This means the default method `ar` is created, plus an `apply` method as an alias.
+`method-alias` adds _an additional_ method for the rate. An example is `IFFT` which specifies `<rate name="audio" method-alias="apply"/>`. This means the default method `ar` is created, plus an `apply` method as an alias.
 
 #### Argument Attributes
 
@@ -117,8 +117,8 @@ The following table lists the allowed `type` values, and corresponding ways of d
 |Type name      |Description                                  |Example defaults    |
 |---------------|---------------------------------------------|--------------------|
 |`ge` (default) |Generic graph element                        | `-1.0`, `440.0`    |
-|`gint`         |Graph element used as integer                | `-1`, `18`         |
-|`gstring`      |String converted to variadic float constants | `"poll"`           |
+|`ge-int`       |Graph element used as integer                | `-1`, `18`         |
+|`ge-string`    |String converted to variadic float constants | `"poll"`           |
 |`bus`          |Bus index                                    | no default allowed |
 |`buf`          |Buffer identifier                            | no default allowed |
 |`fft`          |FFT buffer phase chain signal                | no default allowed |
@@ -127,7 +127,7 @@ The following table lists the allowed `type` values, and corresponding ways of d
 |`gate`         |Gating signal (open above zero)              | `closed`, `open`   |
 |`mul`          |Synthetic multiplier input                   | `1.0`              |
 |`action`       |Done action                                  | `freeSelf`, `doNothing` |
-|`doneflag`     |UGen which sets a done flag                  | no default allowed |
+|`done-flag`    |UGen which sets a done flag                  | no default allowed |
 |`int`          |Static integer (no graph element)            | `-1`, `18`         |
 
 A special default value `"nyquist"` can be used which is understood as `SampleRate.ir/2`. Note that expressions such as `"60.midicps"` have been currently disallowed for simplicity and language neutrality.
@@ -136,7 +136,7 @@ The following three argument attributes have boolean values, and are `"false"` b
 
 |Attribute Name|Meaning when value is `"true"`   |Example   |
 |--------------|---------------------------------|----------|
-|`ugenin`|Forces an `Int` type argument to be used as actual UGen input and not just auxiliary type. | `MFCC` |
+|`ugen-in` |Forces an `Int` type argument to be used as actual UGen input and not just auxiliary type. | `MFCC` |
 |`variadic`|Indicates an argument which expands over multiple UGen inputs. | `RecordBuf` (`in`), `Dseq` (`seq`) |
 
 Arguments should be chosen careful not to conflict with methods available on `GEOps`. This is the reason, why various arguments which are named `rate` in SCLang have been renamed for example to `speed`, `freq` etc. It is recommended to take a look at the naming of the arguments in the default plugins (rather than relying on the naming in SCLang which is often unreflected and irregular) and try to reuse them whenever possible, and to be as consistent as possible with abbreviations. Care is also needed with the default values. There are some default values in SCLang which are insensible, while other useful defaults are missing. The aim is not to provide default values for every possible argument, but to require to fill in arguments for which defaults do not make sense.
@@ -149,7 +149,7 @@ If a UGen's arguments do not have `pos` attributes, they are considered in the o
 
 As an example, consider `XOut` which has the unintuitive argument order of _bus_, followed by _cross-fade level_, followed by _input signal_. Compare this to `Out` which has the two arguments of _bus_, followed by _input signal_. We decided to make the `XOut` arguments appear to the user in the order of _bus_, then _input signal_ (just like `Out`), then followed by the distinguishing parameter of the _cross-fade level_. Thus we assign `pos="1"` to the `in` argument and `pos="2"` to the `xfade` argument, so they switch their positions. To minimize mistakes, ScalaCollider-UGens requires that we also add `pos="0"` to the `bus` argument, even if that does not affect its final position. The whole UGen specification thus becomes:
 
-    <ugen name="XOut" writesbus="true">
+    <ugen name="XOut" writes-bus="true">
        <no-outputs/>
        <rate name="audio">
           <arg name="in" rate="ugen"/>
@@ -158,10 +158,10 @@ As an example, consider `XOut` which has the unintuitive argument order of _bus_
        <arg name="bus" pos="0"/>
        <arg name="xfade" pos="2"/>
        <arg name="in" variadic="true" pos="1"/>
-       <doc warnpos="true"/>
+       <doc warn-pos="true"/>
     </ugen>
 
-__Note__ how the attribute `warnpos="true"` was added to the `doc` element. This makes Scaladoc add an extra note to alert the user of the change in argument order. This is particularly important, as it may create confusion when coming from SCLang. It is recommended to apply argument reorderings only after careful consideration, and to abstain from them when in doubt.
+__Note__ how the attribute `warn-pos="true"` was added to the `doc` element. This makes Scaladoc add an extra note to alert the user of the change in argument order. This is particularly important, as it may create confusion when coming from SCLang. It is recommended to apply argument reordering only after careful consideration, and to abstain from them when in doubt.
 
 #### Rate Specific Argument Settings
 
@@ -182,7 +182,7 @@ As an example for different default values, here is the full text of `LeakDC`:
 
 An an example of restricting the argument's rate only in certain cases is `Out`:
 
-    <ugen name="Out" writesbus="true">
+    <ugen name="Out" writes-bus="true">
        <no-outputs/>
        <rate name="audio">
           <arg name="in" rate="ugen"/>
@@ -209,9 +209,9 @@ By default the UGen is considered to have one monophonic output. All other UGens
 
 #### Descriptions
 
-The description text for arguments is the text inside the argument's `<doc></doc>` element. The description text for the UGen is inside the `<text></text>` element inside the `<doc></doc>` element. In each case, standard [Scaladoc formatting](https://wiki.scala-lang.org/display/SW/Syntax) is allowed. Crosslinks are provided through any number of `<see></see>` elements.
+The description text for arguments is the text inside the argument's `<doc></doc>` element. The description text for the UGen is inside the `<text></text>` element inside the `<doc></doc>` element. In each case, standard [Scaladoc formatting](https://wiki.scala-lang.org/display/SW/Syntax) is allowed. Cross-links are provided through any number of `<see></see>` elements.
 
 Please follow carefully the style of the descriptions used for the standard UGens. They adhere mostly to [Javadoc style practice](http://www.oracle.com/technetwork/java/javase/documentation/index-137868.html#styleguide), and not so much to the more colloquial style of SCLang docs. The purpose here is not to include lengthy examples, but to be technically precise in the meanings of the argument values and the exact functioning of the UGen, if possible covering corner cases, providing details about underlying formulas, phase behavior of oscillators, typical ranges and scale.
 
-Whenever the argument order has been significantly changed from the SCLang counterpart, the UGen's `doc` element should contain the attribute `warnpos="true"` which will create a special highlight in the Scaladocs to alert the reader of this change.
+Whenever the argument order has been significantly changed from the SCLang counterpart, the UGen's `doc` element should contain the attribute `warn-pos="true"` which will create a special highlight in the Scala docs to alert the reader of this change.
 

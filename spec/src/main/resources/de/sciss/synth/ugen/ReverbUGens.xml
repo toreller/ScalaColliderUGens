@@ -8,13 +8,13 @@
     </ugen>
     <ugen name="FreeVerb2">
         <rate name="audio" implied="true">
-            <arg name="left" rate="ugen"/>
-            <arg name="right" rate="ugen"/>
+            <arg name="inL" rate="ugen"/>
+            <arg name="inR" rate="ugen"/>
         </rate>
         <output name="left"/>
         <output name="right"/>
-        <arg name="left"/>
-        <arg name="right"/>
+        <arg name="inL"/>
+        <arg name="inR"/>
         <arg name="mix" default="0.33"/>
         <arg name="room" default="0.5"/>
         <arg name="damp" default="0.5"/>

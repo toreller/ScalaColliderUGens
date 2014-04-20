@@ -45,12 +45,12 @@ val _exp = max( ... ) --> maxInt
 [OK] <arg rate="ugen"/>
 [OK] <rate><arg name=... default=.../></rate>
 [OK] <rate><arg name=... rate=.../></rate>
-[OK] <doc warnpos="true"/>
+[OK] <doc warn-pos="true"/>
 [OK] <ugen random="true"/>
 [OK] <rate method="apply"/>
-[OK] <rate methodalias="apply"/>
+[OK] <rate method-alias="apply"/>
 <outputs num="in"/> // DC (currently commented out)
-[OK] <ugen readsfft="true"/>
+[OK] <ugen reads-fft="true"/>
 <arg ... expandbin="*"/>
 <arg ... default="inf"/>
 

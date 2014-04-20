@@ -1,5 +1,5 @@
 <ugens revision="1">
-    <ugen name="OffsetOut" writesbus="true">
+    <ugen name="OffsetOut" writes-bus="true">
         <no-outputs/>
         <rate name="audio" implied="true">
             <arg name="in" rate="ugen"/>
@@ -13,7 +13,7 @@
         <rate name="audio"/>
         <arg name="numChannels" type="int" default="1"/>
     </ugen>
-    <ugen name="XOut" writesbus="true">
+    <ugen name="XOut" writes-bus="true">
         <no-outputs/>
         <rate name="audio">
             <arg name="in" rate="ugen"/>
@@ -22,7 +22,7 @@
         <arg name="bus" type="bus" pos="0"/>
         <arg name="xfade" pos="2"/>
         <arg name="in" variadic="true" pos="1"/>
-        <doc warnpos="true"/>
+        <doc warn-pos="true"/>
     </ugen>
 
     <!-- XXX TODO: these could well be here, and only the ProxyFactories are manually coded...
@@ -32,7 +32,7 @@
     <ugen name="TrigControl"/>
     -->
 
-    <ugen name="ReplaceOut" writesbus="true">
+    <ugen name="ReplaceOut" writes-bus="true">
         <no-outputs/>
         <rate name="audio" implied="true">
             <arg name="in" rate="ugen"/>
@@ -40,7 +40,7 @@
         <arg name="bus" type="bus"/>
         <arg name="in" variadic="true"/>
     </ugen>
-    <ugen name="Out" writesbus="true">
+    <ugen name="Out" writes-bus="true">
         <no-outputs/>
         <rate name="audio">
             <arg name="in" rate="ugen"/>
@@ -58,7 +58,7 @@
         </rate>
         <arg name="in" variadic="true"/>
     </ugen>
-    <ugen name="In" readsbus="true">
+    <ugen name="In" reads-bus="true">
         <output variadic="numChannels"/>
         <rate name="scalar"/>
         <rate name="control"/>
@@ -66,14 +66,14 @@
         <arg name="bus" type="bus"/>
         <arg name="numChannels" type="int" default="1"/>
     </ugen>
-    <ugen name="LagIn" readsbus="true">
+    <ugen name="LagIn" reads-bus="true">
         <output variadic="numChannels"/>
         <rate name="control"/>
         <arg name="bus" type="bus"/>
         <arg name="numChannels" type="int" default="1"/>
         <arg name="lag" default="0.1"/>
     </ugen>
-    <ugen name="InFeedback" readsbus="true">
+    <ugen name="InFeedback" reads-bus="true">
         <output variadic="numChannels"/>
         <rate name="audio" implied="true"/>
         <arg name="bus" type="bus">
@@ -117,7 +117,7 @@
             <see>ugen.ControlDur</see>
         </doc>
     </ugen>
-    <ugen name="InTrig" readsbus="true">
+    <ugen name="InTrig" reads-bus="true">
         <output variadic="numChannels"/>
         <rate name="control" implied="true"/>
         <arg name="bus" type="bus">

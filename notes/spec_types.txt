@@ -2,7 +2,7 @@ type="trig"
 type="switch"
 type="doneAction"
 type="buf"  // disallows default value
-type="gint"
+type="ge-int"
 type="gate"
 
 implied by the following defaults:

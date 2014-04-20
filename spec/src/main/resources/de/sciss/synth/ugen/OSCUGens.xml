@@ -1,9 +1,9 @@
 <ugens revision="1">
-    <ugen name="DegreeToKey" readsbuf="true">
+    <ugen name="DegreeToKey" reads-buf="true">
         <rate name="control"/>
         <rate name="audio"/>
         <arg name="buf" type="buf"/>
-        <arg name="in" type="gint"/>
+        <arg name="in" type="ge-int"/>
         <arg name="octave" default="12"/>
     </ugen>
     <ugen name="Select">
@@ -12,7 +12,7 @@
         <rate name="audio">
             <arg name="in" rate="ugen"/>
         </rate>
-        <arg name="index" type="gint">
+        <arg name="index" type="ge-int">
             <doc>
                 an index signal into the channels of the `in` argument. The index
                 is automatically clipped to lie between `0` and `in.numOutputs - 1`. The index
@@ -70,7 +70,7 @@
             <see>ugen.Select</see>
         </doc>
     </ugen>
-    <ugen name="Index" readsbuf="true">
+    <ugen name="Index" reads-buf="true">
         <rate name="scalar"/>
         <rate name="control"/>
         <rate name="audio"/>
@@ -103,7 +103,7 @@
             <see>ugen.DetectIndex</see>
         </doc>
     </ugen>
-    <ugen name="IndexL" readsbuf="true">
+    <ugen name="IndexL" reads-buf="true">
         <rate name="scalar"/>
         <rate name="control"/>
         <rate name="audio"/>
@@ -134,7 +134,7 @@
         </doc>
     </ugen>
     <!-- this should exist according to plugin sources... -->
-    <ugen name="FoldIndex" readsbuf="true">
+    <ugen name="FoldIndex" reads-buf="true">
         <rate name="scalar"/>
         <rate name="control"/>
         <rate name="audio"/>
@@ -168,7 +168,7 @@
             <see>ugen.IndexL</see>
         </doc>
     </ugen>
-    <ugen name="WrapIndex" readsbuf="true">
+    <ugen name="WrapIndex" reads-buf="true">
         <rate name="scalar"/>
         <rate name="control"/>
         <rate name="audio"/>
@@ -199,7 +199,7 @@
             <see>ugen.IndexL</see>
         </doc>
     </ugen>
-    <ugen name="IndexInBetween" readsbuf="true">
+    <ugen name="IndexInBetween" reads-buf="true">
         <rate name="scalar"/>
         <rate name="control"/>
         <rate name="audio"/>
@@ -237,7 +237,7 @@
             <see>ugen.IndexL</see>
         </doc>
     </ugen>
-    <ugen name="DetectIndex" readsbuf="true">
+    <ugen name="DetectIndex" reads-buf="true">
         <rate name="scalar"/>
         <rate name="control"/>
         <rate name="audio"/>
@@ -257,7 +257,7 @@
             <see>ugen.IndexInBetween</see>
         </doc>
     </ugen>
-    <ugen name="Shaper" readsbuf="true">
+    <ugen name="Shaper" reads-buf="true">
         <rate name="control"/>
         <rate name="audio"/>
         <arg name="buf" type="buf"/>
@@ -301,14 +301,14 @@
         <arg name="freq" default="440.0"/>
         <arg name="feedback" default="0.0"/>
     </ugen>
-    <ugen name="VOsc" readsbuf="true">
+    <ugen name="VOsc" reads-buf="true">
         <rate name="audio"/>
         <rate name="control"/>
         <arg name="bufPos"/> <!-- type="buf" ? -->
         <arg name="freq" default="440.0"/>
         <arg name="phase" default="0.0"/>
     </ugen>
-    <ugen name="VOsc3" readsbuf="true">
+    <ugen name="VOsc3" reads-buf="true">
         <rate name="audio"/>
         <rate name="control"/>
         <arg name="bufPos"/> <!-- type="buf" ? -->
@@ -316,21 +316,21 @@
         <arg name="freq2" default="220.0"/>
         <arg name="freq3" default="440.0"/>
     </ugen>
-    <ugen name="Osc" readsbuf="true">
+    <ugen name="Osc" reads-buf="true">
         <rate name="audio"/>
         <rate name="control"/>
         <arg name="buf" type="buf"/>
         <arg name="freq" default="440.0"/>
         <arg name="phase" default="0.0"/>
     </ugen>
-    <ugen name="OscN" readsbuf="true">
+    <ugen name="OscN" reads-buf="true">
         <rate name="audio"/>
         <rate name="control"/>
         <arg name="buf" type="buf"/>
         <arg name="freq" default="440.0"/>
         <arg name="phase" default="0.0"/>
     </ugen>
-    <ugen name="COsc" readsbuf="true">
+    <ugen name="COsc" reads-buf="true">
         <rate name="audio"/>
         <arg name="buf" type="buf"/>
         <arg name="freq" default="440.0"/>

@@ -194,15 +194,15 @@
         <rate name="audio"/>
         <arg name="prob" default="0.5" pos="1"/>
         <arg name="in" type="trig" pos="0"/>
-        <doc warnpos="true"/>
+        <doc warn-pos="true"/>
     </ugen>
-    <ugen name="RandSeed" sideeffect="true">
+    <ugen name="RandSeed" side-effect="true">
         <rate name="scalar"/>
         <rate name="control"/>
         <arg name="trig" default="high"/>
         <arg name="seed" default="56789"/>
     </ugen>
-    <ugen name="RandID" sideeffect="true">
+    <ugen name="RandID" side-effect="true">
         <rate name="scalar"/>
         <rate name="control"/>
         <arg name="id" default="0"/>

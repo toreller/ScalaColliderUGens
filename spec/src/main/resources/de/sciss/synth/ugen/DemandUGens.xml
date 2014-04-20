@@ -1,5 +1,5 @@
 <ugens revision="1">
-    <ugen name="Demand" doneflag="true"> <!-- set done flag, but doesn't have done action -->
+    <ugen name="Demand" done-flag="true"> <!-- set done flag, but doesn't have done action -->
         <rate name="control"/>
         <rate name="audio"/>
         <output variadic="in"/>
@@ -18,7 +18,7 @@
                 a demand-rate signal (possibly multi-channel) which is read at each trigger
             </doc>
         </arg>
-        <doc warnpos="true">
+        <doc warn-pos="true">
             <text>
                 A UGen which polls results from demand-rate ugens when receiving a trigger.
                 When there is a trigger at the `trig` input, a value is demanded from each ugen in the `in` input
@@ -40,7 +40,7 @@
             <see>ugen.TDuty</see>
         </doc>
     </ugen>
-    <ugen name="Duty" sideeffect="true"> <!-- has done action, but does not set done flag -->
+    <ugen name="Duty" side-effect="true"> <!-- has done action, but does not set done flag -->
         <rate name="control"/>
         <rate name="audio"/>
         <arg name="dur" default="1.0" pos="0">
@@ -66,7 +66,7 @@
                 a demand-rate ugen providing the output values.
             </doc>
         </arg>
-        <doc warnpos="true">
+        <doc warn-pos="true">
             <text>
                 A UGen which polls results from demand-rate ugens in intervals specified by a duration input.
                 A value from the `level` ugen is demanded and output according to a stream
@@ -78,7 +78,7 @@
             <see>DoneAction</see>
         </doc>
     </ugen>
-    <ugen name="TDuty" sideeffect="true"> <!-- has done action, but does not set done flag -->
+    <ugen name="TDuty" side-effect="true"> <!-- has done action, but does not set done flag -->
         <rate name="control"/>
         <rate name="audio"/>
         <arg name="dur" default="1.0" pos="0">
@@ -112,7 +112,7 @@
                 (along with polling the next duration value).
             </doc>
         </arg>
-        <doc warnpos="true">
+        <doc warn-pos="true">
             <text>
                 A UGen which polls results from demand-rate ugens in intervals specified by a duration input,
                 and outputs them as trigger values.
@@ -126,7 +126,7 @@
             <see>DoneAction</see>
         </doc>
     </ugen>
-    <ugen name="DemandEnvGen" sideeffect="true"> <!-- has done action, but does not set done flag -->
+    <ugen name="DemandEnvGen" side-effect="true"> <!-- has done action, but does not set done flag -->
         <!-- XXX TODO: tricky rate constraint: if either of gate
          and reset is audio-rate, the other needs to be, too.
          The UGen is the worst constructed entity ever. It interprets
@@ -203,7 +203,7 @@
     </ugen>
     <ugen name="Dseries" indiv="true">
         <rate name="demand" implied="true" method="apply"/>
-        <arg name="length" type="gint" default="inf" pos="2">
+        <arg name="length" type="ge-int" default="inf" pos="2">
             <doc>
                 the number of elements to produces (maybe be infinite)
             </doc>
@@ -231,32 +231,32 @@
     </ugen>
     <ugen name="Dgeom" indiv="true">
         <rate name="demand" implied="true" method="apply"/>
-        <arg name="length" type="gint" default="inf" pos="2"/>
+        <arg name="length" type="ge-int" default="inf" pos="2"/>
         <arg name="start" default="1.0" pos="0"/>
         <arg name="grow" default="2.0" pos="1"/>
     </ugen>
     <ugen name="Dwhite" indiv="true" random="true">
         <rate name="demand" implied="true" method="apply"/>
-        <arg name="length" type="gint" default="inf" pos="2"/>
+        <arg name="length" type="ge-int" default="inf" pos="2"/>
         <arg name="lo" default="0.0" pos="0"/>
         <arg name="hi" default="1.0" pos="1"/>
     </ugen>
     <ugen name="Diwhite" indiv="true" random="true">
         <rate name="demand" implied="true" method="apply"/>
-        <arg name="length" type="gint" default="inf" pos="2"/>
+        <arg name="length" type="ge-int" default="inf" pos="2"/>
         <arg name="lo" default="0.0" pos="0"/>
         <arg name="hi" default="1.0" pos="1"/>
     </ugen>
     <ugen name="Dbrown" indiv="true" random="true">
         <rate name="demand" implied="true" method="apply"/>
-        <arg name="length" type="gint" default="inf" pos="3"/>
+        <arg name="length" type="ge-int" default="inf" pos="3"/>
         <arg name="lo" default="0.0" pos="0"/>
         <arg name="hi" default="1.0" pos="1"/>
         <arg name="step" default="0.01" pos="2"/>
     </ugen>
     <ugen name="Dibrown" indiv="true" random="true">
         <rate name="demand" implied="true" method="apply"/>
-        <arg name="length" type="gint" default="inf" pos="3"/>
+        <arg name="length" type="ge-int" default="inf" pos="3"/>
         <arg name="lo" default="0.0" pos="0"/>
         <arg name="hi" default="1.0" pos="1"/>
         <arg name="step" default="0.01" pos="2"/>
@@ -271,7 +271,7 @@
         <arg name="repeats" default="1" pos="1"/>
         <arg name="seq" variadic="true" pos="0"/>
     </ugen>
-    <ugen name="Dbufrd" indiv="true" readsbuf="true" doneflag="true">
+    <ugen name="Dbufrd" indiv="true" reads-buf="true" done-flag="true">
         <rate name="demand" implied="true" method="apply"/>
         <arg name="buf" type="buf">
             <doc>
@@ -296,7 +296,7 @@
             <see>ugen.Dbufwr</see>
         </doc>
     </ugen>
-    <ugen name="Dbufwr" indiv="true" writesbuf="true" doneflag="true">
+    <ugen name="Dbufwr" indiv="true" writes-buf="true" done-flag="true">
         <rate name="demand" implied="true" method="apply"/>
         <arg name="buf" type="buf" pos="1"/>
         <arg name="index" default="0" pos="2"/>
@@ -330,7 +330,7 @@
     </ugen>
     <ugen name="Dstutter" indiv="true">
         <rate name="demand" implied="true" method="apply"/>
-        <arg name="n" type="gint"/>
+        <arg name="n" type="ge-int"/>
         <arg name="in"/>
     </ugen>
     <ugen name="Donce" indiv="true">
@@ -342,7 +342,7 @@
         <arg name="in"/>
         <arg name="reset" type="trig"/>
     </ugen>
-    <ugen name="Dpoll" indiv="true" sideeffect="true">
+    <ugen name="Dpoll" indiv="true" side-effect="true">
         <rate name="demand" implied="true" method="apply"/>
         <arg name="in" pos="0">
             <doc>
@@ -360,7 +360,7 @@
                 if 1 the polling is active, if 0 it is inactive.
             </doc>
         </arg>
-        <arg name="label" type="gstring" default="poll" init="true" pos="1">
+        <arg name="label" type="ge-string" default="poll" init="true" pos="1">
             <doc>
                 a string or symbol to be printed with the polled value
             </doc>

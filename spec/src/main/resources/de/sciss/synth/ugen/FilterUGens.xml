@@ -535,7 +535,7 @@
         </rate>
         <arg name="length" default="3" init="true" pos="1"/>
         <arg name="in" pos="0"/>
-        <doc warnpos="true"/>
+        <doc warn-pos="true"/>
     </ugen>
 
     <ugen name="Resonz">
@@ -663,7 +663,7 @@
         <arg name="attack" default="0.01"/>
         <arg name="release" default="0.01"/>
     </ugen>
-    <ugen name="DetectSilence" sideeffect="true">   <!-- has done action, but does not set done flag -->
+    <ugen name="DetectSilence" side-effect="true">   <!-- has done action, but does not set done flag -->
         <rate name="control"/>
         <rate name="audio"/>
         <arg name="in" rate="ugen">

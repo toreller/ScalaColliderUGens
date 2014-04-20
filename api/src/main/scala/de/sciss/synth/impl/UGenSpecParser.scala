@@ -32,9 +32,9 @@ private[synth] object UGenSpecParser {
 
   private val nodeAttrKeys = Set(
     "name", // required
-    "readsbus",  "readsbuf",  "readsfft", "random", "indiv",
-    "writesbus", "writesbuf", "writesfft", "sideeffect",
-    "doneflag"
+    "reads-bus",  "reads-buf",  "reads-fft", "random", "indiv",
+    "writes-bus", "writes-buf", "writes-fft", "side-effect",
+    "done-flag"
   )
 
   private val nodeChildKeys = Set(
@@ -43,7 +43,7 @@ private[synth] object UGenSpecParser {
 
   private val argAttrKeys = Set(
     "name", // required
-    "type", "init", "default", "rate", "ugenin", "pos", "variadic"
+    "type", "init", "default", "rate", "ugen-in", "pos", "variadic"
   )
 
   private val outputAttrKeys = Set(
@@ -55,7 +55,7 @@ private[synth] object UGenSpecParser {
   )
 
   private val impliedRateAttrKeys = rateAttrKeys ++ Set(
-    "method", "methodalias", "implied"
+    "method", "method-alias", "implied"
   )
 
   private val argRateAttrKeys = Set(
@@ -92,21 +92,21 @@ private[synth] object UGenSpecParser {
 
   private object IsDoneAction {
     def unapply(s: String): Option[DoneAction] = PartialFunction.condOpt(s) {
-      case doNothing.name         => doNothing
-      case pauseSelf.name         => pauseSelf
-      case freeSelf.name          => freeSelf
-      case freeSelfPred.name      => freeSelfPred
-      case freeSelfSucc.name      => freeSelfSucc
-      case freeSelfPredAll.name   => freeSelfPredAll
-      case freeSelfSuccAll.name   => freeSelfSuccAll
-      case freeSelfToHead.name    => freeSelfToHead
-      case freeSelfToTail.name    => freeSelfToTail
+      case doNothing        .name => doNothing
+      case pauseSelf        .name => pauseSelf
+      case freeSelf         .name => freeSelf
+      case freeSelfPred     .name => freeSelfPred
+      case freeSelfSucc     .name => freeSelfSucc
+      case freeSelfPredAll  .name => freeSelfPredAll
+      case freeSelfSuccAll  .name => freeSelfSuccAll
+      case freeSelfToHead   .name => freeSelfToHead
+      case freeSelfToTail   .name => freeSelfToTail
       case freeSelfPausePred.name => freeSelfPausePred
       case freeSelfPauseSucc.name => freeSelfPauseSucc
-      case freeSelfPredDeep.name  => freeSelfPredDeep
-      case freeSelfSuccDeep.name  => freeSelfSuccDeep
-      case freeAllInGroup.name    => freeAllInGroup
-      case freeGroup.name         => freeGroup
+      case freeSelfPredDeep .name => freeSelfPredDeep
+      case freeSelfSuccDeep .name => freeSelfSuccDeep
+      case freeAllInGroup   .name => freeAllInGroup
+      case freeGroup        .name => freeGroup
     }
   }
 
@@ -140,8 +140,8 @@ private[synth] object UGenSpecParser {
 
     val aTypeExp0 = aAttrs.get("type").map {
       case "ge"       => GE(Sig.Generic)
-      case "gint"     => GE(Sig.Int)
-      case "gstring"  => GE(Sig.String)
+      case "ge-int"     => GE(Sig.Int)
+      case "ge-string"  => GE(Sig.String)
       case "bus"      => GE(Sig.Bus)
       case "buf"      => GE(Sig.Buffer)
       case "fft"      => GE(Sig.FFT)
@@ -150,7 +150,7 @@ private[synth] object UGenSpecParser {
       case "gate"     => GE(Sig.Gate)
       case "mul"      => GE(Sig.Mul)
       case "action"   => GE(Sig.DoneAction)
-      case "doneflag" => GE(Sig.DoneFlag)
+      case "done-flag" => GE(Sig.DoneFlag)
       case "int"      => ArgumentType.Int
       case other      => sys.error(s"Unsupported type for ugen $uName, argument $aName: $other")
     }
@@ -174,7 +174,7 @@ private[synth] object UGenSpecParser {
         Some(GE(sig, scalar = true))
 
       case Some(tpe @ ArgumentType.Int) =>
-        if (!aAttrs.boolean("ugenin")) {
+        if (!aAttrs.boolean("ugen-in")) {
           errorScalarType(uName, aName, tpe)
         }
         aTypeExp0
@@ -361,7 +361,7 @@ private[synth] object UGenSpecParser {
         Example(name = name, code = code, tpe = tpe)
       } (breakOut)
       val dAttr     = dNode.attributes.asAttrMap
-      val dWarnPos  = dAttr.boolean("warnpos")
+      val dWarnPos  = dAttr.boolean("warn-pos")
       val dText     = (dNode \ "text").text
       val hasAny    = !dText.isEmpty || dSees.nonEmpty || dWarnPos || argDocs.nonEmpty || outputDocs.nonEmpty
       if (hasAny) {
@@ -393,17 +393,17 @@ private[synth] object UGenSpecParser {
 
     // ---- attributes ----
 
-    val readsBus      = attrs.boolean("readsbus")
-    val readsBuffer   = attrs.boolean("readsbuf")
-    val readsFFT      = attrs.boolean("readsfft")
+    val readsBus      = attrs.boolean("reads-bus")
+    val readsBuffer   = attrs.boolean("reads-buf")
+    val readsFFT      = attrs.boolean("reads-fft")
     val random        = attrs.boolean("random")
 
-    val writesBus     = attrs.boolean("writesbus")
-    val writesBuffer  = attrs.boolean("writesbuf")
-    val writesFFT     = attrs.boolean("writesfft")
+    val writesBus     = attrs.boolean("writes-bus")
+    val writesBuffer  = attrs.boolean("writes-buf")
+    val writesFFT     = attrs.boolean("writes-fft")
 
-    val sideEffect    = attrs.boolean("sideeffect")
-    val doneFlag      = attrs.boolean("doneflag")
+    val sideEffect    = attrs.boolean("side-effect")
+    val doneFlag      = attrs.boolean("done-flag")
     val indiv         = attrs.boolean("indiv")
 
     var uAttr         = Set.empty[Attribute]
@@ -482,7 +482,7 @@ private[synth] object UGenSpecParser {
           sys.error(s"Unsupported ugen rate attributes, in ugen $uName, rate $r: ${unknown.mkString(",")}")
       }
 
-      val rMethod = (rAttr.get("method"), rAttr.get("methodalias")) match {
+      val rMethod = (rAttr.get("method"), rAttr.get("method-alias")) match {
         case (None, None)     => RateMethod.Default
         case (Some(""), None) =>
           if (aNodes.nonEmpty || indIndiv)
@@ -491,7 +491,7 @@ private[synth] object UGenSpecParser {
         case (Some(m), None)  => RateMethod.Custom(m)
         case (None, Some(m))  => RateMethod.Alias(m)
         case other            =>
-          sys.error(s"Cannot use both method and methodalias attributes, in ugen $uName, rate $r")
+          sys.error(s"Cannot use both method and method-alias attributes, in ugen $uName, rate $r")
       }
       addArgRate(r, rNode)
       Rates.Implied(r, rMethod)
@@ -531,12 +531,12 @@ private[synth] object UGenSpecParser {
       val aName       = aAttrs.string("name")
 
       // have to deal with:
-      // "type" (ok), "init" (ok), "default" (ok), "rate", "ugenin" (ok), "pos" (ok), "variadic" (ok)
+      // "type" (ok), "init" (ok), "default" (ok), "rate", "ugen-in" (ok), "pos" (ok), "variadic" (ok)
       val (aType, aDefaultOpt) = inferArgType(uName = uName, aName = aName, aAttrs)   // handles "type", "default", "init"
 
       val isInput = aType match {
         case ArgumentType.GE(_, _) => true
-        case ArgumentType.Int => aAttrs.boolean("ugenin")                             // handles "ugenin"
+        case ArgumentType.Int => aAttrs.boolean("ugen-in")                             // handles "ugen-in"
       }
 
       if (isInput) {
@@ -631,7 +631,7 @@ private[synth] object UGenSpecParser {
       val oName   = oAttrs.get("name")
       val oShape0 = oAttrs.get("type").map {
         case "ge"       => Sig.Generic
-        case "gint"     => Sig.Int
+        case "ge-int"     => Sig.Int
         case "bus"      => Sig.Bus
         case "buf"      => Sig.Buffer
         case "fft"      => Sig.FFT

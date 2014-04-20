@@ -258,9 +258,7 @@ final class ClassGenerator
       feed(bodyAndArgs, linkLines)
     }
 
-    // somehow Scala 2.11 eats a line feed for class and object comments...gen
-    val firstLine = if (body && BuildInfo.scalaVersion.startsWith("2.11")) "\n\n" else ""
-    DocDef(DocComment(all.mkString(s"$firstLine/** ", "\n  * ", "\n  */\n"), NoPosition), tree)
+    DocDef(DocComment(all.mkString(s"\n\n/** ", "\n  * ", "\n  */\n"), NoPosition), tree)
   }
 
   private def mkLink(link0: String): String = {
@@ -347,6 +345,7 @@ final class ClassGenerator
   private val identApply          = Ident(strApply)
   private val strVec              = "Vec"
   private val identVector         = Ident("Vector")
+  private val identChannelProxy   = Ident("ChannelProxy")
   private val strMakeUGens        = "makeUGens"
   private val strMakeUGen         = "makeUGen"
   private val identMakeUGen       = Ident(strMakeUGen)
@@ -356,7 +355,7 @@ final class ClassGenerator
   private val identUnwrap         = Ident("unwrap")
   private val identMaybeRate      = Ident("MaybeRate")
   private val identRate           = Ident("Rate")
-  private val strMaybeResolve     = "?|"
+  private val strMaybeResolve     = "getOrElse" // "?|"
   private val strOutputs          = "outputs"
   private val strUGenIn           = "UGenIn"
   private val identName           = Ident("name")
@@ -566,6 +565,37 @@ final class ClassGenerator
 
     val expandResultStr = if (outputs.isEmpty) "Unit" else "UGenInLike"
 
+    val hasVariadicOut  = outputs.exists(_.variadic.isDefined)
+    val hasMultipleOuts = outputs.size > 1
+    val multiOut        = hasMultipleOuts || hasVariadicOut
+    val outputsPrefix = if (outputs.isEmpty)
+      "Zero"
+    else if (multiOut)
+      "Multi"
+    else
+      "Single"
+
+    // for each named output, we create a corresponding method in
+    // the case class that produces a `ChannelProxy` instance.
+    val namedOutputDefs: List[Tree] = if (!hasMultipleOuts) Nil else outputs.zipWithIndex.collect {
+      case (UGenSpec.Output(Some(outName), _, variadic), idx) =>
+        if (hasVariadicOut) {
+          sys.error(s"The combination of variadic and named outputs is not yet supported (${spec.name}, $outName)")
+        }
+
+        // ChannelProxy(this, idx)
+        val methodBody: Tree = Apply(identChannelProxy, This(tpnme.EMPTY) :: Literal(gl.Constant(idx)) :: Nil)
+
+        DefDef(
+          NoMods withPosition(Flags.METHOD, NoPosition),
+          outName: TermName,
+          Nil,                                                        // tparams
+          Nil,                                                        // vparamss
+          TypeDef(NoMods, "GE": TypeName, Nil, EmptyTree),            // tpt
+          methodBody                                                  // rhs
+        )
+    } (breakOut)
+
     // `protected def makeUGens: UGenInLike = ...`
     val makeUGensDef = {
       val methodBody: Tree = {
@@ -622,14 +652,6 @@ final class ClassGenerator
         methodBody                                                  // rhs
       )
     }
-
-    val multiOut = outputs.size > 1 || outputs.exists(_.variadic.isDefined)
-    val outputsPrefix = if (outputs.isEmpty)
-      "Zero"
-    else if (multiOut)
-      "Multi"
-    else
-      "Single"
 
     // `protected def makeUGen(_args: Vec[UGenIn]): UGenInLike = ...`
     val makeUGenDef = {
@@ -766,7 +788,7 @@ final class ClassGenerator
     }
 
     val caseClassMethods = {
-      val m1 = makeUGensDef :: makeUGenDef :: Nil
+      val m1 = makeUGensDef :: makeUGenDef :: namedOutputDefs
       m1
     }
 

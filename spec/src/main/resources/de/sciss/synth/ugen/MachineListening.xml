@@ -1,5 +1,5 @@
 <ugens revision="1">
-    <ugen name="BeatTrack" readsfft="true">
+    <ugen name="BeatTrack" reads-fft="true">
         <rate name="control" implied="true"/>
         <arg name="chain" type="fft">
             <doc>
@@ -37,7 +37,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="Loudness" readsfft="true">
+    <ugen name="Loudness" reads-fft="true">
         <rate name="control" implied="true"/>
         <arg name="chain" type="fft">
             <doc>
@@ -71,7 +71,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="KeyTrack" readsfft="true">
+    <ugen name="KeyTrack" reads-fft="true">
         <rate name="control" implied="true"/>
         <arg name="chain" type="fft">
             <doc>
@@ -101,7 +101,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="MFCC" readsfft="true">
+    <ugen name="MFCC" reads-fft="true">
         <rate name="control" implied="true"/>
         <output variadic="numCoeffs"/>
         <arg name="chain" type="fft">
@@ -111,7 +111,7 @@
                 1024 at 44.1 or 48 kHz and 2048 at 88.2 or 96 kHz sampling rate.
             </doc>
         </arg>
-        <arg name="numCoeffs" type="int" ugenin="true" default="13">
+        <arg name="numCoeffs" type="int" ugen-in="true" default="13">
             <doc>
                 the number of coefficients, defaults to 13, maximum of 42; more efficient to use less of course!
                 Since this number determines the number of output channels of the UGen, it has to be an `Int`.
@@ -137,7 +137,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="Onsets" readsfft="true">
+    <ugen name="Onsets" reads-fft="true">
         <rate name="control" implied="true"/>
         <arg name="chain" type="fft">
             <doc>
@@ -224,7 +224,7 @@
         </doc>
     </ugen>
 
-    <ugen name="BeatTrack2" readsfft="true">
+    <ugen name="BeatTrack2" reads-fft="true">
         <rate name="control" implied="true"/>
         <output name="beatTick"/>
         <output name="eighthTick"/>
@@ -240,7 +240,7 @@
                 trigger-output to this control bus.
             </doc>
         </arg>
-        <arg name="numChannels" type="gint" init="true">
+        <arg name="numChannels" type="ge-int" init="true">
             <doc>
                 (scalar) How many features (ie how many control bus channels) are provided
             </doc>
@@ -298,7 +298,7 @@
         </doc>
     </ugen>
 
-    <ugen name="SpecFlatness" readsfft="true">
+    <ugen name="SpecFlatness" reads-fft="true">
         <rate name="control" implied="true"/>
         <arg name="chain" type="fft">
             <doc>
@@ -323,7 +323,7 @@
             <see>ugen.CheckBadValues</see>
         </doc>
     </ugen>
-    <ugen name="SpecPcile" readsfft="true">
+    <ugen name="SpecPcile" reads-fft="true">
         <rate name="control" implied="true"/>
         <arg name="chain" type="fft">
             <doc>
@@ -356,7 +356,7 @@
             </text>
         </doc>
     </ugen>
-    <ugen name="SpecCentroid" readsfft="true">
+    <ugen name="SpecCentroid" reads-fft="true">
         <rate name="control" implied="true"/>
         <arg name="chain" type="fft">
             <doc>

@@ -58,25 +58,25 @@ sealed trait UGen extends Product /* with MaybeIndividual */ {
     case _ => throw new java.lang.IndexOutOfBoundsException(n.toString)
   }
 
-  final def canEqual( x: Any ) : Boolean = x.isInstanceOf[ UGen ]
-//   override def hashCode(): Int = ScalaRunTime._hashCode( this )
-   override val hashCode: Int = if( isIndividual ) super.hashCode() else ScalaRunTime._hashCode( this )
-   override def equals( x: Any ) : Boolean = (this eq x.asInstanceOf[ AnyRef ]) || (!isIndividual && (x match {
-     case u: UGen =>
-        u.name == name && u.rate == rate && u.specialIndex == specialIndex && u.inputs == inputs &&
-           u.outputRates == outputRates && u.canEqual( this )
-     case _ => false
-   }))
+  final def canEqual(x: Any): Boolean = x.isInstanceOf[UGen]
 
-   def isIndividual : Boolean
-   def hasSideEffect: Boolean
+  override val hashCode: Int = if (isIndividual) super.hashCode() else ScalaRunTime._hashCode(this)
+
+  override def equals(x: Any): Boolean = (this eq x.asInstanceOf[AnyRef]) || (!isIndividual && (x match {
+    case u: UGen =>
+      u.name == name && u.rate == rate && u.specialIndex == specialIndex && u.inputs == inputs &&
+        u.outputRates == outputRates && u.canEqual(this)
+    case _ => false
+  }))
+
+  def isIndividual : Boolean
+  def hasSideEffect: Boolean
 }
 
 object UGen {
-  /**
-   * A SingleOutUGen is a UGen which has exactly one output, and
-   * hence can directly function as input to another UGen without expansion.
-   */
+  /** A SingleOutUGen is a UGen which has exactly one output, and
+    * hence can directly function as input to another UGen without expansion.
+    */
   class SingleOut(val name: String, val rate: Rate, val inputs: Vec[UGenIn],
                   val isIndividual: Boolean = false, val hasSideEffect: Boolean = false)
     extends ugen.UGenProxy with UGen {
@@ -102,9 +102,7 @@ object UGen {
     final def hasSideEffect = true
   }
 
-  /**
-   * A class for UGens with multiple outputs
-   */
+  /** A class for UGens with multiple outputs. */
   class MultiOut(val name: String, val rate: Rate, val outputRates: Vec[Rate], val inputs: Vec[UGenIn],
                  val isIndividual: Boolean = false, val hasSideEffect: Boolean = false)
     extends UGen with ugen.UGenInGroup {
@@ -138,12 +136,11 @@ sealed trait UGenInLike extends GE {
   private[synth] def outputs: Vec[UGenInLike]
   private[synth] def unbubble: UGenInLike
 
-  /**
-   * Returns the UGenInLike element of index i
-   * regarding the ungrouped representation. Note
-   * that for efficiency reasons this method will
-   * automatically wrap the index around numElements!
-   */
+  /** Returns the UGenInLike element of index i
+    * regarding the ungrouped representation. Note
+    * that for efficiency reasons this method will
+    * automatically wrap the index around numElements!
+    */
   private[synth] def unwrap(i: Int): UGenInLike
   private[synth] def flatOutputs: Vec[UGenIn]
 
@@ -151,11 +148,10 @@ sealed trait UGenInLike extends GE {
   final private[synth] def expand: UGenInLike = this
 }
 
-/**
- *    An element that can be used as an input to a UGen.
- *    This is after multi-channel-expansion, hence implementing
- *    classes are SingleOutUGen, UGenOutProxy, ControlOutProxy, and Constant.
- */
+/** An element that can be used as an input to a UGen.
+  * This is after multi-channel-expansion, hence implementing
+  * classes are SingleOutUGen, UGenOutProxy, ControlOutProxy, and Constant.
+  */
 sealed trait UGenIn extends UGenInLike {
   def rate: Rate
 
@@ -164,7 +160,7 @@ sealed trait UGenIn extends UGenInLike {
 
   // don't bother about the index
   private[synth] final def flatOutputs: Vec[UGenIn] = Vec(this)
-  private[synth] final def unbubble: UGenInLike = this
+  private[synth] final def unbubble   : UGenInLike  = this
 }
 
 package ugen {
@@ -197,24 +193,22 @@ package ugen {
     def outputIndex: Int
   }
 
-  /**
-   *    A scalar constant used as an input to a UGen.
-   *    These constants are stored in a separate table of
-   *    the synth graph.
-   */
+  /** A scalar constant used as an input to a UGen.
+    * These constants are stored in a separate table of
+    * the synth graph.
+    */
   final case class Constant(value: Float) extends UGenIn with ScalarRated {
     override def toString: String = value.toString
   }
 
-  /**
-   *    A ControlOutProxy is similar to a UGenOutProxy in that it denotes
-   *    an output channel of a control UGen. However it refers to a control-proxy
-   *    instead of a real control ugen, since the proxies are synthesized into
-   *    actual ugens only at the end of a synth graph creation, in order to
-   *    clumb several controls together. ControlOutProxy instance are typically
-   *    returned from the ControlProxyFactory class, that is, using the package
-   *    implicits, from calls such as "myControl".kr.
-   */
+  /** A ControlOutProxy is similar to a UGenOutProxy in that it denotes
+    * an output channel of a control UGen. However it refers to a control-proxy
+    * instead of a real control ugen, since the proxies are synthesized into
+    * actual ugens only at the end of a synth graph creation, in order to
+    * clump several controls together. ControlOutProxy instance are typically
+    * returned from the ControlProxyFactory class, that is, using the package
+    * implicits, from calls such as "myControl".kr.
+    */
   final case class ControlUGenOutProxy(source: ControlProxyLike, outputIndex: Int /*, rate: Rate */)
     extends UGenIn {
 
@@ -222,11 +216,10 @@ package ugen {
     override def toString = source.toString + ".\\(" + outputIndex + ")"
   }
 
-  /**
-   * A UGenOutProxy refers to a particular output of a multi-channel UGen.
-   * A sequence of these form the representation of a multi-channel-expanded
-   * UGen.
-   */
+  /** A UGenOutProxy refers to a particular output of a multi-channel UGen.
+    * A sequence of these form the representation of a multi-channel-expanded
+    * UGen.
+    */
   final case class UGenOutProxy(source: UGen.MultiOut, outputIndex: Int /*, rate: Rate */)
     extends UGenIn with UGenProxy {
 

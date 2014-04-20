@@ -166,7 +166,7 @@
                 <output variadic="numChannels"/>
                 <arg name="numChannels" type="int" default="1"/>
             </ugen> -->
-    <ugen name="Line" sideeffect="true" doneflag="true">
+    <ugen name="Line" side-effect="true" done-flag="true">
         <rate name="audio"/>
         <rate name="control"/>
         <arg name="start" default="0.0" init="true">
@@ -199,7 +199,7 @@
             <see>ugen.Ramp</see>
         </doc>
     </ugen>
-    <ugen name="XLine" sideeffect="true" doneflag="true">
+    <ugen name="XLine" side-effect="true" done-flag="true">
         <rate name="audio"/>
         <rate name="control"/>
         <arg name="start" default="1.0" init="true">
@@ -375,7 +375,7 @@
                 </doc>
             </ugen>
     -->
-    <ugen name="EnvGen" sideeffect="true" doneflag="true">
+    <ugen name="EnvGen" side-effect="true" done-flag="true">
         <rate name="control"/>
         <rate name="audio"/>
         <arg name="gate" default="open" pos="1"/>       <!-- negative values have special meaning, though... -->
@@ -385,7 +385,7 @@
         <arg name="doneAction" default="doNothing" pos="5"/>
         <arg name="envelope" variadic="true" pos="0"/>
     </ugen>
-    <ugen name="Linen" sideeffect="true" doneflag="true">
+    <ugen name="Linen" side-effect="true" done-flag="true">
         <rate name="control"/>
         <rate name="audio"/>
         <arg name="gate" default="open"/>

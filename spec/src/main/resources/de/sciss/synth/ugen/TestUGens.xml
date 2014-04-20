@@ -1,5 +1,5 @@
 <ugens revision="1">
-    <ugen name="CheckBadValues" sideeffect="true">
+    <ugen name="CheckBadValues" side-effect="true">
         <rate name="scalar"/>
         <rate name="control"/>
         <rate name="audio">

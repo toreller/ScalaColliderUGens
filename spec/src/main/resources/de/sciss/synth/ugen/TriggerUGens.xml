@@ -39,7 +39,7 @@
             </doc>
         </arg>
     </ugen>
-    <ugen name="SendTrig" sideeffect="true">
+    <ugen name="SendTrig" side-effect="true">
         <rate name="audio"/>
         <rate name="control"/>
         <arg name="trig" type="trig" pos="0" rate="ugen">
@@ -60,7 +60,7 @@
                 and its value passed with the trigger message
             </doc>
         </arg>
-        <doc warnpos="true">
+        <doc warn-pos="true">
             <text>
                 A UGen that sends a value from the server to all notified clients upon receiving triggers.
                 The message sent is `OSCMessage("/tr", &lt;(Int) nodeID&gt;, &lt;(Int) trigID&gt;, &lt;(Float) value&gt;)`.
@@ -71,7 +71,7 @@
         </doc>
     </ugen>
 
-    <ugen name="SendReply" sideeffect="true">
+    <ugen name="SendReply" side-effect="true">
         <rate name="control"/>
         <rate name="audio"/>
         <arg name="trig" type="trig" pos="0" rate="ugen">
@@ -87,7 +87,7 @@
                 different ids (similar to `SendTrig`).
             </doc>
         </arg>
-        <arg name="msgName" type="gstring" default="/reply" pos="2">
+        <arg name="msgName" type="ge-string" default="/reply" pos="2">
             <doc>
                 a string specifying the OSCMessage's name. by convention, this should
                 start with a forward slash and contain only 7-bit ascii characters.
@@ -98,7 +98,7 @@
                 a graph element comprising the signal channels to be polled
             </doc>
         </arg>
-        <doc warnpos="true">
+        <doc warn-pos="true">
             <text>
                 A UGen which sends an sequence of values from the server to all notified clients upon receiving triggers.
                 The message sent is `OSCMessage(&lt;(String) msgName&gt;, &lt;(Int) nodeID&gt;, &lt;(Int) replyID&gt;, &lt;(Float) values&gt;*)`.
@@ -109,7 +109,7 @@
         </doc>
     </ugen>
 
-    <ugen name="Poll" sideeffect="true">
+    <ugen name="Poll" side-effect="true">
         <rate name="audio"/>
         <rate name="control"/>
         <arg name="trig" type="trig" pos="0" rate="ugen">
@@ -128,7 +128,7 @@
                 (similar to `SendTrig`)
             </doc>
         </arg>
-        <arg name="label" type="gstring" default="poll" pos="2">
+        <arg name="label" type="ge-string" default="poll" pos="2">
             <doc>
                 a string or symbol to be printed with the polled value
             </doc>
@@ -440,9 +440,9 @@
         <arg name="in"/>
         <arg name="thresh" default="0.01"/>
     </ugen>
-    <ugen name="Done" sideeffect="true">
+    <ugen name="Done" side-effect="true">
         <rate name="control" implied="true"/>
-        <arg name="src" type="doneflag">
+        <arg name="src" type="done-flag">
             <doc>
                 the UGen to track
             </doc>
@@ -460,14 +460,14 @@
             <see>ugen.EnvGen</see>
         </doc>
     </ugen>
-    <ugen name="Pause" sideeffect="true">
+    <ugen name="Pause" side-effect="true">
         <rate name="control" implied="true"/>
         <arg name="gate" type="gate"> <!-- actually checks for _ == 0f -->
             <doc>
                 when 0, node is paused, when 1, node is resumed
             </doc>
         </arg>
-        <arg name="node" type="gint">
+        <arg name="node" type="ge-int">
             <doc>
                 the id of the node to be paused or resumed
             </doc>
@@ -487,7 +487,7 @@
             <see>ugen.PauseSelf</see>
         </doc>
     </ugen>
-    <ugen name="FreeSelf" sideeffect="true">
+    <ugen name="FreeSelf" side-effect="true">
         <rate name="control" implied="true"/>
         <arg name="trig" type="trig">
             <doc>
@@ -505,7 +505,7 @@
             <see>ugen.PauseSelf</see>
         </doc>
     </ugen>
-    <ugen name="PauseSelf" sideeffect="true">
+    <ugen name="PauseSelf" side-effect="true">
         <rate name="control" implied="true"/>
         <arg name="trig" type="trig">
             <doc>
@@ -523,14 +523,14 @@
             <see>ugen.FreeSelf</see>
         </doc>
     </ugen>
-    <ugen name="Free" sideeffect="true">
+    <ugen name="Free" side-effect="true">
         <rate name="control" implied="true"/>
         <arg name="trig" type="trig">
             <doc>
                 the trigger to cause the action
             </doc>
         </arg>
-        <arg name="node" type="gint">
+        <arg name="node" type="ge-int">
             <doc>
                 the id of the target node to free upon receiving the trigger
             </doc>
@@ -545,9 +545,9 @@
             <see>ugen.FreeSelf</see>
         </doc>
     </ugen>
-    <ugen name="FreeSelfWhenDone" sideeffect="true">
+    <ugen name="FreeSelfWhenDone" side-effect="true">
         <rate name="control" implied="true"/>
-        <arg name="src" type="doneflag">
+        <arg name="src" type="done-flag">
             <doc>
                 the input UGen which when finished will trigger the action.
             </doc>
@@ -567,9 +567,9 @@
             <see>ugen.Done</see>
         </doc>
     </ugen>
-    <ugen name="PauseSelfWhenDone" sideeffect="true">
+    <ugen name="PauseSelfWhenDone" side-effect="true">
         <rate name="control" implied="true"/>
-        <arg name="src" type="doneflag">
+        <arg name="src" type="done-flag">
             <doc>
                 the input UGen which when finished will trigger the action.
             </doc>
