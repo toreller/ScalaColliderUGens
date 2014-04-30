@@ -490,6 +490,27 @@
                 `BufRd` has variable interpolation. `PlayBuf` can determine the end of the buffer
                 and issue a done-action.
             </text>
+            <example name="Write and read" type="full">
+                val b = Buffer.alloc(s, numFrames = 32768, numChannels = 1)
+
+                // write into the buffer with a BufWr
+                val y = play {
+                  val in = SinOsc.ar(LFNoise1.kr(2).madd(300, 400)) * 0.1
+                  val rate = "rate" kr 1
+                  BufWr.ar(in, b.id, Phasor.ar(0, BufRateScale.kr(b.id) * rate, 0, BufFrames.kr(b.id)))
+                  0.0 // quiet
+                }
+
+                // read it with a BufRd
+                val x = play {
+                  val rate = "rate" kr 1
+                  BufRd.ar(1, b.id, Phasor.ar(0, BufRateScale.kr(b.id) * rate, 0, BufFrames.kr(b.id)))
+                }
+
+                y.set("rate" -> 0.5) // notice the clicks when the play head overtakes the write head!
+                x.set("rate" -> 0.5)
+                y.set("rate" -> 1.0)
+            </example>
             <see>ugen.PlayBuf</see>
             <see>ugen.BufWr</see>
             <see>ugen.Phasor</see>
@@ -694,7 +715,26 @@
         <doc>
             <text>
                 Simple delay line with no interpolation which uses a buffer for its internal memory.
+
+                __Warning__: For reasons of efficiency, the effective buffer size is the allocated size
+                rounded down to the next power of two. For example, if 44100 samples are allocated, the maximum
+                delay would be 32768 samples. Also note that the buffer must be monophonic.
             </text>
+            <example name="Random white-noise decay" type="full">
+                // allocate buffer
+                val b = Buffer.alloc(s, (0.2 * s.sampleRate).toInt.nextPowerOfTwo, 1)
+
+                // Dust randomly triggers Decay to create an exponential
+                // decay envelope for the WhiteNoise input source.
+                // We apply a slight filter to the delayed signal
+                // so it is easier to distinguish
+                play {
+                  val z = Decay.ar(Dust.ar(1) * 0.5, 0.3) * WhiteNoise.ar
+                  LPF.ar(BufDelayN.ar(b.id, z, 0.2), 8000) + z  // input is mixed with delay
+                }
+
+                b.free()  // do this after the synth has ended
+            </example>
             <see>ugen.BufDelayL</see>
             <see>ugen.BufDelayC</see>
         </doc>
@@ -722,7 +762,12 @@
         <doc>
             <text>
                 Simple delay line with linear interpolation which uses a buffer for its internal memory.
+
+                __Warning__: For reasons of efficiency, the effective buffer size is the allocated size
+                rounded down to the next power of two. For example, if 44100 samples are allocated, the maximum
+                delay would be 32768 samples. Also note that the buffer must be monophonic.
             </text>
+            <!-- TODO: example -->
             <see>ugen.BufDelayN</see>
             <see>ugen.BufDelayC</see>
         </doc>
@@ -750,7 +795,12 @@
         <doc>
             <text>
                 Simple delay line with cubic interpolation which uses a buffer for its internal memory.
+
+                __Warning__: For reasons of efficiency, the effective buffer size is the allocated size
+                rounded down to the next power of two. For example, if 44100 samples are allocated, the maximum
+                delay would be 32768 samples. Also note that the buffer must be monophonic.
             </text>
+            <!-- TODO: example -->
             <see>ugen.BufDelayN</see>
             <see>ugen.BufDelayL</see>
         </doc>
@@ -783,7 +833,41 @@
         <doc>
             <text>
                 Comb delay line with no interpolation which uses a buffer for its internal memory.
+
+                __Warning__: For reasons of efficiency, the effective buffer size is the allocated size
+                rounded down to the next power of two. For example, if 44100 samples are allocated, the maximum
+                delay would be 32768 samples. Also note that the buffer must be monophonic.
             </text>
+            <example name="Compare interpolation" type="full">
+                // These examples compare the variants, so that you can hear the difference in interpolation
+
+                // allocate buffer
+                val b = Buffer.alloc(s, (0.01 * s.sampleRate).toInt.nextPowerOfTwo)
+
+                // Comb used as a resonator. The resonant fundamental is equal to
+                // reciprocal of the delay time.
+                play { BufCombN.ar(b.id, WhiteNoise.ar(0.01), XLine.kr(0.0001, 0.01, 20), 0.2) }
+
+                play { BufCombL.ar(b.id, WhiteNoise.ar(0.01), XLine.kr(0.0001, 0.01, 20), 0.2) }
+
+                play { BufCombC.ar(b.id, WhiteNoise.ar(0.01), XLine.kr(0.0001, 0.01, 20), 0.2) }
+
+                // with negative feedback
+                play { BufCombN.ar(b.id, WhiteNoise.ar(0.01), XLine.kr(0.0001, 0.01, 20), -0.2) }
+
+                play { BufCombL.ar(b.id, WhiteNoise.ar(0.01), XLine.kr(0.0001, 0.01, 20), -0.2) }
+
+                play { BufCombC.ar(b.id, WhiteNoise.ar(0.01), XLine.kr(0.0001, 0.01, 20), -0.2) }
+
+                b.free()   // do this after the synths have ended
+            </example>
+            <example name="Used as an echo" type="full">
+                val b = Buffer.alloc(s, (0.2 * s.sampleRate).toInt.nextPowerOfTwo)
+
+                play { BufCombN.ar(b.id, Decay.ar(Dust.ar(1) * 0.5, 0.2) * WhiteNoise.ar, 0.2, 3) }
+
+                b.free()   // do this after the synth has ended
+            </example>
             <see>ugen.BufCombL</see>
             <see>ugen.BufCombC</see>
         </doc>
@@ -811,12 +895,39 @@
             <doc>
                 Time for the echoes to decay by 60 decibels. If this time is negative then the feedback
                 coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.
+
+                __Warning__: For reasons of efficiency, the effective buffer size is the allocated size
+                rounded down to the next power of two. For example, if 44100 samples are allocated, the maximum
+                delay would be 32768 samples. Also note that the buffer must be monophonic.
             </doc>
         </arg>
         <doc>
             <text>
                 Comb delay line with linear interpolation which uses a buffer for its internal memory.
             </text>
+            <example name="Compare interpolation" type="full">
+                // These examples compare the variants, so that you can hear the difference in interpolation
+
+                // allocate buffer
+                val b = Buffer.alloc(s, (0.01 * s.sampleRate).toInt.nextPowerOfTwo)
+
+                // Comb used as a resonator. The resonant fundamental is equal to
+                // reciprocal of the delay time.
+                play { BufCombN.ar(b.id, WhiteNoise.ar(0.01), XLine.kr(0.0001, 0.01, 20), 0.2) }
+
+                play { BufCombL.ar(b.id, WhiteNoise.ar(0.01), XLine.kr(0.0001, 0.01, 20), 0.2) }
+
+                play { BufCombC.ar(b.id, WhiteNoise.ar(0.01), XLine.kr(0.0001, 0.01, 20), 0.2) }
+
+                // with negative feedback
+                play { BufCombN.ar(b.id, WhiteNoise.ar(0.01), XLine.kr(0.0001, 0.01, 20), -0.2) }
+
+                play { BufCombL.ar(b.id, WhiteNoise.ar(0.01), XLine.kr(0.0001, 0.01, 20), -0.2) }
+
+                play { BufCombC.ar(b.id, WhiteNoise.ar(0.01), XLine.kr(0.0001, 0.01, 20), -0.2) }
+
+                b.free()   // do this after the synths have ended
+            </example>
             <see>ugen.BufCombN</see>
             <see>ugen.BufCombC</see>
         </doc>
@@ -844,12 +955,39 @@
             <doc>
                 Time for the echoes to decay by 60 decibels. If this time is negative then the feedback
                 coefficient will be negative, thus emphasizing only odd harmonics at an octave lower.
+
+                __Warning__: For reasons of efficiency, the effective buffer size is the allocated size
+                rounded down to the next power of two. For example, if 44100 samples are allocated, the maximum
+                delay would be 32768 samples. Also note that the buffer must be monophonic.
             </doc>
         </arg>
         <doc>
             <text>
                 Comb delay line with cubic interpolation which uses a buffer for its internal memory.
             </text>
+            <example name="Compare interpolation" type="full">
+                // These examples compare the variants, so that you can hear the difference in interpolation
+
+                // allocate buffer
+                val b = Buffer.alloc(s, (0.01 * s.sampleRate).toInt.nextPowerOfTwo)
+
+                // Comb used as a resonator. The resonant fundamental is equal to
+                // reciprocal of the delay time.
+                play { BufCombN.ar(b.id, WhiteNoise.ar(0.01), XLine.kr(0.0001, 0.01, 20), 0.2) }
+
+                play { BufCombL.ar(b.id, WhiteNoise.ar(0.01), XLine.kr(0.0001, 0.01, 20), 0.2) }
+
+                play { BufCombC.ar(b.id, WhiteNoise.ar(0.01), XLine.kr(0.0001, 0.01, 20), 0.2) }
+
+                // with negative feedback
+                play { BufCombN.ar(b.id, WhiteNoise.ar(0.01), XLine.kr(0.0001, 0.01, 20), -0.2) }
+
+                play { BufCombL.ar(b.id, WhiteNoise.ar(0.01), XLine.kr(0.0001, 0.01, 20), -0.2) }
+
+                play { BufCombC.ar(b.id, WhiteNoise.ar(0.01), XLine.kr(0.0001, 0.01, 20), -0.2) }
+
+                b.free()   // do this after the synths have ended
+            </example>
             <see>ugen.BufCombN</see>
             <see>ugen.BufCombL</see>
         </doc>
@@ -882,7 +1020,48 @@
         <doc>
             <text>
                 All pass delay line with no interpolation which uses a buffer for its internal memory.
+
+                __Warning__: For reasons of efficiency, the effective buffer size is the allocated size
+                rounded down to the next power of two. For example, if 44100 samples are allocated, the maximum
+                delay would be 32768 samples. Also note that the buffer must be monophonic.
             </text>
+            <example name="Compare interpolation types" type="full">
+                // allocate buffer
+                val b = Buffer.alloc(s, (0.2 * s.sampleRate).toInt.nextPowerOfTwo)
+
+                // Since the allpass delay has no audible effect as a resonator on
+                // steady state sound ...
+                play { BufAllpassC.ar(b.id, WhiteNoise.ar(0.1), XLine.kr(0.0001, 0.01, 20), 0.2) }
+
+                // ...these examples add the input to the effected sound and compare variants so that you can hear
+                // the effect of the phase comb:
+                play {
+                  val z = WhiteNoise.ar(0.2)
+                  z + BufAllpassN.ar(b.id, z, XLine.kr(0.0001, 0.01, 20), 0.2)
+                }
+
+                play {
+                  val z = WhiteNoise.ar(0.2)
+                  z + BufAllpassL.ar(b.id, z, XLine.kr(0.0001, 0.01, 20), 0.2)
+                }
+
+                play {
+                  val z = WhiteNoise.ar(0.2)
+                  z + BufAllpassC.ar(b.id, z, XLine.kr(0.0001, 0.01, 20), 0.2)
+                }
+
+                b.free()  // after synths have been stopped
+            </example>
+            <example name="Used as echo" type="full">
+                val b = Buffer.alloc(s, (0.2 * s.sampleRate).toInt.nextPowerOfTwo)
+
+                // doesn't really sound different than Comb,
+                // but it outputs the input signal immediately (inverted) and the echoes
+                // are lower in amplitude.
+                play { BufAllpassN.ar(b.id, Decay.ar(Dust.ar(1) * 0.5, 0.2) * WhiteNoise.ar, 0.2, 3) }
+
+                b.free()
+            </example>
             <see>ugen.BufAllpassL</see>
             <see>ugen.BufAllpassC</see>
         </doc>
@@ -915,7 +1094,38 @@
         <doc>
             <text>
                 All pass delay line with linear interpolation which uses a buffer for its internal memory.
+
+                __Warning__: For reasons of efficiency, the effective buffer size is the allocated size
+                rounded down to the next power of two. For example, if 44100 samples are allocated, the maximum
+                delay would be 32768 samples. Also note that the buffer must be monophonic.
             </text>
+            <example name="Compare interpolation types" type="full">
+                // allocate buffer
+                val b = Buffer.alloc(s, (0.2 * s.sampleRate).toInt.nextPowerOfTwo)
+
+                // Since the allpass delay has no audible effect as a resonator on
+                // steady state sound ...
+                play { BufAllpassC.ar(b.id, WhiteNoise.ar(0.1), XLine.kr(0.0001, 0.01, 20), 0.2) }
+
+                // ...these examples add the input to the effected sound and compare variants so that you can hear
+                // the effect of the phase comb:
+                play {
+                  val z = WhiteNoise.ar(0.2)
+                  z + BufAllpassN.ar(b.id, z, XLine.kr(0.0001, 0.01, 20), 0.2)
+                }
+
+                play {
+                  val z = WhiteNoise.ar(0.2)
+                  z + BufAllpassL.ar(b.id, z, XLine.kr(0.0001, 0.01, 20), 0.2)
+                }
+
+                play {
+                  val z = WhiteNoise.ar(0.2)
+                  z + BufAllpassC.ar(b.id, z, XLine.kr(0.0001, 0.01, 20), 0.2)
+                }
+
+                b.free()  // after synths have been stopped
+            </example>
             <see>ugen.BufAllpassN</see>
             <see>ugen.BufAllpassC</see>
         </doc>
@@ -948,7 +1158,38 @@
         <doc>
             <text>
                 All pass delay line with cubic interpolation which uses a buffer for its internal memory.
+
+                __Warning__: For reasons of efficiency, the effective buffer size is the allocated size
+                rounded down to the next power of two. For example, if 44100 samples are allocated, the maximum
+                delay would be 32768 samples. Also note that the buffer must be monophonic.
             </text>
+            <example name="Compare interpolation types" type="full">
+                // allocate buffer
+                val b = Buffer.alloc(s, (0.2 * s.sampleRate).toInt.nextPowerOfTwo)
+
+                // Since the allpass delay has no audible effect as a resonator on
+                // steady state sound ...
+                play { BufAllpassC.ar(b.id, WhiteNoise.ar(0.1), XLine.kr(0.0001, 0.01, 20), 0.2) }
+
+                // ...these examples add the input to the effected sound and compare variants so that you can hear
+                // the effect of the phase comb:
+                play {
+                  val z = WhiteNoise.ar(0.2)
+                  z + BufAllpassN.ar(b.id, z, XLine.kr(0.0001, 0.01, 20), 0.2)
+                }
+
+                play {
+                  val z = WhiteNoise.ar(0.2)
+                  z + BufAllpassL.ar(b.id, z, XLine.kr(0.0001, 0.01, 20), 0.2)
+                }
+
+                play {
+                  val z = WhiteNoise.ar(0.2)
+                  z + BufAllpassC.ar(b.id, z, XLine.kr(0.0001, 0.01, 20), 0.2)
+                }
+
+                b.free()  // after synths have been stopped
+            </example>
             <see>ugen.BufAllpassN</see>
             <see>ugen.BufAllpassL</see>
         </doc>
@@ -977,6 +1218,18 @@
             <text>
                 Simple delay line with no interpolation.
             </text>
+            <example name="Delayed random pulses">
+                // Dust randomly triggers Decay to create an exponential
+                // decay envelope for the WhiteNoise input source
+                val z = Decay.ar(Dust.ar(2) * 0.5, 0.3) * WhiteNoise.ar
+                DelayN.ar(z, 0.2, 0.2) + z  // input is mixed with delay via the add input
+            </example>
+            <example name="Recursive application">
+                val z = Decay2.ar(Dust.ar(1) * 0.5, 0.01, 0.1) * Saw.ar(Seq(100, 101)) * 0.5
+                (z /: (0 until 5)) { (zi, i) =>
+                  DelayN.ar(RLPF.ar(zi, Rand(100, 3000), 0.03), 1, 1.0 / (2 &lt;&lt; i)) + zi * 0.5
+                }
+            </example>
             <see>ugen.DelayL</see>
             <see>ugen.DelayC</see>
         </doc>
@@ -1005,6 +1258,7 @@
             <text>
                 Simple delay line with linear interpolation.
             </text>
+            <!-- TODO: example -->
             <see>ugen.DelayN</see>
             <see>ugen.DelayC</see>
         </doc>
@@ -1033,6 +1287,7 @@
             <text>
                 Simple delay line with cubic interpolation.
             </text>
+            <!-- TODO: example -->
             <see>ugen.DelayN</see>
             <see>ugen.DelayL</see>
         </doc>

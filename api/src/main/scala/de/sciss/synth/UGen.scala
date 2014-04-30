@@ -18,7 +18,10 @@ import annotation.switch
 import runtime.ScalaRunTime
 import language.implicitConversions
 
-sealed trait UGen extends Product /* with MaybeIndividual */ {
+sealed trait UGen extends Product {
+  // initialize this first, so that debug printing in `addUGen` can use the hash code
+  override val hashCode: Int = if (isIndividual) super.hashCode() else ScalaRunTime._hashCode(this)
+
   // ---- constructor ----
   UGenGraph.builder.addUGen(this)
 
@@ -59,8 +62,6 @@ sealed trait UGen extends Product /* with MaybeIndividual */ {
   }
 
   final def canEqual(x: Any): Boolean = x.isInstanceOf[UGen]
-
-  override val hashCode: Int = if (isIndividual) super.hashCode() else ScalaRunTime._hashCode(this)
 
   override def equals(x: Any): Boolean = (this eq x.asInstanceOf[AnyRef]) || (!isIndividual && (x match {
     case u: UGen =>
