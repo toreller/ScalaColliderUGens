@@ -436,7 +436,7 @@ private[synth] object UGenSpecParser {
     }
 
     def getRate(map: Map[String, String]): Rate = {
-      map.get("name").getOrElse(sys.error(s"Missing rate name in ugen $uName")) match {
+      map.getOrElse("name", sys.error(s"Missing rate name in ugen $uName")) match {
         case "audio"    => audio
         case "control"  => control
         case "scalar"   => scalar
@@ -524,11 +524,17 @@ private[synth] object UGenSpecParser {
 
     aNodes.foreach { aNode =>
       val aAttrs      = aNode.attributes.asAttrMap
-      if (verify) {
-        val unknown = aAttrs.keySet -- argAttrKeys
-        require(unknown.isEmpty, s"Unsupported ugen argument attributes: ${unknown.mkString(",")}")
-      }
       val aName       = aAttrs.string("name")
+
+      if (verify) {
+        // verify attribute names
+        val unknown = aAttrs.keySet -- argAttrKeys
+        require(unknown.isEmpty, s"Unsupported argument attributes, in ugen $uName, $aName: ${unknown.mkString(",")}")
+
+        // verify that no accidental text is in node (a typical error is omitting the <doc> node)
+        require(aNode.child.collect { case t: xml.Text if t.text.trim.nonEmpty => t } .isEmpty,
+          s"UGen $uName argument $aName contains text")
+      }
 
       // have to deal with:
       // "type" (ok), "init" (ok), "default" (ok), "rate", "ugen-in" (ok), "pos" (ok), "variadic" (ok)

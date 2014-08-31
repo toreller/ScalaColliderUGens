@@ -1,4 +1,4 @@
-<ugens revision="1">
+<ugens revision="3">
     <ugen name="Vibrato">
         <rate name="control"/>
         <rate name="audio"/>
@@ -90,7 +90,7 @@
         <rate name="audio"/>
         <arg name="freq" default="440.0">
             <doc>
-                Frequency in Hertz
+                frequency in Hertz
             </doc>
         </arg>
         <arg name="iphase" default="0.0" init="true">
@@ -123,8 +123,16 @@
     <ugen name="Impulse">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="freq" default="440.0"/>
-        <arg name="phase" default="0.0"/>
+        <arg name="freq" default="440.0">
+            <doc>
+                frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="phase" default="0.0">
+            <doc>
+                phase offset in cycles (0 to 1)
+            </doc>
+        </arg>
     </ugen>
     <ugen name="VarSaw">
         <rate name="control"/>
@@ -225,7 +233,7 @@
         </arg>
         <doc>
             <text>
-                A exponential curve generator UGen that moves from a start value to the end value in a given duration.
+                An exponential curve generator UGen that moves from a start value to the end value in a given duration.
 
                 At a given point in time `0 &lt;= t &lt;= dur`, the output value is `start * (stop/start).pow(t/dur)`.
 
@@ -309,19 +317,29 @@
         <rate name="control"/>
         <rate name="audio"/>
         <arg name="in" rate="ugen">
-            The input signal to convert.
+            <doc>
+                input signal to convert
+            </doc>
         </arg>
         <arg name="srcLo" default="0.0">
-            The lower limit of input range.
+            <doc>
+                lower limit of input range
+            </doc>
         </arg>
         <arg name="srcHi" default="1.0">
-            The upper limit of input range.
+            <doc>
+                upper limit of input range
+            </doc>
         </arg>
         <arg name="dstLo" default="1.0">
-            The lower limit of output range.
+            <doc>
+                lower limit of output range
+            </doc>
         </arg>
         <arg name="dstHi" default="2.0">
-            The upper limit of output range.
+            <doc>
+                upper limit of output range
+            </doc>
         </arg>
         <doc>
             <text>

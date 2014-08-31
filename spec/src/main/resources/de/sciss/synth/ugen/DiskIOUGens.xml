@@ -1,4 +1,5 @@
 <ugens revision="1">
+    <!-- all documented -->
     <!-- // side-effect: advancing sf offset -->
     <ugen name="DiskIn" reads-buf="true" side-effect="true">
         <rate name="audio"/> <!-- implied="true" -->

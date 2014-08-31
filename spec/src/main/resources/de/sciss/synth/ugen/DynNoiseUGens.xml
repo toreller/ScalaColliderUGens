@@ -1,4 +1,5 @@
-<ugens revision="1">
+<ugens revision="2">
+    <!-- all documented -->
     <ugen name="LFDNoise0" random="true">
         <rate name="control"/>
         <rate name="audio"/>
@@ -41,7 +42,7 @@
                 There is no time quantization, and it there is fast recovery from low freq values.
 
                 In contrast, `LFNoise0`, `LFNoise1`, and `LFNoise2` quantize to the nearest integer division
-                of the sampl erate, and they poll the freq argument only when scheduled, and thus seem
+                of the sample rate, and they poll the freq argument only when scheduled, and thus seem
                 to hang when the frequencies get very low.
 
                 If very high or very low frequencies are not needed, or fixed frequencies are used,
@@ -61,6 +62,27 @@
                 rate at which to generate random values.
             </doc>
         </arg>
+        <doc>
+            <text>
+                A dynamic ramp noise UGen. It is similar to `LFNoise2`, with three differences: It uses cubic
+                instead of quadratic interpolation for the random values between `-1` and `+1` at a rate given by
+                the `freq` argument. There is no time quantization, and it there is fast recovery from low freq values.
+
+                In contrast, `LFNoise0`, `LFNoise1`, and `LFNoise2` quantize to the nearest integer division
+                of the sample rate, and they poll the freq argument only when scheduled, and thus seem
+                to hang when the frequencies get very low.
+            </text>
+            <example name="compare dynamic and non-dynamic">
+                val r    = MouseX.kr(0.1, 1000, 1)
+                val a    = LFNoise2 .ar(r)
+                val b    = LFDNoise3.ar(r)
+                val freq = Select.ar(MouseButton.kr(lag = 0), Seq(a, b))
+                SinOsc.ar(freq.madd(200, 500)) * 0.2
+            </example>
+            <see>ugen.LFNoise2</see>
+            <see>ugen.LFDNoise0</see>
+            <see>ugen.LFDNoise1</see>
+        </doc>
     </ugen>
     <ugen name="LFDClipNoise" random="true">
         <rate name="control"/>
@@ -70,5 +92,26 @@
                 rate at which to generate random values.
             </doc>
         </arg>
+        <doc>
+            <text>
+                A UGen that randomly generates the values -1 or +1 at a rate given by the nearest integer
+                division of the sample rate by the frequency argument.
+            </text>
+            <example name="generator">
+                LFClipNoise.ar(500) * 0.2
+            </example>
+            <example name="random panning">
+                val pos = LFClipNoise.ar(4)
+                Pan2.ar(PinkNoise.ar, pos)
+            </example>
+            <example name="modulate frequency">
+                LFClipNoise.ar(XLine.kr(100, 10000, 20)) * 0.2
+            </example>
+            <see>ugen.LFNoise0</see>
+            <see>ugen.LFNoise1</see>
+            <see>ugen.CoinGate</see>
+            <see>ugen.Schmidt</see>
+            <see>ugen.GrayNoise</see>
+        </doc>
     </ugen>
 </ugens>

@@ -1,4 +1,4 @@
-<ugens revision="1">
+<ugens revision="2">
     <ugen name="Trig1">
         <rate name="audio"/>
         <rate name="control"/>
@@ -214,16 +214,18 @@
         <rate name="control"/>
         <rate name="audio"/>
         <arg name="in">
-            The input signal to be analyzed.
+            <doc>
+                input signal to be analyzed
+            </doc>
         </arg>
         <arg name="lo" default="0.0">
             <doc>
-                The low threshold.
+                low threshold
             </doc>
         </arg>
         <arg name="hi" default="1.0">
             <doc>
-                The high threshold.
+                high threshold
             </doc>
         </arg>
         <doc>
@@ -350,6 +352,7 @@
                 `Impulse.ar(1)` the result (at 44.1 kHz) is 2.26757e-05, followed strangely
                 by 1.00002, and then (as expected) 1.0.
             </text>
+            <see>ugen.Sweep</see>
         </doc>
     </ugen>
     <ugen name="Sweep">
@@ -372,6 +375,9 @@
             <text>
                 A UGen which starts a linear raise from zero each time it is
                 triggered.
+
+                When speed is one, one gets a continually-updating measurement
+                of the time (in seconds) since the last trigger.
             </text>
             <see>ugen.Ramp</see>
             <see>ugen.Phasor</see>

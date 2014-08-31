@@ -1,4 +1,5 @@
-<ugens revision="1">
+<ugens revision="2">
+    <!-- all documented, except IFFT, PartConv -->
     <ugen name="FFT" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
@@ -15,9 +16,11 @@
             </doc>
         </arg>
         <arg name="hop" default="0.5" init="true">
-            A factor determining the step size between successive FFTs. That is, FFTs are performed
-            every fftSize * hop sample frames. The default of 0.5 means thus a 50% overlap, while
-            a hope of 1.0 means no overlapping. Choosing 0.0 will most likely crash the server!
+            <doc>
+                A factor determining the step size between successive FFTs. That is, FFTs are performed
+                every fftSize * hop sample frames. The default of 0.5 means thus a 50% overlap, while
+                a hope of 1.0 means no overlapping. Choosing 0.0 will most likely crash the server!
+            </doc>
         </arg>
         <arg name="winType" default="0" init="true">
             <doc>

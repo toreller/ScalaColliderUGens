@@ -1,4 +1,5 @@
-<ugens revision="1">
+<ugens revision="3">
+    <!-- all documented, except: APF -->
     <ugen name="Ramp">
         <rate name="control"/>
         <rate name="audio"/>
@@ -211,6 +212,7 @@
                 }}}
             </text>
             <see>ugen.OneZero</see>
+            <see>ugen.TwoPole</see>
             <see>ugen.Lag</see>
         </doc>
     </ugen>
@@ -238,6 +240,7 @@
                 }}}
             </text>
             <see>ugen.OnePole</see>
+            <see>ugen.TwoZero</see>
             <see>ugen.LPZ1</see>
             <see>ugen.HPZ1</see>
             <see>ugen.Delay1</see>
@@ -249,22 +252,66 @@
         <rate name="audio"/>
         <arg name="in" rate="ugen">
             <doc>
-                input signal to be processed
+                input signal to be filtered
             </doc>
         </arg>
-        <arg name="freq" default="440.0"/>
-        <arg name="radius" default="0.8"/>
+        <arg name="freq" default="440.0">
+            <doc>
+                frequency of pole angle, in Hertz
+            </doc>
+        </arg>
+        <arg name="radius" default="0.8">
+            <doc>
+                radius of pole angle. Should be between 0 and 1
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A two pole filter UGen. This provides lower level access to setting of pole location.
+                For general purposes `Resonz` is better.
+            </text>
+            <example name="static frequency">
+                TwoPole.ar(WhiteNoise.ar(0.005), 2000, 0.95)
+            </example>
+            <example name="sweeping frequency">
+                TwoPole.ar(WhiteNoise.ar(0.005), XLine.kr(800, 8000, 8), 0.95)
+            </example>
+            <example name="mouse controlled frequency">
+                TwoPole.ar(WhiteNoise.ar(0.005), MouseX.kr(800, 8000, 1), 0.95)
+            </example>
+            <see>ugen.OnePole</see>
+            <see>ugen.TwoZero</see>
+            <see>ugen.Resonz</see>
+        </doc>
     </ugen>
     <ugen name="TwoZero">
         <rate name="control"/>
         <rate name="audio"/>
         <arg name="in" rate="ugen">
             <doc>
-                input signal to be processed
+                input signal to be filtered
             </doc>
         </arg>
-        <arg name="freq" default="440.0"/>
-        <arg name="radius" default="0.8"/>
+        <arg name="freq" default="440.0">
+            <doc>
+                frequency of zero angle, in Hertz
+            </doc>
+        </arg>
+        <arg name="radius" default="0.8">
+            <doc>
+                radius of zero
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A two zero filter UGen.
+            </text>
+            <example name="frequency sweep">
+                TwoZero.ar(WhiteNoise.ar(0.125), XLine.kr(20, 20000, 8), 1)
+            </example>
+            <see>ugen.OneZero</see>
+            <see>ugen.TwoPole</see>
+        </doc>
     </ugen>
     <ugen name="Decay">
         <rate name="control"/>
@@ -323,12 +370,52 @@
     <ugen name="Delay1">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in"/>
+        <arg name="in">
+            <doc>
+                input to be delayed
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that delays the input by 1 audio frame or control period.
+
+                For audio-rate signals the delay is 1 audio frame, and for control-rate signals
+                the delay is 1 control period.
+            </text>
+            <example name="analog to HPZ1">
+                val z = PinkNoise.ar
+                val x = z - Delay1.ar(z)
+                // mouse button to compare dry/wet
+                LinXFade2.ar(z, x, MouseButton.kr(-1, 1))
+            </example>
+            <see>ugen.Delay2</see>
+            <see>ugen.DelayN</see>
+        </doc>
     </ugen>
     <ugen name="Delay2">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in"/>
+        <arg name="in">
+            <doc>
+                input to be delayed
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that delays the input by 2 audio frames or control periods.
+
+                For audio-rate signals the delay is 2 audio frames, and for control-rate signals
+                the delay is 2 control periods.
+            </text>
+            <example name="high-frequency comb filter">
+                val z = PinkNoise.ar
+                val x = z - Delay2.ar(z)
+                // mouse button to compare dry/wet
+                LinXFade2.ar(z, x, MouseButton.kr(-1, 1))
+            </example>
+            <see>ugen.Delay1</see>
+            <see>ugen.DelayN</see>
+        </doc>
     </ugen>
     <ugen name="Integrator">
         <rate name="control"/>
@@ -363,15 +450,41 @@
         <rate name="audio">
             <arg name="coeff" default="0.995"/>
         </rate>
-        <arg name="in" rate="ugen"/>
-        <arg name="coeff"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be filtered
+            </doc>
+        </arg>
+        <arg name="coeff">
+            <doc>
+                the leak coefficient determines the filter strength. the value must
+                be between zero and one (exclusive) for the filter to remain stable.
+                values closer to one produce less bass attenuation.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A filter UGen to remove very low frequency content DC offset.
+            </text>
+            <example name="show DC with mouse-controlled coefficient">
+                val freq = 800
+                val in   = LFPulse.ar(freq).madd(0.5, 0.5)
+                val coef = MouseX.kr(0.9, 0.999)
+                val flt  = LeakDC.ar(in, coef)
+                val dc   = RunningSum.ar(flt, SampleRate.ir/freq)
+                coef.poll(2)
+                dc  .poll(2)
+                0
+            </example>
+            <see>ugen.DC</see>
+        </doc>
     </ugen>
     <ugen name="LPZ1">
         <rate name="control"/>
         <rate name="audio"/>
         <arg name="in" rate="ugen">
             <doc>
-                input signal to be processed
+                input signal to be filtered
             </doc>
         </arg>
         <doc>
@@ -382,9 +495,16 @@
                 out(i) = 0.5 * (in(i) + in(i-1))
                 }}}
             </text>
+            <example name="engage with mouse button">
+                val sig = WhiteNoise.ar(0.5)
+                val flt = LPZ1.ar(sig)
+                LinXFade2.ar(sig, flt, MouseButton.kr(-1, 1))
+            </example>
             <see>ugen.OnePole</see>
             <see>ugen.HPZ1</see>
+            <see>ugen.LPZ2</see>
             <see>ugen.Integrator</see>
+            <see>ugen.Delay1</see>
         </doc>
     </ugen>
     <ugen name="HPZ1">
@@ -392,7 +512,7 @@
         <rate name="audio"/>
         <arg name="in" rate="ugen">
             <doc>
-                input signal to be processed
+                input signal to be filtered
             </doc>
         </arg>
         <doc>
@@ -403,29 +523,131 @@
                 out(i) = 0.5 * (in(i) - in(i-1))
                 }}}
             </text>
+            <example name="engage with mouse button">
+                val sig = PinkNoise.ar
+                val flt = HPZ1.ar(sig)
+                LinXFade2.ar(sig, flt, MouseButton.kr(-1, 1))
+            </example>
+            <example name="detect changes">
+                val z  = LFNoise0.ar(2)
+                val f  = HPZ1.ar(z)
+                val ch = f sig_!= 0 // input increased or decreased
+                z.poll(ch, "now")
+                0
+            </example>
             <see>ugen.OneZero</see>
             <see>ugen.LPZ1</see>
+            <see>ugen.Delay1</see>
         </doc>
     </ugen>
     <ugen name="LPZ2">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in" rate="ugen"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be filtered
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                three point average filter UGen.
+                Implements the formula :
+                {{{
+                out(i) = 0.25 * (in(i) + 2 * in(i-1) + in(i-2))
+                }}}
+            </text>
+            <example name="engage with mouse button">
+                val sig = WhiteNoise.ar(0.5)
+                val flt = LPZ2.ar(sig)
+                LinXFade2.ar(sig, flt, MouseButton.kr(-1, 1))
+            </example>
+            <see>ugen.LPZ1</see>
+            <see>ugen.HPZ2</see>
+            <see>ugen.BPZ2</see>
+            <see>ugen.BRZ2</see>
+        </doc>
     </ugen>
     <ugen name="HPZ2">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in" rate="ugen"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be filtered
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                three point difference filter UGen.
+                Implements the formula :
+                {{{
+                out(i) = 0.25 * (in(i) - 2 * in(i-1) + in(i-2))
+                }}}
+            </text>
+            <example name="engage with mouse button">
+                val sig = WhiteNoise.ar(0.5)
+                val flt = HPZ2.ar(sig)
+                LinXFade2.ar(sig, flt, MouseButton.kr(-1, 1))
+            </example>
+            <see>ugen.LPZ1</see>
+            <see>ugen.HPZ2</see>
+            <see>ugen.BPZ2</see>
+            <see>ugen.BRZ2</see>
+        </doc>
     </ugen>
     <ugen name="BPZ2">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in" rate="ugen"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be filtered
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                a special fixed band-pass filter UGen.
+                Implements the formula :
+                {{{
+                out(i) = 0.5 * (in(i) - in(i-2))
+                }}}
+                This filter cuts out frequencies around zero Hertz and Nyquist.
+            </text>
+            <example name="engage with mouse button">
+                val sig = WhiteNoise.ar(0.5)
+                val flt = BPZ2.ar(sig)
+                LinXFade2.ar(sig, flt, MouseButton.kr(-1, 1))
+            </example>
+            <see>ugen.HPZ2</see>
+            <see>ugen.LPZ2</see>
+            <see>ugen.BRZ2</see>
+            <see>ugen.BPF</see>
+        </doc>
     </ugen>
     <ugen name="BRZ2">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in" rate="ugen"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be filtered
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                a special fixed band-reject filter UGen.
+                Implements the formula :
+                {{{
+                out(i) = 0.5 * (in(i) + in(i-2))
+                }}}
+                This filter cuts out frequencies around half of the Nyquist frequency.
+            </text>
+            <example name="engage with mouse button">
+                val sig = WhiteNoise.ar(0.5)
+                val flt = BRZ2.ar(sig)
+                LinXFade2.ar(sig, flt, MouseButton.kr(-1, 1))
+            </example>
+            <see>ugen.HPZ1</see>
+            <see>ugen.HPZ2</see>
+            <see>ugen.BRF</see>
+        </doc>
     </ugen>
     <ugen name="APF">
         <rate name="control"/>
@@ -437,42 +659,223 @@
     <ugen name="LPF">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in" rate="ugen"/>
-        <arg name="freq" default="440.0"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be filtered
+            </doc>
+        </arg>
+        <arg name="freq" default="440.0">
+            <doc>
+                cutoff frequency in Hertz
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A second order low pass filter UGen.
+            </text>
+            <example name="modulated frequency">
+                val in   = Saw.ar(200) * 0.5
+                val freq = SinOsc.ar(XLine.ar(0.3, 100, 20)).madd(3600, 4000)
+                LPF.ar(in, freq)
+            </example>
+            <example name="mouse controlled frequency">
+                val in   = WhiteNoise.ar(0.5)
+                val freq = MouseX.kr(200, 10000, 1)
+                LPF.ar(in, freq)
+            </example>
+            <see>ugen.HPF</see>
+            <see>ugen.BPF</see>
+            <see>ugen.BRF</see>
+            <see>ugen.RLPF</see>
+            <see>ugen.LPZ1</see>
+        </doc>
     </ugen>
     <ugen name="HPF">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in" rate="ugen"/>
-        <arg name="freq" default="440.0"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be filtered
+            </doc>
+        </arg>
+        <arg name="freq" default="440.0">
+            <doc>
+                cutoff frequency in Hertz
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A second order high pass filter UGen.
+            </text>
+            <example name="modulated frequency">
+                val in   = Saw.ar(200) * 0.5
+                val freq = SinOsc.ar(XLine.ar(0.3, 100, 20)).madd(3600, 4000)
+                HPF.ar(in, freq)
+            </example>
+            <example name="mouse controlled frequency">
+                val in   = WhiteNoise.ar(0.5)
+                val freq = MouseX.kr(200, 10000, 1)
+                HPF.ar(in, freq)
+            </example>
+            <see>ugen.LPF</see>
+            <see>ugen.BPF</see>
+            <see>ugen.BRF</see>
+            <see>ugen.RHPF</see>
+            <see>ugen.HPZ1</see>
+        </doc>
     </ugen>
     <ugen name="BPF">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in" rate="ugen"/>
-        <arg name="freq" default="440.0"/>
-        <arg name="rq" default="1.0"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be filtered
+            </doc>
+        </arg>
+        <arg name="freq" default="440.0">
+            <doc>
+                center frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="rq" default="1.0">
+            <doc>
+                reciprocal of Q. The Q (or quality) is conventionally defined as center-frequency / bandwidth,
+                meaning that rq = bandwidth / center-frequency. A higher Q or lower rq produces a steeper filter.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A second order band pass filter UGen.
+            </text>
+            <example name="modulated frequency">
+                val in   = Saw.ar(200) * 0.5
+                val freq = SinOsc.ar(XLine.ar(0.3, 100, 20)).madd(3600, 4000)
+                BPF.ar(in, freq)
+            </example>
+            <example name="mouse controlled frequency and Q">
+                val in   = WhiteNoise.ar(0.5)
+                val freq = MouseX.kr(200, 10000, 1)
+                val q    = MouseY.kr(1, 100, 1) // bottom to top
+                val flt  = BPF.ar(in, freq, q.reciprocal)
+                flt * q.sqrt // compensate for energy loss
+            </example>
+            <see>ugen.HPF</see>
+            <see>ugen.LPF</see>
+            <see>ugen.BRF</see>
+            <see>ugen.Resonz</see>
+            <see>ugen.MidEQ</see>
+        </doc>
     </ugen>
     <ugen name="BRF">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in" rate="ugen"/>
-        <arg name="freq" default="440.0"/>
-        <arg name="rq" default="1.0"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be filtered
+            </doc>
+        </arg>
+        <arg name="freq" default="440.0">
+            <doc>
+                center frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="rq" default="1.0">
+            <doc>
+                reciprocal of Q. The Q (or quality) is conventionally defined as center-frequency / bandwidth,
+                meaning that rq = bandwidth / center-frequency. A higher Q or lower rq produces a steeper filter.
+                Too high values for `rq` may blow the filter up!
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A second order band reject (notch) filter UGen.
+            </text>
+            <example name="modulated frequency">
+                val in   = Saw.ar(200) * 0.5
+                val freq = SinOsc.ar(XLine.ar(0.3, 100, 20)).madd(3600, 4000)
+                BRF.ar(in, freq)
+            </example>
+            <example name="mouse controlled frequency and Q">
+                val in   = WhiteNoise.ar(0.5)
+                val freq = MouseX.kr(200, 10000, 1)
+                val q    = MouseY.kr(0.5, 10, 1) // bottom to top
+                BRF.ar(in, freq, q.reciprocal)
+            </example>
+            <see>ugen.HPF</see>
+            <see>ugen.LPF</see>
+            <see>ugen.BPF</see>
+            <see>ugen.MidEQ</see>
+        </doc>
     </ugen>
     <ugen name="RLPF">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in" rate="ugen"/>
-        <arg name="freq" default="440.0"/>
-        <arg name="rq" default="1.0"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be filtered
+            </doc>
+        </arg>
+        <arg name="freq" default="440.0">
+            <doc>
+                cutoff frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="rq" default="1.0">
+            <doc>
+                reciprocal of Q. The Q (or quality) is conventionally defined as cutoff-frequency / bandwidth,
+                meaning that rq = bandwidth / cutoff-frequency. A higher Q or lower rq produces a steeper filter.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A resonant low pass filter UGen.
+            </text>
+            <example name="mouse controlled frequency and Q">
+                val in   = WhiteNoise.ar(0.5)
+                val freq = MouseX.kr(200, 10000, 1)
+                val q    = MouseY.kr(1, 100, 1) // bottom to top
+                val flt  = RLPF.ar(in, freq, q.reciprocal)
+                flt / q.sqrt // compensate for energy loss
+            </example>
+            <see>ugen.LPF</see>
+            <see>ugen.RHPF</see>
+            <see>ugen.Resonz</see>
+        </doc>
     </ugen>
     <ugen name="RHPF">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in" rate="ugen"/>
-        <arg name="freq" default="440.0"/>
-        <arg name="rq" default="1.0"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be filtered
+            </doc>
+        </arg>
+        <arg name="freq" default="440.0">
+            <doc>
+                cutoff frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="rq" default="1.0">
+            <doc>
+                reciprocal of Q. The Q (or quality) is conventionally defined as cutoff-frequency / bandwidth,
+                meaning that rq = bandwidth / cutoff-frequency. A higher Q or lower rq produces a steeper filter.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A resonant high pass filter UGen.
+            </text>
+            <example name="mouse controlled frequency and Q">
+                val in   = WhiteNoise.ar(0.5)
+                val freq = MouseX.kr(200, 10000, 1)
+                val q    = MouseY.kr(1, 100, 1) // bottom to top
+                val flt  = RHPF.ar(in, freq, q.reciprocal)
+                flt / q.sqrt // compensate for energy loss
+            </example>
+            <see>ugen.HPF</see>
+            <see>ugen.RLPF</see>
+            <see>ugen.Resonz</see>
+        </doc>
     </ugen>
 
     <ugen name="Slew">
@@ -523,62 +926,298 @@
     <ugen name="MidEQ">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in" rate="ugen"/>
-        <arg name="freq" default="440.0"/>
-        <arg name="rq" default="1.0"/>
-        <arg name="gain" default="0.0"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be filtered
+            </doc>
+        </arg>
+        <arg name="freq" default="440.0">
+            <doc>
+                center frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="rq" default="1.0">
+            <doc>
+                reciprocal of Q. The Q (or quality) is conventionally defined as center-frequency / bandwidth,
+                meaning that rq = bandwidth / center-frequency. A higher Q or lower rq produces a steeper filter.
+                Too high values for `rq` may blow the filter up!
+            </doc>
+        </arg>
+        <arg name="gain" default="0.0">
+            <doc>
+                The amount of boost (when positive) or attenuation (when negative) applied to
+                the frequency band, in decibels.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A single band parametric equalizer UGen. It attenuates or boosts a frequency band.
+            </text>
+            <example name="mouse controlled frequency and boost">
+                val in   = WhiteNoise.ar(0.25)
+                val freq = MouseX.kr(200, 10000, 1)
+                val gain = MouseY.kr(-12, 12) // bottom to top
+                MidEQ.ar(in, freq, rq = 0.5, gain = gain)
+            </example>
+            <see>ugen.BPF</see>
+            <see>ugen.BRF</see>
+            <see>ugen.HPF</see>
+            <see>ugen.LPF</see>
+            <see>ugen.Resonz</see>
+        </doc>
     </ugen>
     <ugen name="Median">
         <rate name="control"/>
         <rate name="audio">
-            <arg name="in" rate="ugen"/>
+            <arg name="in" rate="ugen">
+                <doc>
+                    input signal to be processed
+                </doc>
+            </arg>
         </rate>
-        <arg name="length" default="3" init="true" pos="1"/>
+        <arg name="length" default="3" init="true" pos="1">
+            <doc>
+                window size. I.e., the number of input samples in which to find the median.
+                Must be an odd number from 1 to 31. A value of 1 has no effect.
+                ''Warning'': This parameter is only read an initialization time and
+                cannot be modulated while the UGen is running.
+            </doc>
+        </arg>
         <arg name="in" pos="0"/>
-        <doc warn-pos="true"/>
+        <doc warn-pos="true">
+            <text>
+                A filter UGen that calculates the median of a running window over its input signal.
+                This non-linear filter can be used to reduce impulse noise from a signal.
+            </text>
+            <example name="engage with mouse button">
+                val in  = Saw.ar(500) * 0.1 + Dust2.ar(100) * 0.9 // signal plus noise
+                val flt = Median.ar(in, 3)
+                LinXFade2.ar(in, flt, MouseButton.kr(-1, 1))
+            </example>
+            <example name="long filter distorts by chopping off peaks in input">
+                Median.ar(SinOsc.ar(1000) * 0.2, 31)
+            </example>
+            <see>ugen.LPF</see>
+            <see>ugen.LeakDC</see>
+            <see>ugen.RunningSum</see>
+        </doc>
     </ugen>
 
     <ugen name="Resonz">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in" rate="ugen"/>
-        <arg name="freq" default="440.0"/>
-        <arg name="rq" default="1.0"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be filtered
+            </doc>
+        </arg>
+        <arg name="freq" default="440.0">
+            <doc>
+                resonant frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="rq" default="1.0">
+            <doc>
+                reciprocal of Q. The Q (or quality) is conventionally defined as center-frequency / bandwidth,
+                meaning that rq = bandwidth / center-frequency. A higher Q or lower rq produces a steeper filter.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A two pole resonant filter UGen. It has zeroes at `z = +1` and `z = -1`.
+
+                Based on K. Steiglitz, "A Note on Constant-Gain Digital Resonators", Computer Music Journal,
+                vol 18, no. 4, pp. 8-10, Winter 1994.
+            </text>
+            <example name="modulated frequency">
+                val in   = Saw.ar(200) * 0.5
+                val freq = SinOsc.ar(XLine.ar(0.3, 100, 20)).madd(3600, 4000)
+                Resonz.ar(in, freq)
+            </example>
+            <example name="mouse controlled frequency and Q">
+                val in   = WhiteNoise.ar(0.5)
+                val freq = MouseX.kr(200, 10000, 1)
+                val q    = MouseY.kr(1, 100, 1) // bottom to top
+                val flt  = Resonz.ar(in, freq, q.reciprocal)
+                flt * q.sqrt // compensate for energy loss
+            </example>
+            <see>ugen.BPF</see>
+            <see>ugen.Ringz</see>
+            <see>ugen.HPF</see>
+            <see>ugen.LPF</see>
+            <see>ugen.MidEQ</see>
+        </doc>
     </ugen>
     <ugen name="Ringz">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in" rate="ugen"/>
-        <arg name="freq" default="440.0"/>
-        <arg name="attack" default="1.0"/>
-        <arg name="decay" default="1.0"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be filtered
+            </doc>
+        </arg>
+        <arg name="freq" default="440.0">
+            <doc>
+                resonant frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="decay" default="1.0">
+            <doc>
+                the 60 dB decay time in seconds
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A resonant or "ringing" filter UGen. This is the same as `Resonz`, except that instead of a
+                Q parameter, the bandwidth is specified as a 60 dB ring decay time.
+                One `Ringz` is equivalent to one component of the `Klank` UGen.
+            </text>
+            <example name="module ring time">
+                Ringz.ar(Impulse.ar(6) * 0.3, 2000, XLine.kr(4, 0.04, 8))
+            </example>
+            <example name="modulated frequency">
+                val in   = Saw.ar(200) * 0.02
+                val freq = SinOsc.ar(XLine.ar(0.3, 100, 20)).madd(2800, 4800)
+                Ringz.ar(in, freq)
+            </example>
+            <example name="multiple glissandi excited by noise">
+                val ex = WhiteNoise.ar(0.001)
+                Mix.fill(10) {
+                  Ringz.ar(ex,
+                    XLine.kr(ExpRand(100, 5000), ExpRand(100, 5000), 20),
+                  0.5)
+                }
+            </example>
+            <see>ugen.Resonz</see>
+            <see>ugen.Formlet</see>
+            <see>ugen.BPF</see>
+            <see>ugen.Klank</see>
+            <see>ugen.MidEQ</see>
+        </doc>
     </ugen>
     <ugen name="Formlet">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in" rate="ugen"/>
-        <arg name="freq" default="440.0"/>
-        <arg name="attack" default="1.0"/>
-        <arg name="decay" default="1.0"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be filtered
+            </doc>
+        </arg>
+        <arg name="freq" default="440.0">
+            <doc>
+                resonant frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="attack" default="1.0">
+            <doc>
+                the 60 dB attack time in seconds
+            </doc>
+        </arg>
+        <arg name="decay" default="1.0">
+            <doc>
+                the 60 dB decay time in seconds
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A FOF-like resonant filter UGen. Its impulse response is like that of a sine wave with a `Decay2`
+                envelope over it. It is possible to control the attack and decay times.
+
+                `Formlet` is equivalent to:
+                {{{
+                Ringz(in, freq, decay) - Ringz(in, freq, attack)
+                }}}
+
+                The great advantage to this filter over FOF (Fonction d'onde formantique) is that there is no limit
+                to the number of overlapping grains since the grain is just the impulse response of the filter.
+            </text>
+            <example name="modulated formant frequency">
+                val in = Blip.ar(SinOsc.kr(5,0).madd(20, 300), 1000) * 0.1
+                Formlet.ar(in, XLine.kr(1500, 700, 8), 0.005, 0.04)
+            </example>
+            <example name="mouse control of frequency and decay time">
+                val in    = Blip.ar(SinOsc.kr(5,0).madd(20, 300), 1000) * 0.1
+                val freq  = MouseY.kr(700, 2000, 1)
+                val decay = MouseX.kr(0.01, 0.2, 1)
+                Formlet.ar(in, freq, attack = 0.005, decay = decay)
+            </example>
+            <see>ugen.Ringz</see>
+            <see>ugen.Resonz</see>
+            <see>ugen.RLPF</see>
+            <see>ugen.RHPF</see>
+        </doc>
     </ugen>
 
     <ugen name="FOS">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in" rate="ugen"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be filtered
+            </doc>
+        </arg>
         <arg name="a0" default="0.0"/>
         <arg name="a1" default="0.0"/>
         <arg name="b1" default="0.0"/>
+        <doc>
+            <text>
+                A first order filter section UGen. Filter coefficients are given directly rather
+                than calculated for you. The formula is equivalent to:
+                {{{
+                out(i) = a0 * in(i) + a1 * in(i-1) + b1 * out(i-1)
+                }}}
+            </text>
+            <example name="same as OnePole">
+                val x = LFTri.ar(0.4) * 0.99
+                FOS.ar(LFSaw.ar(200) * 0.1, 1 - x.abs, 0.0, x)
+            </example>
+            <example name="same as OneZero">
+                val x = LFTri.ar(0.4) * 0.99
+                FOS.ar(LFSaw.ar(200) * 0.1, 1 - x.abs, x, 0.0)
+            </example>
+            <see>ugen.SOS</see>
+            <see>ugen.OnePole</see>
+            <see>ugen.OneZero</see>
+        </doc>
     </ugen>
     <ugen name="SOS">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in" rate="ugen"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to be filtered
+            </doc>
+        </arg>
         <arg name="a0" default="0.0"/>
         <arg name="a1" default="0.0"/>
         <arg name="a2" default="0.0"/>
         <arg name="b1" default="0.0"/>
         <arg name="b2" default="0.0"/>
+        <doc>
+            <text>
+                A second order filter section (biquad) UGen. Filter coefficients are given directly rather
+                than calculated for you. The formula is equivalent to:
+                {{{
+                out(i) = a0 * in(i) + a1 * in(i-1) + a2 * in(i-2) + b1 * out(i-1) + b2 * out(i-2)
+                }}}
+            </text>
+            <example name="same as TwoPole">
+                val theta = MouseX.kr(0.2*math.Pi, 0.9*math.Pi)
+                val rho   = MouseY.kr(0.6, 0.98)
+                val b1    = 2.0 * rho * theta.cos
+                val b2    = -(rho.squared)
+                SOS.ar(WhiteNoise.ar(Seq(0.05, 0.05)), 1.0, 0.0, 0.0, b1, b2)
+            </example>
+            <example name="used as control signal">
+                val theta = MouseX.kr(0.2*math.Pi, math.Pi)
+                val rho   = MouseY.kr(0.6, 0.99)
+                val b1    = 2.0 * rho * theta.cos
+                val b2    = -(rho.squared)
+                val vib   = SOS.kr(LFSaw.kr(3.16), 1.0, 0.0, 0.0, b1, b2)
+                SinOsc.ar(vib * 200 + 600) * 0.2
+            </example>
+            <see>ugen.FOS</see>
+        </doc>
     </ugen>
 
     <ugen name="Compander">
@@ -644,24 +1283,113 @@
     <ugen name="Limiter">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in"/>
-        <arg name="level" default="1.0"/>
-        <arg name="dur" default="0.01" init="true"/>
+        <arg name="in">
+            <doc>
+                input signal to be limited
+            </doc>
+        </arg>
+        <arg name="level" default="1.0">
+            <doc>
+                maximum amplitude to which the signal is limited. The limiter will kick in
+                when the input signal exceeds `+level` or falls below `-level`.
+            </doc>
+        </arg>
+        <arg name="dur" default="0.01" init="true">
+            <doc>
+                look-ahead time in seconds
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                Limits the input amplitude to the given level. Unlike `Compander`, this UGen will never overshoot,
+                but it needs to look ahead in the input signal, introducing a delay in its output.
+                The delay time is equal to twice the value of the `dur` parameter (the buffer internally used).
+            </text>
+            <example name="compare dry and wet">
+                val in = Decay2.ar(
+                  Impulse.ar(8, phase = LFSaw.kr(0.25) * 0.7),
+                  attack = 0.001, release = 0.3) * FSinOsc.ar(500)
+                val flt = Limiter.ar(in, level = 0.4)
+                LinXFade2.ar(in, flt, MouseButton.kr(-1, 1))
+            </example>
+            <see>ugen.Normalizer</see>
+            <see>ugen.Compander</see>
+        </doc>
     </ugen>
     <ugen name="Normalizer">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in"/>
-        <arg name="level" default="1"/>
-        <arg name="dur" default="0.01" init="true"/>
+        <arg name="in">
+            <doc>
+                input signal to be normalized
+            </doc>
+        </arg>
+        <arg name="level" default="1">
+            <doc>
+                peak output amplitude level to which to normalize the input
+            </doc>
+        </arg>
+        <arg name="dur" default="0.01" init="true">
+            <doc>
+                look-ahead time in seconds. Shorter times will produce smaller delays and quicker
+                transient response times, but may introduce amplitude modulation artifacts.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that normalizes the input amplitude to the given level.
+                Unlike `Compander`, this UGen will not overshoot,
+                but it needs to look ahead in the input signal, introducing a delay in its output.
+                The delay time is equal to twice the value of the `dur` parameter (the buffer internally used).
+            </text>
+            <example name="compare dry and wet">
+                val z    = Decay2.ar(
+                  Impulse.ar(8, phase = LFSaw.kr(0.25) * 0.7),
+                  attack = 0.001, release = 0.3) * FSinOsc.ar(500)
+                val in  = z * SinOsc.ar(0.05) * 0.5
+                val flt = Normalizer.ar(in, dur = 0.15, level = 0.4)
+                LinXFade2.ar(in, flt, MouseButton.kr(-1, 1))
+            </example>
+            <see>ugen.Limiter</see>
+            <see>ugen.Compander</see>
+        </doc>
     </ugen>
 
     <ugen name="Amplitude">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in"/>
-        <arg name="attack" default="0.01"/>
-        <arg name="release" default="0.01"/>
+        <arg name="in">
+            <doc>
+                input signal to be analyzed
+            </doc>
+        </arg>
+        <arg name="attack" default="0.01">
+            <doc>
+                60 dB convergence time in for following attacks, in seconds
+            </doc>
+        </arg>
+        <arg name="release" default="0.01">
+            <doc>
+                60 dB convergence time in for following decays, in seconds
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                An amplitude follower UGen. Tracks and reports the peak amplitude of its input signal.
+            </text>
+            <example name="use sound-card input to control pulse amplitude">
+                // use headphones to prevent feedback!
+                Pulse.ar(90, 0.3) * Amplitude.kr(PhysicalIn.ar(0))
+            </example>
+            <example name="compare with known amplitude">
+                val amp = MouseX.kr
+                val in  = PinkNoise.ar(amp)
+                val ana = Amplitude.kr(amp, attack = 2, release = 2)
+                (ana - amp).poll(2, "discrepancy")
+                in
+            </example>
+            <see>ugen.DetectSilence</see>
+        </doc>
     </ugen>
     <ugen name="DetectSilence" side-effect="true">   <!-- has done action, but does not set done flag -->
         <rate name="control"/>
@@ -705,6 +1433,7 @@
                 after the first input sample rising above the threshold that the actual monitoring begins and
                 a trigger of `1` or the firing of the done-action may occur.
             </text>
+            <see>ugen.Amplitude</see>
         </doc>
     </ugen>
 
@@ -712,21 +1441,101 @@
         <output name="real"/>
         <output name="imag"/>
         <rate name="audio"/>
-        <arg name="in"/>
+        <arg name="in">
+            <doc>
+                input signal to be processed
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A Hilbert transform UGen. This transformation produces two signals from a given input with
+                identical frequency content, but with their respective phases shifted to be 90 degrees apart
+                (0.5 pi radians).
+
+                The two signals output by `Hilbert` correspond to the real and imaginary part of the complex
+                transformed signal. Due to the method used (an IIR filter), distortion occurs in the upper octave
+                of the frequency spectrum.
+
+                The transform can be used to implemented single-side-band (SSB) modulation, but a dedicated
+                UGen `FreqShift` is already provided for this case.
+            </text>
+            <example name="a form of envelope tracking">
+                val in = SinOsc.ar(440)
+                val h  = Hilbert.ar(in)
+                val x  = h.real.squared + h.imag.squared
+                x.poll(1)  // cos(x)^2 + sin(x)^2 == 1 (ideally)
+                0
+            </example>
+            <see>ugen.FreqShift</see>
+        </doc>
     </ugen>
     <ugen name="FreqShift">
         <rate name="audio"/>
         <arg name="in"/>
-        <arg name="freq" default="0.0"/>
-        <arg name="phase" default="0.0"/>
+        <arg name="freq" default="0.0">
+            <doc>
+                the shift amount in Hertz. Positive values shift upwards, negative values shift downwards.
+            </doc>
+        </arg>
+        <arg name="phase" default="0.0"><!-- XXX TODO - what is this for? -->
+            <doc>
+                a phase parameter in radians (0 to 2 Pi).
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A frequency shifting UGen. It implements single sideband (SSB) amplitude modulation, also known
+                as frequency shifting, but not to be confused with pitch shifting. Frequency shifting moves all
+                the components of a signal by a fixed amount but does not preserve the original harmonic
+                relationships.
+            </text>
+            <example name="shift a sine frequency from 200 to 700 Hz">
+                val freq = Line.ar(0, 500, 5)
+                FreqShift.ar(SinOsc.ar(200) * 0.25, freq)
+            </example>
+            <example name="negative frequency to shift downwards">
+                val freq = Line.ar(0, -500, 5)
+                FreqShift.ar(SinOsc.ar(700) * 0.25, freq)
+            </example>
+            <see>ugen.Hilbert</see>
+            <see>ugen.PV_MagShift</see>
+        </doc>
     </ugen>
     <ugen name="MoogFF">
         <rate name="control"/>
         <rate name="audio"/>
         <arg name="in" rate="ugen"/>
-        <arg name="freq" default="200.0"/>
-        <arg name="gain" default="2.0"/>
-        <arg name="reset" default="closed"/>    <!-- strangely not a trigger, but a gate -->
+        <arg name="freq" default="200.0">
+            <doc>
+                cutoff frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="gain" default="2.0">
+            <doc>
+                filter resonance gain, between 0 and 4
+            </doc>
+        </arg>
+        <arg name="reset" default="closed">    <!-- strangely not a trigger, but a gate -->
+            <doc>
+                when greater than zero, this will reset the state of the digital filters at the beginning
+                of the next control block.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A Moog VCF style UGen. This is a type of resonant low pass filter.
+
+                The design of this filter is described in Federico Fontana, "Preserving the Digital Structure
+                of the Moog VCF." In: Proceedings of the ICMC, Copenhagen 2007. Ported to SuperCollider by
+                Dan Stowell.
+            </text>
+            <example name="mouse controlled">
+                val in   = WhiteNoise.ar(01.1)
+                val freq = MouseY.kr(100, 10000, 1)
+                val gain = MouseX.kr(0, 4)
+                Limiter.ar(MoogFF.ar(in, freq, gain))
+            </example>
+        </doc>
     </ugen>
 
     <ugen name="BLowPass">

@@ -1,4 +1,5 @@
-<ugens revision="1">
+<ugens revision="3">
+    <!-- all documented -->
     <ugen name="ControlRate">
         <rate name="scalar" implied="true"/>    <!-- method="" -->
         <doc>
@@ -358,8 +359,6 @@
             <see>ugen.BufFrames</see>
         </doc>
     </ugen>
-    <!-- <ugen name="SimpleLoopBuf">
-    </ugen> -->
     <ugen name="RecordBuf" writes-buf="true" side-effect="true" done-flag="true">
         <rate name="audio"/>
         <rate name="control"/>
@@ -540,7 +539,9 @@
             </doc>
         </arg>
         <arg name="in" variadic="true" pos="0">
-            the input signal to record
+            <doc>
+                input signal to record
+            </doc>
         </arg>
         <doc>
             <text>

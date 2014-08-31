@@ -134,7 +134,6 @@
             <see>ugen.LFNoise2</see>
             <see>ugen.Ramp</see>
         </doc>
-
     </ugen>
     <ugen name="LFNoise2" random="true">
         <rate name="control"/>

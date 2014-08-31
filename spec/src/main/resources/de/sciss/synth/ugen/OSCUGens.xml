@@ -1,4 +1,4 @@
-<ugens revision="1">
+<ugens revision="2">
     <ugen name="DegreeToKey" reads-buf="true">
         <rate name="control"/>
         <rate name="audio"/>
@@ -287,9 +287,8 @@
         </arg>
         <doc>
             <text>
-                A Sinusoidal (sine tone) oscillator UGen.
-                This is the same as `Osc` except that it uses a built-in interpolating sine table of 8192 entries,
-                making it less accurate but cheaper in terms of CPU usage.
+                A sinusoidal (sine tone) oscillator UGen.
+                This is the same as `Osc` except that it uses a built-in interpolating sine table of 8192 entries.
             </text>
             <see>ugen.Osc</see>
             <see>ugen.FSinOsc</see>

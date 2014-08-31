@@ -398,8 +398,8 @@ object BinaryOpUGen {
       case BitAnd   .id => BitAnd
       case BitOr    .id => BitOr
       case BitXor   .id => BitXor
-      case RoundTo    .id => RoundTo
-      case RoundUpTo  .id => RoundUpTo
+      case RoundTo  .id => RoundTo
+      case RoundUpTo.id => RoundUpTo
       case Trunc    .id => Trunc
       case Atan2    .id => Atan2
       case Hypot    .id => Hypot
