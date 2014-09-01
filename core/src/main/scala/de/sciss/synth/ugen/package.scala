@@ -37,7 +37,7 @@ package object ugen {
       // WARNING: Silent has been removed now from scsynth !!!
       //         val silent = Silent.ar( numZeroes ).outputs.iterator
       //         val silent = new UGen.MultiOut( "Silent", audio, Vec.fill( numZeroes )( audio ), Vec.empty ).outputs.iterator
-      val silent = new UGen.MultiOut("DC", audio, Vec(audio), Vec(Constant(0))).outputs.head
+      val silent = UGen.MultiOut("DC", audio, Vec(audio), Vec(Constant(0))).outputs.head
       ins.map {
         case Constant(0) => silent // .next()
         case x => x

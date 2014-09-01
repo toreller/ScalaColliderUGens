@@ -13,6 +13,8 @@
 
 package de.sciss.synth
 
+import de.sciss.synth.ugen.impl.{MultiOutImpl, SingleOutImpl, ZeroOutImpl}
+
 import collection.immutable.{IndexedSeq => Vec}
 import annotation.switch
 import runtime.ScalaRunTime
@@ -22,19 +24,17 @@ sealed trait UGen extends Product {
   // initialize this first, so that debug printing in `addUGen` can use the hash code
   override val hashCode: Int = if (isIndividual) super.hashCode() else ScalaRunTime._hashCode(this)
 
-  // ---- constructor ----
-  UGenGraph.builder.addUGen(this)
+  //  // ---- constructor ----
+  //  UGenGraph.builder.addUGen(this)
 
   def rate: Rate
-  // YYY
+
   def numOutputs: Int
-  // YYY
-  //   def outputs: Vec[ UGenIn ] // YYY   XXX could be UGenProxy
+
   def outputRates: Vec[Rate]
 
   def name: String
 
-  //   def outputRates: Seq[ Rate ]
   def inputs: Vec[UGenIn]
   def numInputs = inputs.size
 
@@ -75,51 +75,57 @@ sealed trait UGen extends Product {
 }
 
 object UGen {
+  object SingleOut {
+    def apply(name: String, rate: Rate, inputs: Vec[UGenIn], isIndividual: Boolean = false,
+              hasSideEffect: Boolean = false): SingleOut = {
+      val res = new SingleOutImpl(name, rate, inputs, isIndividual = isIndividual, hasSideEffect = hasSideEffect)
+      UGenGraph.builder.addUGen(res)
+      res
+    }
+  }
   /** A SingleOutUGen is a UGen which has exactly one output, and
     * hence can directly function as input to another UGen without expansion.
     */
-  class SingleOut(val name: String, val rate: Rate, val inputs: Vec[UGenIn],
-                  val isIndividual: Boolean = false, val hasSideEffect: Boolean = false)
-    extends ugen.UGenProxy with UGen {
+  trait SingleOut extends ugen.UGenProxy with UGen {
     final def numOutputs = 1
-
-    final def outputRates: Vec[Rate] = rate.toIndexedSeq // Vec( rate )
-
+    final def outputRates: Vec[Rate] = rate.toIndexedSeq
     final def outputIndex = 0
   }
 
   object ZeroOut {
-    private val outputRates: Vec[Rate] = Vec.empty
+    def apply(name: String, rate: Rate, inputs: Vec[UGenIn], isIndividual: Boolean = false): ZeroOut = {
+      val res = new ZeroOutImpl(name, rate, inputs, isIndividual = isIndividual)
+      UGenGraph.builder.addUGen(res)
+      res
+    }
+  }
+  trait ZeroOut extends UGen {
+    final def numOutputs = 0
+    final def outputRates: Vec[Rate] = Vector.empty
+    final def hasSideEffect = true  // implied by having no outputs
   }
 
-  class ZeroOut(val name: String, val rate: Rate, val inputs: Vec[UGenIn], val isIndividual: Boolean = false)
-    extends UGen /* with HasSideEffect */ {
-    final /* override */ def numOutputs = 0
-
-    //      final def outputs = Vec.empty
-    final def outputRates: Vec[Rate] = ZeroOut.outputRates
-
-    // Vec.empty
-    final def hasSideEffect = true
+  object MultiOut {
+    def apply(name: String, rate: Rate, outputRates: Vec[Rate], inputs: Vec[UGenIn],
+              isIndividual: Boolean = false, hasSideEffect: Boolean = false): MultiOut = {
+      val res = new MultiOutImpl(name, rate, outputRates, inputs, isIndividual = isIndividual,
+        hasSideEffect = hasSideEffect)
+      UGenGraph.builder.addUGen(res)
+      res
+    }
   }
-
   /** A class for UGens with multiple outputs. */
-  class MultiOut(val name: String, val rate: Rate, val outputRates: Vec[Rate], val inputs: Vec[UGenIn],
-                 val isIndividual: Boolean = false, val hasSideEffect: Boolean = false)
-    extends UGen with ugen.UGenInGroup {
+  trait MultiOut extends ugen.UGenInGroup with UGen {
+
     final def numOutputs = outputRates.size
 
-    //      final lazy val outputs: Vec[ UGenIn ] = outputRates.zipWithIndex.map( tup => OutProxy( this, tup._2, tup._1 ))
-    final def unwrap(i: Int): UGenInLike = {
-      //         outputs( i % outputRates.size )
-      ugen.UGenOutProxy(this, i % numOutputs) // , outputRates( i )
-    }
+    final def unwrap(i: Int): UGenInLike = ugen.UGenOutProxy(this, i % numOutputs)
 
-    def outputs: Vec[UGenIn] = Vec.tabulate(numOutputs)(ch => ugen.UGenOutProxy(this, ch))
+    def outputs: Vec[UGenIn] = Vector.tabulate(numOutputs)(ch => ugen.UGenOutProxy(this, ch))
 
     /*
          This is important: Imagine for example `Out.ar( PanAz.ar( 4, In.ar( 0, 1 ), pos ))`.
-         If `isWrapped` would report `true` here, the result would be a rewrapping into four
+         If `isWrapped` would report `true` here, the result would be a re-wrapping into four
          `Out` UGens. Obviously we do not want this.
 
          This corresponds with the following check in method `MultiOutUGen: initOutputs` in sclang:

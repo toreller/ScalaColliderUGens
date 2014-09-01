@@ -1,4 +1,4 @@
-<ugens revision="1">
+<ugens revision="2">
     <ugen name="Demand" done-flag="true"> <!-- set done flag, but doesn't have done action -->
         <rate name="control"/>
         <rate name="audio"/>
@@ -197,7 +197,7 @@
                 every time a new segment starts.
             </text>
             <see>ugen.EnvGen</see>
-            <see>Env.Shape</see>
+            <see>ugen.Env</see>
             <see>DoneAction</see>
         </doc>
     </ugen>

@@ -750,7 +750,8 @@ final class ClassGenerator
         }
 
         val ugenTpe     = TypeDef(NoMods, s"UGen.${outputsPrefix}Out", Nil, EmptyTree)
-        val ugenConstr  = New(ugenTpe, ugenConstrArgs)
+        // val ugenConstr = New(ugenTpe, ugenConstrArgs)
+        val ugenConstr  = Apply(ugenTpe, ugenConstrArgs.head)
 
         // the resulting application is either the ugen instantiation, or, if a Mul is used,
         // a binary op of the ugen instantiation

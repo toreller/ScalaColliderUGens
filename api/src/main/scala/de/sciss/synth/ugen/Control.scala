@@ -19,21 +19,11 @@ import collection.immutable.{IndexedSeq => Vec}
 // ---------- Control ----------
 
 object Control {
-  /**
-   * Note: we are not providing further convenience methods,
-   * as that is the task of ControlProxyFactory...
-   */
+  /** Note: we are not providing further convenience methods,
+    * as that is the task of ControlProxyFactory...
+    */
   def ir(values: ControlValues, name: Option[String] = None) = apply(scalar , values.seq, name)
   def kr(values: ControlValues, name: Option[String] = None) = apply(control, values.seq, name)
-
-  // def ir(values: Float*): Control = ir(Vec(values: _*))
-  // def kr(values: Float*): Control = kr(Vec(values: _*))
-
-  // side-effect: receiving messages from clients!
-  // and more importantly: control ugens created from proxies are not wired, so they would
-  // be eliminated if side-effect was false!!!
-  private[ugen] final class UGen(rate: Rate, numChannels: Int, override val specialIndex: Int)
-    extends UGen.MultiOut("Control", rate, Vector.fill(numChannels)(rate), Vector.empty, false, true)
 }
 
 final case class Control(rate: Rate, values: Vec[Float], ctrlName: Option[String])
@@ -43,7 +33,7 @@ final case class Control(rate: Rate, values: Vec[Float], ctrlName: Option[String
 
   protected def makeUGen(args: Vec[UGenIn]): UGenInLike = {
     val specialIndex = UGenGraph.builder.addControl(values, ctrlName)
-    new Control.UGen(rate, values.size, specialIndex)
+    impl.ControlImpl(name, rate, numChannels = values.size, specialIndex = specialIndex)
   }
 }
 
@@ -62,18 +52,14 @@ final case class ControlProxy(rate: Rate, values: Vec[Float], name: Option[Strin
 }
 
 final class ControlFactory(rate: Rate) extends ControlFactoryLike {
-  protected def makeUGen(numChannels: Int, specialIndex: Int): UGen = new Control.UGen(rate, numChannels, specialIndex)
+  protected def makeUGen(numChannels: Int, specialIndex: Int): UGen =
+    impl.ControlImpl("Control", rate, numChannels = numChannels, specialIndex = specialIndex)
 }
 
 // ---------- TrigControl ----------
 
 object TrigControl {
   def kr(values: ControlValues, name: Option[String] = None) = TrigControl(values.seq, name)
-
-  // def kr(values: Float*): TrigControl = kr(Vec(values: _*))
-
-  private[ugen] final class UGen(numChannels: Int, override val specialIndex: Int)
-    extends UGen.MultiOut("TrigControl", control, Vector.fill(numChannels)(control), Vector.empty, false, true)
 }
 
 final case class TrigControl(values: Vec[Float], ctrlName: Option[String])
@@ -83,13 +69,14 @@ final case class TrigControl(values: Vec[Float], ctrlName: Option[String])
 
   protected def makeUGen(args: Vec[UGenIn]): UGenInLike = {
     val specialIndex = UGenGraph.builder.addControl(values, ctrlName)
-    new TrigControl.UGen(values.size, specialIndex)
+    impl.ControlImpl(name, control, numChannels = values.size, specialIndex = specialIndex)
   }
 }
 
 object TrigControlProxy {
   private object factory extends ControlFactoryLike {
-    protected def makeUGen(numChannels: Int, specialIndex: Int): UGen = new TrigControl.UGen(numChannels, specialIndex)
+    protected def makeUGen(numChannels: Int, specialIndex: Int): UGen =
+      impl.ControlImpl("TrigControl", control, numChannels = numChannels, specialIndex = specialIndex)
   }
 }
 final case class TrigControlProxy(values: Vec[Float], name: Option[String])
@@ -101,10 +88,6 @@ final case class TrigControlProxy(values: Vec[Float], name: Option[String])
 
 object AudioControl {
   def ar(values: ControlValues, name: Option[String] = None) = AudioControl(values.seq, name)
-  // def ar(values: Float*): AudioControl                        = ar(Vec(values: _*))
-
-  private[ugen] final class UGen(numChannels: Int, override val specialIndex: Int)
-    extends UGen.MultiOut("AudioControl", audio, Vector.fill(numChannels)(audio), Vector.empty, false, true)
 }
 
 final case class AudioControl(values: Vec[Float], ctrlName: Option[String])
@@ -114,13 +97,14 @@ final case class AudioControl(values: Vec[Float], ctrlName: Option[String])
 
   protected def makeUGen(args: Vec[UGenIn]): UGenInLike = {
     val specialIndex = UGenGraph.builder.addControl(values, ctrlName)
-    new AudioControl.UGen(values.size, specialIndex)
+    impl.ControlImpl(name, audio, values.size, specialIndex)
   }
 }
 
 object AudioControlProxy {
   private object factory extends ControlFactoryLike {
-    protected def makeUGen(numChannels: Int, specialIndex: Int): UGen = new AudioControl.UGen(numChannels, specialIndex)
+    protected def makeUGen(numChannels: Int, specialIndex: Int): UGen =
+      impl.ControlImpl("AudioControl", audio, numChannels = numChannels, specialIndex = specialIndex)
   }
 }
 final case class AudioControlProxy(values: Vec[Float], name: Option[String])

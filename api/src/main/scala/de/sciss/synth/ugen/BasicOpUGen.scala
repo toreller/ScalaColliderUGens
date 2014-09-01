@@ -51,7 +51,7 @@ final case class MulAdd(/* rate: MaybeRate, */ in: GE, mul: GE, add: GE)
         if (in0.rate == `audio` ||
            (in0.rate == `control` && (mul0.rate == `control` || mul0.rate == `scalar`) &&
             (add0.rate == `control` || add0.rate == `scalar`))) {
-          new UGen.SingleOut(name, in0.rate, args)
+          UGen.SingleOut(name, in0.rate, args)
         } else {
           Plus.make1(Times.make1(in0, mul0), add0)
         }
@@ -123,7 +123,7 @@ object UnaryOpUGen {
 
     final protected[synth] def make1(a: UGenIn): UGenIn = a match {
       case c(f) => c(make1(f))
-      case _    => new UGenImpl(/* a.rate, */ op, a) // unop.apply( a.rate, this, a )
+      case _    => UGenImpl(op, a)
     }
 
     protected def make1(a: Float): Float
@@ -342,10 +342,26 @@ object UnaryOpUGen {
   }
 
   // Note: only deterministic selectors are implemented!!
-  private final class UGenImpl /**/ (/* rate: Rate, */ selector: Op, a: UGenIn /*[ R ]*/)
-    extends UGen.SingleOut("UnaryOpUGen", a.rate, Vec(a)) {
+  private object UGenImpl {
+    def apply(selector: Op, a: UGenIn): UGenImpl = {
+      val res = new UGenImpl(selector, a)
+      UGenGraph.builder.addUGen(res)
+      res
+    }
+  }
+  private final class UGenImpl private(selector: Op, a: UGenIn)
+    extends UGen.SingleOut {
 
     override def specialIndex = selector.id
+
+    def rate: Rate = a.rate
+
+    def isIndividual : Boolean = false
+    def hasSideEffect: Boolean = false
+
+    def name: String = "UnaryOpUGen"
+
+    def inputs: Vec[UGenIn] = Vector(a)
   }
 }
 
@@ -435,12 +451,12 @@ object BinaryOpUGen {
     //      def make( rate: R, a: GE[ UGenIn[ R ]]) = UnaryOp[ R ]( rate, this, a )
     def make(a: GE, b: GE): GE = (a, b) match {
       case (c(af), c(bf)) => c(make1(af, bf))
-      case _              => new Pure(op, a, b)
+      case _ => new Pure(op, a, b)
     }
 
     protected[synth] def make1(a: UGenIn, b: UGenIn): UGenIn = (a, b) match {
       case (c(af), c(bf)) => c(make1(af, bf))
-      case _              => new UGenImpl(op, a, b)
+      case _              => UGenImpl(op, a, b, hasSideEffect = false)
     }
 
     protected def make1(a: Float, b: Float): Float
@@ -459,7 +475,6 @@ object BinaryOpUGen {
       cn.substring(i, if (cn.charAt(sz - 1) == '$') sz - 1 else sz)
     }
   }
-
 
   case object Plus extends Op {
     final val id = 0
@@ -728,7 +743,16 @@ object BinaryOpUGen {
 
   case object Firstarg extends Op {
     final val id = 46
-    override def make(/* rate: T, */ a: GE, b: GE): GE = new Impure(this, a, b)
+
+    override def make(a: GE, b: GE): GE = (a, b) match {
+      case (c(af), c(bf)) => c(make1(af, bf))
+      case _ => new Impure(this, a, b)
+    }
+
+    override protected[synth] def make1(a: UGenIn, b: UGenIn): UGenIn = (a, b) match {
+      case (c(af), c(bf)) => c(make1(af, bf))
+      case _              => UGenImpl(this, a, b, hasSideEffect = true)
+    }
 
     protected def make1(a: Float, b: Float) = a
   }
@@ -744,10 +768,25 @@ object BinaryOpUGen {
   }
 
   // Note: only deterministic selectors are implemented!!
-  private final class UGenImpl(selector: Op, a: UGenIn, b: UGenIn)
-    extends UGen.SingleOut("BinaryOpUGen", a.rate max b.rate, Vec(a, b)) {
+  private object UGenImpl {
+    def apply(selector: Op, a: UGenIn, b: UGenIn, hasSideEffect: Boolean): UGenImpl = {
+      val res = new UGenImpl(selector, a, b, hasSideEffect = hasSideEffect)
+      UGenGraph.builder.addUGen(res)
+      res
+    }
+  }
+  private final class UGenImpl private(selector: Op, a: UGenIn, b: UGenIn, override val hasSideEffect: Boolean)
+    extends UGen.SingleOut {
 
     override def specialIndex = selector.id
+
+    def rate: Rate = a.rate max b.rate
+
+    def isIndividual: Boolean = false
+
+    def name: String = "BinaryOpUGen"
+
+    def inputs: Vec[UGenIn] = Vector(a, b)
   }
 }
 

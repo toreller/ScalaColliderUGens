@@ -23,13 +23,15 @@ object ControlValues {
   implicit def fromFloat    (x :     Float  ): ControlValues = ControlValues(Vector(x))
   implicit def fromDouble   (x :     Double ): ControlValues = ControlValues(Vector(x.toFloat))
   implicit def fromIntSeq   (xs: Seq[Int   ]): ControlValues = ControlValues(xs.map(_.toFloat)(breakOut))
-  implicit def fromFoatSeq  (xs: Seq[Float ]): ControlValues = ControlValues(xs.toIndexedSeq)
+  implicit def fromFloatSeq (xs: Seq[Float ]): ControlValues = ControlValues(xs.toIndexedSeq)
   implicit def fromDoubleSeq(xs: Seq[Double]): ControlValues = ControlValues(xs.map(_.toFloat)(breakOut))
   private[ugen] val singleZero = ControlValues(Vector(0f))
 }
 final case class ControlValues(seq: Vec[Float])
 
-final class ControlProxyFactory(name: String) {
+final class ControlProxyFactory(val `this`: String) extends AnyVal { me =>
+  import me.{`this` => name}
+
   def ir: ControlProxy = ir(ControlValues.singleZero)
   def ir(values: ControlValues): ControlProxy      = ControlProxy(scalar,  values.seq, Some(name))
 
@@ -76,7 +78,7 @@ trait ControlProxyLike extends GE {
     * {{{
     *    In.ar( "in".kr, 2 )
     * }}}
-    * results in an `In` UGen, and doesn't rewrap into a UGenInGroup
+    * results in an `In` UGen, and does not re-wrap into a UGenInGroup
     * (e.g. behaves like `In.ar( 0, 2 )` and not `In.ar( Seq( 0 ), 2 )` which
     * would mess up successive multi channel expansion.
     *

@@ -28,7 +28,7 @@ object Lazy {
     */
   trait Expander[+U] extends Lazy {
     // this acts now as a fast unique reference
-    @transient private[synth] lazy val ref = new AnyRef
+    @transient final private[this] lazy val ref = new AnyRef
 
     // ---- constructor ----
     SynthGraph.builder.addLazy(this)

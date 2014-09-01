@@ -22,42 +22,28 @@ object UGenGraph {
   }
 
   trait Builder {
-    def addUGen(ugen: UGen): Unit
+    def addUGen    (ugen: UGen): Unit
+    def prependUGen(ugen: UGen): Unit
+
     def addControl(values: Vec[Float], name: Option[String]): Int
 
     def visit[U](ref: AnyRef, init: => U): U
   }
 
-  //   def individuate: Int = builder.individuate
-
-//  /**
-//   * Expands a given `SynthGraph` using the default
-//   * `UGenGraph.Builder` class. This method is typically
-//   * involved indirectly via the synth graph's `expand` method.
-//   *
-//   * @param graph   the graph which should be expanded
-//   * @return        the expanded ugen graph
-//   */
-//  def expand(graph: SynthGraph): UGenGraph = {
-//    val b = new impl.DefaultUGenGraphBuilder(graph)
-//    use(b) { b.build }
-//  }
-
-  /**
-   * Installs a custom ugen graph builder on the current thread,
-   * during the invocation of a closure. This method is typically
-   * called from other libraries which wish to provide a graph
-   * builder other than the default.
-   *
-   * When the method returns, the previous graph builder has automatically
-   * been restored. During the execution of the `body`, calling
-   * `UGenGraph.builder` will return the given `builder` argument.
-   *
-   * @param builder    the builder to install on the current thread
-   * @param body       the body which is executed with the builder found through `UGenGraph.builder`
-   * @tparam A         the result type of the body
-   * @return           the result of executing the body
-   */
+  /** Installs a custom ugen graph builder on the current thread,
+    * during the invocation of a closure. This method is typically
+    * called from other libraries which wish to provide a graph
+    * builder other than the default.
+    *
+    * When the method returns, the previous graph builder has automatically
+    * been restored. During the execution of the `body`, calling
+    * `UGenGraph.builder` will return the given `builder` argument.
+    *
+    * @param builder    the builder to install on the current thread
+    * @param body       the body which is executed with the builder found through `UGenGraph.builder`
+    * @tparam A         the result type of the body
+    * @return           the result of executing the body
+    */
   def use[A](builder: Builder)(body: => A): A = {
     val old = builders.get()
     builders.set(builder)
@@ -78,19 +64,20 @@ object UGenGraph {
     override protected def initialValue = BuilderDummy
   }
 
-  /**
-   * The current, thread local ugen graph builder instance. When called
-   * outside of an explicit building process, a dummy object will be returned
-   * which ignores any calls for adding ugens, but will throw an exception
-   * when trying to actually expand any graph element.
-   */
+  /** The current, thread local ugen graph builder instance. When called
+    * outside of an explicit building process, a dummy object will be returned
+    * which ignores any calls for adding ugens, but will throw an exception
+    * when trying to actually expand any graph element.
+    */
   def builder: Builder = builders.get
 
   private object BuilderDummy extends Builder {
     def build: UGenGraph = outOfContext
 
     def addControl(values: Vec[Float], name: Option[String]): Int = 0
-    def addUGen(ugen: UGen) = ()
+
+    def addUGen    (ugen: UGen) = ()
+    def prependUGen(ugen: UGen) = ()
 
     def visit[U](ref: AnyRef, init: => U): U = outOfContext
 

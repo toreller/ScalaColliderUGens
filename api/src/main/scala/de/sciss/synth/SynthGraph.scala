@@ -44,14 +44,13 @@ object SynthGraph {
     }
   }
 
-  /**
-   * A boolean setting (defaults to `false`) which can help track down
-   * bugs with graph elements being added outside a `SynthGraph` context.
-   * When this setting is `true`, a warning message is printed to
-   * `Console.err` with the graph element added and the stack trace,
-   * indicating calls such as `SinOsc.ar` outside a
-   * thread local `SynthGraph` builder.
-   */
+  /** A boolean setting (defaults to `false`) which can help track down
+    * bugs with graph elements being added outside a `SynthGraph` context.
+    * When this setting is `true`, a warning message is printed to
+    * `Console.err` with the graph element added and the stack trace,
+    * indicating calls such as `SinOsc.ar` outside a
+    * thread local `SynthGraph` builder.
+    */
   var warnOutsideContext = false
 
   private object BuilderDummy extends Builder {
