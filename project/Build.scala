@@ -5,7 +5,7 @@ import sbtbuildinfo.Plugin._
 
 object Build extends sbt.Build {
   def numbersVersion      = "0.1.1"
-  def scalaTestVersion    = "2.1.3"
+  def scalaTestVersion    = "2.2.2"
   def scoptVersion        = "3.2.0"
   def refactoringVersion  = "0.1.0"
   def fileUtilVersion     = "1.1.1"
@@ -82,19 +82,6 @@ object Build extends sbt.Build {
         "de.sciss"         %% "fileutil"         % fileUtilVersion,
         "org.scalatest"    %% "scalatest"        % scalaTestVersion % "test"
       ),
-/*      libraryDependencies ++= { val sv = scalaVersion.value
-        val refOrg     = "org.scala-refactoring"
-        val refArt     = s"$refOrg.library"
-        val ref = if (sv startsWith "2.11") {
-          refOrg %% refArt % "0.6.2-SNAPSHOT"
-        } else {
-          refOrg %  refArt % "0.6.1"
-        }
-        Seq(
-          "org.scala-lang" % "scala-compiler" % sv,
-          ref
-        )
-      }, */
       publishLocal := {},
       publish := {}
     )

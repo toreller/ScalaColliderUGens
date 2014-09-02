@@ -149,6 +149,11 @@ final class ClassGenerator
       case head :: tail =>
         if (!sb.isEmpty && sb.length + head.length >= width) {
           flush()
+          // in Scala-Doc Wiki Syntax, lines beginning with '='
+          // are interpreted as headings! a simple work-around is
+          // to prepend a non-breaking space, although visually
+          // that may result in two space characters showing up.
+          if (head.startsWith("=")) sb.append("&nbsp;")
         } else {
           sb.append(' ')
         }
