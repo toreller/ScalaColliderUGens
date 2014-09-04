@@ -405,7 +405,7 @@
     </ugen>
     <ugen name="Linen" side-effect="true" done-flag="true">
         <rate name="control"/>
-        <rate name="audio"/>
+        <!-- NOT SUPPORTED: <rate name="audio"/> -->
         <arg name="gate" default="open"/>
         <arg name="attack" default="0.01"/>
         <arg name="sustain" default="1.0"/>
