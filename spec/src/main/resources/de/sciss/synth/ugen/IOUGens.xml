@@ -1,17 +1,137 @@
-<ugens revision="1">
+<ugens revision="2">
+    <!-- all documented -->
     <ugen name="OffsetOut" writes-bus="true">
         <no-outputs/>
         <rate name="audio" implied="true">
             <arg name="in" rate="ugen"/>
         </rate>
-        <arg name="bus" type="bus"/>
-        <arg name="in" variadic="true"/>
+        <arg name="bus" type="bus">
+            <doc>
+                bus index to write to. For an audio-rate UGen, this is an audio-bus, for a control-rate UGen,
+                this is a control-bus.
+            </doc>
+        </arg>
+        <arg name="in" variadic="true">
+            <doc>
+                signal to write to the bus. If the UGen is audio-rate, the input must also be audio-rate.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that writes a signal onto a bus, delaying the signal such that the input will begin to appear
+                on the bus precisely when the encompassing Synth was scheduled according to its OSC bundle.
+                I.e. if the synth is scheduled to be started part way through a control cycle, `OffsetOut` will
+                maintain the correct offset by buffering the output and delaying it until the exact time that the
+                synth was scheduled for.
+
+                This UGen adds ("mixes") the input-signal to the existing contents of the bus.
+
+                Multi-channel input signals, for example a `PanAz`, are written as such to the bus without expansion.
+                That is, the `bus` index argument is used for the first channel, the second channel will appear on
+                `bus + 1`, etc.
+
+                If you have an expanding multi-channel input, however, you have to be careful. For example, if you
+                have `PanAz.ar(2, SinOsc.ar(Seq(444, 555, 666)) * 0.2, Seq(-1, 0, 1))`, this results in one output
+                UGen carrying one channel, and another one carrying two channels. (The way this works is consistent
+                with SCLang). In order to get the correct behaviour (left outputs of the `PanAz` summed, and right
+                output of the `PanAz` summed), wrap this expression in a `Mix(...)` before passing it to the output
+                UGen.
+
+                '''Note''': You cannot currently achieve sample accurate scheduling in SuperCollider. This UGen is
+                therefore more or less useless.
+            </text>
+            <example name="compare left-right" type="full">
+                val sd = SynthDef.recv("offset-out") {
+                  val x = Impulse.ar(2)
+                  val y = SubsampleOffset.ir
+                  y.poll(0, "offset")
+                  Out      .ar(0, x)
+                  OffsetOut.ar(1, x)    // right channel will be delayed against left
+                }
+
+                val x = Synth(s)
+                s ! osc.Bundle.millis(System.currentTimeMillis + 1000, x.newMsg(sd.name, s))
+            </example>
+            <see>ugen.Out</see>
+            <see>ugen.ReplaceOut</see>
+            <see>ugen.XOut</see>
+            <see>ugen.SubsampleOffset</see>
+        </doc>
     </ugen>
     <ugen name="LocalIn">
         <output variadic="numChannels"/>
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="numChannels" type="int" default="1"/>
+        <arg name="numChannels" type="int" default="1">
+            <doc>
+                number of channels to be read from synth-local bus. This should match with
+                the number of channels actually written via `LocalOut`.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that reads buses that are local to the enclosing synth. These buses should be written
+                using a `LocalOut` ugen. They behave like regular buses, but are more convenient for the
+                implementation of a self contained effect that uses a feedback processing loop.
+
+                In a synth, there can be only each one control-rate and audio-rate `LocalIn`/`LocalOut` pair.
+                The signal written to a `LocalOut` will not be read by the `LocalIn` until the next
+                control block cycle, introducing a delay of `ControlDur`.
+            </text>
+            <example name="ping-pong delay with feedback">
+                val src = Decay.ar(Impulse.ar(0.3), 0.1) * WhiteNoise.ar(0.2)
+                val in  = LocalIn.ar(2) + Seq[GE](src, 0) // read feedback, add source to left chan
+                val dly = DelayN.ar(in, 0.2, 0.2)         // delay sound
+                val att = dly * 0.8                       // apply decay factor
+
+                // reverse channels to give ping pong effect
+                LocalOut.ar(Seq(att \ 1, dly \ 0))
+                dly
+            </example>
+            <example name="tank">
+                val tones = Mix.fill(12) {
+                  Pan2.ar(
+                    Decay2.ar(Dust.ar(0.05), 0.1, 0.5) * 0.1 *
+                      FSinOsc.ar(IRand(36,84).midicps).cubed.max(0),
+                    Rand(-1,1))
+                }
+                val gen = tones + Pan2.ar(Decay2.ar(Dust.ar(0.03), 0.04, 0.3) * BrownNoise.ar, 0)
+
+                val verb = Mix.fold(gen, 4) { z =>
+                  AllpassN.ar(z, 0.03, Seq.fill(2)(Rand(0.005,0.02)), 1)
+                }
+
+                val in  = LocalIn.ar(2) * 0.98
+                val flt = OnePole.ar(in, 0.5)
+
+                val pan = Rotate2.ar(flt \ 0, flt \ 1, 0.23)
+                val v1  = AllpassN.ar(pan, 0.05, Seq.fill(2)(Rand(0.01,0.05)), 2)
+                val v2  = DelayN.ar(v1, 0.3, Seq(0.19,0.26))
+                val v3  = AllpassN.ar(v2 , 0.05, Seq.fill(2)(Rand(0.03,0.15)), 2)
+                val out = LeakDC.ar(v3)
+                val sig = gen + out
+
+                LocalOut.ar(sig)
+                sig
+            </example>
+            <example name="resonator">
+                val imp  = Impulse.ar(1)
+                val in   = LocalIn.ar
+                val feed = imp + in * 0.995
+                // must subtract block-size for correct tuning
+                // (try removing the ControlDur to here the pitch change)
+                val time = 440.reciprocal - ControlDur.ir
+                val dly  = DelayC.ar(feed, time, time)
+                LocalOut.ar(dly)
+
+                // alternate between feedback and reference pitch
+                val comp = Seq(dly, SinOsc.ar(440) * 0.2): GE
+                comp * LFPulse.kr(1, Seq(0.0, 0.5))
+            </example>
+            <see>ugen.LocalOut</see>
+            <see>ugen.InFeedback</see>
+            <see>ugen.ControlDur</see>
+        </doc>
     </ugen>
     <ugen name="XOut" writes-bus="true">
         <no-outputs/>
@@ -19,26 +139,104 @@
             <arg name="in" rate="ugen"/>
         </rate>
         <rate name="control"/>
-        <arg name="bus" type="bus" pos="0"/>
-        <arg name="xfade" pos="2"/>
-        <arg name="in" variadic="true" pos="1"/>
-        <doc warn-pos="true"/>
-    </ugen>
+        <arg name="bus" type="bus" pos="0">
+            <doc>
+                bus index to write to. For an audio-rate UGen, this is an audio-bus, for a control-rate UGen,
+                this is a control-bus.
+            </doc>
+        </arg>
+        <arg name="xfade" pos="2">
+            <doc>
+                cross-fade value. The new bus contents will be `old_bus_content * (1 - xfade) + in * xfade`
+            </doc>
+        </arg>
+        <arg name="in" variadic="true" pos="1">
+            <doc>
+                signal to write to the bus. If the UGen is audio-rate, the input must also be audio-rate.
+            </doc>
+        </arg>
+        <doc warn-pos="true">
+            <text>
+                A UGen that cross-fades the contents of a bus with an input signal. A linear cross-fade can
+                go from 0.0 (previous bus contents preserved, no input signal added) via 0.5 (previous signal
+                attenuated by -6 dB, input signal attenuated by -6 dB and added) to 1.0 (contents completely
+                replaced by input signal).
+            </text>
+            <example name="cross-fade two synths" type="full">
+                val sin = play {
+                  Out.ar(0, SinOsc.ar(440) * 0.1)
+                }
 
+                val noise = play(target = sin, addAction = addAfter) {
+                  XOut.ar(0, PinkNoise.ar(0.1), xfade = "xfade".kr(0))
+                }
+
+                noise.set("xfade" -> 0.5) // both signals heard
+                noise.set("xfade" -> 1.0) // just noise
+                noise.set("xfade" -> 0.0) // just sine
+            </example>
+            <see>ugen.In</see>
+            <see>ugen.Out</see>
+            <see>ugen.XOut</see>
+        </doc>
+    </ugen>
     <!-- XXX TODO: these could well be here, and only the ProxyFactories are manually coded...
     <ugen name="LagControl"/>
     <ugen name="AudioControl"/>
     <ugen name="Control"/>
     <ugen name="TrigControl"/>
     -->
-
     <ugen name="ReplaceOut" writes-bus="true">
         <no-outputs/>
         <rate name="audio" implied="true">
             <arg name="in" rate="ugen"/>
         </rate>
-        <arg name="bus" type="bus"/>
-        <arg name="in" variadic="true"/>
+        <arg name="bus" type="bus">
+            <doc>
+                bus index to write to. For an audio-rate UGen, this is an audio-bus, for a control-rate UGen,
+                this is a control-bus.
+            </doc>
+        </arg>
+        <arg name="in" variadic="true">
+            <doc>
+                signal to write to the bus. If the UGen is audio-rate, the input must also be audio-rate.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that replace the contents of a bus with an input signal. Other than `Out`, the signal
+                is not added to the previous contents of the bus but replaces it, allowing for a simple way of
+                an "insert" effect.
+
+                Multi-channel input signals, for example a `PanAz`, are written as such to the bus without expansion.
+                That is, the `bus` index argument is used for the first channel, the second channel will appear on
+                `bus + 1`, etc.
+
+                If you have an expanding multi-channel input, however, you have to be careful. For example, if you
+                have `PanAz.ar(2, SinOsc.ar(Seq(444, 555, 666)) * 0.2, Seq(-1, 0, 1))`, this results in one output
+                UGen carrying one channel, and another one carrying two channels. (The way this works is consistent
+                with SCLang). In order to get the correct behaviour (left outputs of the `PanAz` summed, and right
+                output of the `PanAz` summed), wrap this expression in a `Mix(...)` before passing it to the output
+                UGen.
+            </text>
+            <example name="insert-effect" type="full">
+                val noise = play {
+                  Out.ar(0, WhiteNoise.ar(Seq(0.1, 0.1)))
+                }
+
+                val filter = play(target = noise, addAction = addAfter) {
+                  val in = In.ar(0, 2)
+                  val f  = Resonz.ar(in, 444, 0.1) * 20
+                  ReplaceOut.ar(0, f)
+                }
+
+                filter.run(false)  // bypass
+                filter.run(true )  // engage
+            </example>
+            <see>ugen.In</see>
+            <see>ugen.Out</see>
+            <see>ugen.XOut</see>
+        </doc>
     </ugen>
     <ugen name="Out" writes-bus="true">
         <no-outputs/>
@@ -47,8 +245,59 @@
         </rate>
         <rate name="control"/>
         <!-- <rate name="scalar"/> -->
-        <arg name="bus" type="bus"/>
-        <arg name="in" variadic="true"/>
+        <arg name="bus" type="bus">
+            <doc>
+                bus index to write to. For an audio-rate UGen, this is an audio-bus, for a control-rate UGen,
+                this is a control-bus.
+            </doc>
+        </arg>
+        <arg name="in" variadic="true">
+            <doc>
+                signal to write to the bus. If the UGen is audio-rate, the input must also be audio-rate.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that writes a signal onto a bus. It adds ("mixes") the input-signal to the existing contents
+                of the bus.
+
+                Multi-channel input signals, for example a `PanAz`, are written as such to the bus without expansion.
+                That is, the `bus` index argument is used for the first channel, the second channel will appear on
+                `bus + 1`, etc.
+
+                If you have an expanding multi-channel input, however, you have to be careful. For example, if you
+                have `PanAz.ar(2, SinOsc.ar(Seq(444, 555, 666)) * 0.2, Seq(-1, 0, 1))`, this results in one output
+                UGen carrying one channel, and another one carrying two channels. (The way this works is consistent
+                with SCLang). In order to get the correct behaviour (left outputs of the `PanAz` summed, and right
+                output of the `PanAz` summed), wrap this expression in a `Mix(...)` before passing it to the output
+                UGen.
+            </text>
+            <example name="cross-synth routing" type="full">
+                // allocate an internal stereo audio-bus
+                val bus = Bus.audio(s, 2)
+
+                // writes to internal bus (initially inaudible)
+                val x = play {
+                  Out.ar(bus.index, Dust.ar(Seq(345, 345)))
+                }
+
+                // reads internal bus and makes it audible.
+                // must be after `x` to be able to read the bus signal
+                val y = play(target = x, addAction = addAfter) {
+                  val in = In.ar(bus.index, 2)
+                  Resonz.ar(in, 555, 0.1) * 10
+                }
+
+                // when done, do not forget to free the bus
+                y.free(); x.free(); bus.free()
+            </example>
+            <see>ugen.In</see>
+            <see>ugen.PhysicalOut</see>
+            <see>ugen.ReplaceOut</see>
+            <see>ugen.XOut</see>
+            <see>ugen.LocalOut</see>
+            <see>de.sciss.synth.Bus</see>
+        </doc>
     </ugen>
     <ugen name="LocalOut">
         <no-outputs/>
@@ -56,22 +305,141 @@
         <rate name="audio">
             <arg name="in" rate="ugen"/>
         </rate>
-        <arg name="in" variadic="true"/>
+        <arg name="in" variadic="true">
+            <doc>
+                signal to be written to the synth-local bus. The signal's number of channels must be the
+                same number of channels as were declared in the corresponding `LocalIn`.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that writes to buses that are local to the enclosing synth. These buses should have been
+                defined by a `LocalIn` ugen. These behave like regular buses, but are more convenient for the
+                implementation of a self contained effect that uses a feedback processing loop.
+
+                In a synth, there can be only each one control-rate and audio-rate `LocalIn`/`LocalOut` pair.
+                The signal written to a `LocalOut` will not be read by the `LocalIn` until the next
+                control block cycle, introducing a delay of `ControlDur`.
+
+                For more examples, see `LocalIn`.
+            </text>
+            <example name="ping-pong delay with feedback">
+                val src = Decay.ar(Impulse.ar(0.3), 0.1) * WhiteNoise.ar(0.2)
+                val in  = LocalIn.ar(2) + Seq[GE](src, 0) // read feedback, add source to left chan
+                val dly = DelayN.ar(in, 0.2, 0.2)         // delay sound
+                val att = dly * 0.8                       // apply decay factor
+
+                // reverse channels to give ping pong effect
+                LocalOut.ar(Seq(att \ 1, dly \ 0))
+                dly
+            </example>
+            <see>ugen.LocalIn</see>
+            <see>ugen.Out</see>
+            <see>ugen.ControlDur</see>
+        </doc>
     </ugen>
     <ugen name="In" reads-bus="true">
         <output variadic="numChannels"/>
         <rate name="scalar"/>
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="bus" type="bus"/>
-        <arg name="numChannels" type="int" default="1"/>
+        <arg name="bus" type="bus">
+            <doc>
+                index of the bus to read from. When `numChannels` is greater than one, the other channels or
+                read from the adjacent indices.
+            </doc>
+        </arg>
+        <arg name="numChannels" type="int" default="1">
+            <doc>
+                number of channels to read
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that reads a signal from a bus. Whether an audio- or control-bus is used depends on the rate of
+                the UGen.
+
+                `In.ar` and `In.kr` behave differently with respect to signals left on the bus in the previous
+                calculation cycle (control block): `In.ar` can access audio signals that were generated in the
+                current calculation cycle by synths appearing earlier in the node tree. It does not read signals
+                produced by nodes in the previous calculation cycle (i.e. synths appearing later in the node tree),
+                the input would instead be zero. To allow such "feedback", `InFeedback` can be used.
+
+                In contrast, `In.kr` does not distinguish between "new" and "old" data: It will always read the
+                most recent value found on the bus, whether it was generated earlier in this calculation cycle,
+                left over from the last one, or set before by the client.
+
+
+                '''Note''': The server uses the first `NumOutputBuses` channels to write to the sound card, followed
+                by another `NumInputBuses` to read from the sound card. For convenience, the pseudo-UGens
+                `PhysicalOut` and `PhysicalIn` can be used.
+            </text>
+            <example name="cross-synth routing" type="full">
+                // allocate an internal stereo audio-bus
+                val bus = Bus.audio(s, 2)
+
+                // writes to internal bus (initially inaudible)
+                val x = play {
+                  Out.ar(bus.index, Dust.ar(Seq(345, 345)))
+                }
+
+                // reads internal bus and makes it audible.
+                // must be after `x` to be able to read the bus signal
+                val y = play(target = x, addAction = addAfter) {
+                  val in = In.ar(bus.index, 2)
+                  Resonz.ar(in, 555, 0.1) * 10
+                }
+
+                // when done, do not forget to free the bus
+                y.free(); x.free(); bus.free()
+            </example>
+            <see>ugen.Out</see>
+            <see>ugen.PhysicalIn</see>
+            <see>ugen.InFeedback</see>
+            <see>ugen.LocalIn</see>
+            <see>de.sciss.synth.Bus</see>
+        </doc>
     </ugen>
     <ugen name="LagIn" reads-bus="true">
         <output variadic="numChannels"/>
         <rate name="control"/>
-        <arg name="bus" type="bus"/>
-        <arg name="numChannels" type="int" default="1"/>
-        <arg name="lag" default="0.1"/>
+        <arg name="bus" type="bus">
+            <doc>
+                index of the bus to read from. When `numChannels` is greater than one, the other channels or
+                read from the adjacent indices.
+            </doc>
+        </arg>
+        <arg name="numChannels" type="int" default="1">
+            <doc>
+                number of channels to read
+            </doc>
+        </arg>
+        <arg name="time" default="0.1">
+            <doc>
+                60 dB lag time in seconds.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that reads a signal from a control bus and applies a lag filter to it. This is essentially
+                the same as `Lag.kr(In.kr(...), time)`.
+            </text>
+            <example name="portamento">
+                val c = Bus.control(s)
+                c.set(30)   // initial midi-pitch
+
+                play {
+                  val freq = LagIn.kr(c.index, time = 1).midicps
+                  SinOsc.ar(freq) * AmpComp.kr(freq) * 0.1
+                }
+
+                c.set(70)
+                c.set(100)
+            </example>
+            <see>ugen.In</see>
+            <see>ugen.Out</see>
+            <see>ugen.Lag</see>
+        </doc>
     </ugen>
     <ugen name="InFeedback" reads-bus="true">
         <output variadic="numChannels"/>
@@ -112,6 +480,30 @@
                 '''Note''' that no delay occurs when the bus contains a signal which has been written already
                 in the current cycle. The delay is only introduced when no present signal exists.
             </text>
+            <example name="feedback frequency modulation">
+                val in = InFeedback.ar(0) // read output
+                SinOsc.ar(in * 1300 + 300) * 0.4
+            </example>
+            <example name="resonator" type="full">
+                val bus = Bus.audio(s) // internal feedback bus
+
+                val x = play {
+                  val imp  = Impulse.ar(1)
+                  val in   = InFeedback.ar(bus.index)
+                  val feed = imp + in * 0.995
+                  // must subtract block-size for correct tuning
+                  // (try removing the ControlDur to here the pitch change)
+                  val time = 440.reciprocal - ControlDur.ir
+                  val dly  = DelayC.ar(feed, time, time)
+                  Out.ar(bus.index, dly)
+
+                  // alternate between feedback and reference pitch
+                  val comp = Seq(dly, SinOsc.ar(440) * 0.2): GE
+                  comp * LFPulse.kr(1, Seq(0.0, 0.5))
+                }
+
+                x.free(); bus.free()  // do not forget to free the bus eventually
+            </example>
             <see>ugen.In</see>
             <see>ugen.LocalIn</see>
             <see>ugen.ControlDur</see>
@@ -142,10 +534,25 @@
                 `Out.kr`, only one initial trigger is generated once that ugen starts writing, but
                 no successive triggers are generated.
             </text>
+            <example name="envelope trigger" type="full">
+                val c = Bus.control(s)
+
+                val x = play {
+                  val tr = InTrig.kr(c.index)
+                  SinOsc.ar * EnvGen.kr(Env.perc, gate = tr, levelScale = tr)
+                }
+
+                c.set(1.0)
+                c.set(0.2)
+                c.set(0.1)
+
+                x.free(); c.free()
+            </example>
             <see>ugen.In</see>
+            <see>ugen.TrigControl</see>
         </doc>
     </ugen>
-    <!-- XXX TODO:
+    <!-- these require an in-process server and are currently not supported:
     <ugen name="SharedOut"/>
     <ugen name="SharedIn"/>
     -->

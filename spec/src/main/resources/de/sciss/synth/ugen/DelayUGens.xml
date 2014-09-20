@@ -87,6 +87,7 @@
             <!-- TODO: example -->
             <see>ugen.ControlRate</see>
             <see>ugen.SampleDur</see>
+            <see>ugen.OffsetOut</see>
         </doc>
     </ugen>
     <ugen name="RadiansPerSample">
