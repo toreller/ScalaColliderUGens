@@ -19,6 +19,7 @@ import collection.immutable.{IndexedSeq => Vec}
 import de.sciss.synth.ugen.{Constant => c}
 import annotation.switch
 import de.sciss.numbers.{FloatFunctions => rf, FloatFunctions2 => rf2}
+import Constant.{C0, C1, Cm1}
 
 final case class MulAdd(in: GE, mul: GE, add: GE)
   extends UGenSource.SingleOut {
@@ -35,12 +36,12 @@ final case class MulAdd(in: GE, mul: GE, add: GE)
     val mul0 = args(1)
     val add0 = args(2)
     (mul0, add0) match {
-      case (c(0), _)      => add0
-      case (c(1), c(0))   => in0
-      case (c(1), _)      => Plus .make1(in0, add0)
-      case (c(-1), c(0))  => Neg  .make1(in0)
-      case (_, c(0))      => Times.make1(in0, mul0)
-      case (c(-1), _)     => Minus.make1(add0, in0)
+      case (C0, _)    => add0
+      case (C1, C0)   => in0
+      case (C1, _)    => Plus .make1(in0, add0)
+      case (Cm1, C0)  => Neg  .make1(in0)
+      case (_, C0)    => Times.make1(in0, mul0)
+      case (Cm1, _)   => Minus.make1(add0, in0)
       case _              =>
         if (in0.rate == `audio` ||
            (in0.rate == `control` && (mul0.rate == `control` || mul0.rate == `scalar`) &&
@@ -361,10 +362,10 @@ final case class UnaryOpUGen(selector: UnaryOpUGen.Op, a: GE)
 
   def rate: MaybeRate = a.rate
 
-  protected def makeUGens: UGenInLike = unwrap(Vec(a.expand))
+  protected def makeUGens: UGenInLike = unwrap(Vec(a))
 
   protected def makeUGen(args: Vec[UGenIn]): UGenInLike = {
-    val Vec(a) = args
+    val a = args.head
     selector.make1(a)
   }
 
@@ -471,9 +472,9 @@ object BinaryOpUGen {
     protected def make1(a: Float, b: Float) = rf.+(a, b)
 
     override protected[synth] def make1(a: UGenIn, b: UGenIn): UGenIn = (a, b) match {
-      case (c(0), _)  => b
-      case (_, c(0))  => a
-      case _          => super.make1(a, b)
+      case (C0, _)  => b
+      case (_, C0)  => a
+      case _        => super.make1(a, b)
     }
   }
 
@@ -484,9 +485,8 @@ object BinaryOpUGen {
     protected def make1(a: Float, b: Float) = rf.-(a, b)
 
     override protected[synth] def make1(a: UGenIn, b: UGenIn): UGenIn = (a, b) match {
-      //         case (c(0), _)       => -b
-      case (c(0), _) => Neg.make1(b)
-      case (_, c(0)) => a
+      case (C0, _) => Neg.make1(b)
+      case (_, C0) => a
       case _ => super.make1(a, b)
     }
   }
@@ -498,13 +498,13 @@ object BinaryOpUGen {
     protected def make1(a: Float, b: Float) = rf.*(a, b)
 
     override protected[synth] def make1(a: UGenIn, b: UGenIn): UGenIn = (a, b) match {
-      case (c(0), _)  => a
-      case (_, c(0))  => b
-      case (c(1), _)  => b
-      case (_, c(1))  => a
-      case (c(-1), _) => Neg.make1(b) // -b
-      case (_, c(-1)) => Neg.make1(a) // -a
-      case _          => super.make1(a, b)
+      case (C0, _)  => a
+      case (_, C0)  => b
+      case (C1, _)  => b
+      case (_, C1)  => a
+      case (Cm1, _) => Neg.make1(b) // -b
+      case (_, Cm1) => Neg.make1(a) // -a
+      case _        => super.make1(a, b)
     }
   }
 
@@ -516,11 +516,10 @@ object BinaryOpUGen {
     protected def make1(a: Float, b: Float) = rf./(a, b)
 
     override protected[synth] def make1(a: UGenIn, b: UGenIn): UGenIn = (a, b) match {
-      case (_, c(1))  => a
-      case (_, c(-1)) => Neg.make1(a) // -a
+      case (_, C1)  => a
+      case (_, Cm1) => Neg.make1(a) // -a
       case _          =>
         if (b.rate == scalar) {
-          //               a * b.reciprocal
           Times.make1(a, Reciprocal.make1(b))
         } else {
           super.make1(a, b)
@@ -806,4 +805,57 @@ sealed trait BinaryOpUGen extends UGenSource.SingleOut {
     s"($a ${selector.name} $b)"
   else
     s"$a.${selector.name}($b)"
+}
+
+object Sum3 {
+  private[ugen] def make1(args: Vec[UGenIn]): UGenIn = {
+    val in0i = args(0)
+    val in1i = args(1)
+    val in2i = args(2)
+    import BinaryOpUGen.Plus
+    if (in0i == C0) {
+      Plus.make1(in1i, in2i)
+    } else if (in1i == C0) {
+      Plus.make1(in0i, in2i)
+    } else if (in2i == C0) {
+      Plus.make1(in0i, in1i)
+    } else {
+      UGen.SingleOut("Sum3", in0i.rate, args)
+    }
+  }
+}
+final case class Sum3(in0: GE, in1: GE, in2: GE) extends UGenSource.SingleOut {
+  def rate: MaybeRate = in0.rate // XXX TODO - see makeUGen; MaybeRate.max_?(in0.rate, in1.rate, in2.rate)
+
+  protected def makeUGens: UGenInLike = unwrap(Vec(in0, in1, in2))
+
+  protected def makeUGen(args: Vec[UGenIn]): UGenInLike = Sum3.make1(args)
+}
+
+object Sum4 {
+  private[ugen] def make1(args: Vec[UGenIn]): UGenIn = {
+    val in0i = args(0)
+    val in1i = args(1)
+    val in2i = args(2)
+    val in3i = args(3)
+
+    if (in0i == C0) {
+      Sum3.make1(Vec(in1i, in2i, in3i))
+    } else if (in1i == C0) {
+      Sum3.make1(Vec(in0i, in2i, in3i))
+    } else if (in2i == C0) {
+      Sum3.make1(Vec(in0i, in1i, in3i))
+    } else if (in3i == C0) {
+      Sum3.make1(Vec(in0i, in1i, in2i))
+    } else {
+      UGen.SingleOut("Sum4", in0i.rate, args)
+    }
+  }
+}
+final case class Sum4(in0: GE, in1: GE, in2: GE, in3: GE) extends UGenSource.SingleOut {
+  def rate: MaybeRate = in0.rate // XXX TODO - see makeUGen; MaybeRate.max_?(in0.rate, in1.rate, in2.rate, in3.rate)
+
+  protected def makeUGens: UGenInLike = unwrap(Vec(in0, in1, in2, in3))
+
+  protected def makeUGen(args: Vec[UGenIn]): UGenInLike = Sum4.make1(args)
 }

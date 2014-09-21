@@ -1,4 +1,5 @@
 <ugens revision="1"> <!-- http://jeremah.co.uk/dfm1ugen.html -->
+    <!-- all documented -->
     <ugen name="DFM1">
         <rate name="audio"/>
         <arg name="in">

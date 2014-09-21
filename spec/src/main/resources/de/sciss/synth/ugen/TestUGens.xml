@@ -1,4 +1,5 @@
 <ugens revision="1">
+    <!-- all documented -->
     <ugen name="CheckBadValues" side-effect="true">
         <rate name="scalar"/>
         <rate name="control"/>

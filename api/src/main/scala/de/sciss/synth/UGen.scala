@@ -200,6 +200,11 @@ package ugen {
     def outputIndex: Int
   }
 
+  object Constant {
+    final val C0  = new Constant(0)
+    final val C1  = new Constant(1)
+    final val Cm1 = new Constant(-1)
+  }
   /** A scalar constant used as an input to a UGen.
     * These constants are stored in a separate table of
     * the synth graph.

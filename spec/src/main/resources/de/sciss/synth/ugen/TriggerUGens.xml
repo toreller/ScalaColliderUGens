@@ -1,4 +1,5 @@
-<ugens revision="2">
+<ugens revision="3">
+    <!-- all documented -->
     <ugen name="Trig1">
         <rate name="audio"/>
         <rate name="control"/>
@@ -21,6 +22,9 @@
                 otherwise zero is output. When a new trigger occurs while this ugens outputs 1, the
                 hold-time is reset to the duration.
             </text>
+            <example name="hold dust spikes">
+                Trig1.ar(Dust.ar(1), 0.2) * SinOsc.ar(800) * 0.2
+            </example>
             <see>ugen.Trig</see>
         </doc>
     </ugen>
@@ -38,6 +42,19 @@
                 the duration for which the ugens holds the value of the input signal when triggered
             </doc>
         </arg>
+        <doc>
+            <text>
+                A UGen which holds and outputs an input value for a given duration when triggered.
+
+                When a trigger occurs at the input, the input value is sampled and output for the specified duration,
+                otherwise zero is output. When a new trigger occurs while this ugens outputs 1, the
+                hold-time is reset to the duration.
+            </text>
+            <example name="hold dust spikes">
+                Trig.ar(Dust.ar(1), 0.2) * SinOsc.ar(800) * 0.2
+            </example>
+            <see>ugen.Trig1</see>
+        </doc>
     </ugen>
     <ugen name="SendTrig" side-effect="true">
         <rate name="audio"/>
@@ -156,13 +173,47 @@
                 The flip-flop initially outputs zero and changes to one when the first trigger
                 arrives.
             </text>
+            <example name="mouse-button toggle">
+                // make sure lag is zero, otherwise the output
+                // never falls back exactly to zero!
+                val tr = MouseButton.kr(lag = 0)
+                val ff = ToggleFF.kr(tr)
+                SinOsc.ar(ff.madd(400, 800)) * 0.1
+            </example>
+            <see>ugen.SetResetFF</see>
         </doc>
     </ugen>
     <ugen name="SetResetFF">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="trig" type="trig"/>
-        <arg name="reset" type="trig"/>
+        <arg name="trig" type="trig">
+            <doc>
+                trigger that sets output to 1. A trigger happens when the signal changes from non-positive
+                to positive.
+            </doc>
+        </arg>
+        <arg name="reset" type="trig">
+            <doc>
+                trigger that sets output to 0. A trigger happens when the signal changes from non-positive
+                to positive.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A flip-flop UGen with two inputs, one (set) triggering an output of 1.0, the other (reset)
+                triggering an output of 0.0. Subsequent triggers happening within the same input slot have no
+                effect. If both inputs receive a trigger at the same time, the ''reset'' input takes precedence.
+            </text>
+            <example name="mouse-button toggle">
+                // make sure lag is zero, otherwise the output
+                // never falls back exactly to zero!
+                val set   = MouseButton.kr(lag = 0)
+                val reset = Impulse.kr(1)
+                val ff    = SetResetFF.kr(set, reset)
+                SinOsc.ar(ff.madd(400, 800)) * 0.1
+            </example>
+            <see>ugen.ToggleFF</see>
+        </doc>
     </ugen>
     <ugen name="Latch">
         <rate name="control"/>
@@ -240,15 +291,77 @@
     <ugen name="PulseDivider">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="trig" type="trig"/>
-        <arg name="div" default="2"/>
-        <arg name="start" default="0"/>
+        <arg name="trig" type="trig">
+            <doc>
+                a trigger occurs when the signal changes from non-positive to positive.
+            </doc>
+        </arg>
+        <arg name="div" default="2">
+            <doc>
+                decimation factor of the UGen. A value of 1 would cause an output trigger for each
+                input trigger, whereas a value of 2 would cause an output trigger each time the internal
+                counter has seen two input triggers.
+            </doc>
+        </arg>
+        <arg name="start" default="0">
+            <doc>
+                value of the internal counter. For example, if `div` is `2`, then a `start` value of `0`
+                (default) means that the first output trigger happens after two input triggers, a `start`
+                value of `1` means that the first output trigger happens after just one input trigger.
+                Negative values can increase the number of required input triggers for the first output trigger.
+                For example, if `start` is `-1`, the first output trigger happens after three input triggers.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that decimates trigger by outputting one impulse each time a certain number of triggers
+                at its input have been received.
+            </text>
+            <example name="every two mouse-button clicks">
+                val in  = MouseButton.kr(lag = 0)
+                in.poll(in, "in")
+                val out = PulseDivider.kr(in, 2, -1)
+                out.poll(out, "out")
+                ()
+            </example>
+            <example name="rhythmic 1:4 pattern">
+                val p = Impulse.ar(8)
+                val d = PulseDivider.ar(p, 4)
+                val a = SinOsc.ar(1200) * Decay2.ar(p, 0.005, 0.1) * 0.3
+                val b = SinOsc.ar( 600) * Decay2.ar(d, 0.005, 0.5) * 0.3
+                Seq(a, b)
+            </example>
+            <see>ugen.PulseCount</see>
+            <see>ugen.Stepper</see>
+        </doc>
     </ugen>
     <ugen name="PulseCount">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="trig" type="trig" rate="ugen"/>
-        <arg name="reset" type="trig" default="low"/>
+        <arg name="trig" type="trig" rate="ugen">
+            <doc>
+                a trigger happens when the signal changes from non-positive to positive
+            </doc>
+        </arg>
+        <arg name="reset" type="trig" default="low">
+            <doc>
+                when triggered, resets the counter to zero. When both `trig` and `reset` are triggered at the same
+                time, the `reset` takes precedence (output will be zero).
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that counts the number of triggers observed.
+            </text>
+            <example name="count mouse clicks, reset at 10">
+                val tr    = MouseButton.kr(lag = 0)
+                val reset = PulseDivider.kr(tr, 10)
+                val c     = PulseCount.kr(tr, reset)
+                c.poll(tr + Impulse.kr(0), "count")
+                ()
+            </example>
+            <see>ugen.Stepper</see>
+        </doc>
     </ugen>
     <ugen name="Stepper">
         <rate name="control"/>
@@ -303,6 +416,12 @@
                 always starts with the value in `resetVal`, no matter what `lo` is or whether
                 the `reset` trigger is high or not.
             </text>
+            <example name="arpeggio">
+                val tr    = Impulse.ar(10)
+                val step  = Stepper.ar(tr, lo = 4, hi = 16)
+                val freq  = step * 100
+                SinOsc.ar(freq) * AmpComp.ar(freq) * 0.1
+            </example>
             <see>ugen.PulseCount</see>
         </doc>
     </ugen>
@@ -333,7 +452,24 @@
     <ugen name="ZeroCrossing">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in" rate="ugen"/>
+        <arg name="in" rate="ugen">
+            signal to analyze
+        </arg>
+        <doc>
+            <text>
+                A pitch estimation UGen based on counting the zero-crossings of the input signal.
+                This is a very crude pitch follower, but can be useful in some situations.
+            </text>
+            <example name="reconstruct sine frequency">
+                val f1 = SinOsc.kr(0.2).madd(600, 700).roundTo(100)
+                val a  = SinOsc.ar(f1) * 0.1
+                val f2 = ZeroCrossing.ar(a)
+                f2.poll(10, "estimation")
+                val b  = SinOsc.ar(f2) * 0.1
+                Seq(a, b)
+            </example>
+            <see>ugen.Pitch</see>
+        </doc>
     </ugen>
     <ugen name="Timer">
         <rate name="control"/>
@@ -389,62 +525,325 @@
         <rate name="audio"/>
         <arg name="trig" type="trig" default="low">
             <doc>
-                Warning: SC 3.4 has a bug where an initial trig value of 1 will
-                be ignored (you need to feed it zero first)
+                trigger signal that causes the phasor to jump to the `resetVal` position
             </doc>
         </arg>
-        <arg name="speed" default="1.0"/>
-        <arg name="lo" default="0.0"/>
-        <arg name="hi" default="1.0"/>
-        <arg name="resetVal" default="0.0"/>
+        <arg name="speed" default="1.0">
+            <doc>
+                amount of increment ''per sample frame''. I.e at a speed of 1, each sample output by the
+                UGen will be 1 greater than the preceding sample. To achieve a specific frequency `f` in Hertz,
+                use a speed value of `f / SampleRate.ir`.
+            </doc>
+        </arg>
+        <arg name="lo" default="0.0">
+            <doc>
+                start value of the ramp
+            </doc>
+        </arg>
+        <arg name="hi" default="1.0">
+            <doc>
+                end value of the ramp (exclusive)
+            </doc>
+        </arg>
+        <arg name="resetVal" default="0.0">
+            <doc>
+                value to jump to upon receiving a trigger in the `trig` input
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A linear repeating ramp UGen between start and end values. Using a trigger input, it can be
+                reset to a specific position. Upon reaching the end of its ramp, `Phasor` will wrap back to its
+                start value. '''Note''': Since `end` is defined as the wrap point, its value is never actually
+                output.
+            </text>
+            <example name="glissandi">
+                // mouse-x controls phasor speed
+                val freq  = MouseX.kr(0.2, 2, 1)
+                // mouse button can be used to jump back
+                val reset = MouseButton.kr(lag = 0)
+                val p     = Phasor.ar(reset, freq / SampleRate.ir)
+                SinOsc.ar(p.linlin(0, 1, 600, 1000)) * 0.1
+            </example>
+            <see>ugen.Ramp</see>
+            <see>ugen.Stepper</see>
+            <see>ugen.Line</see>
+            <see>ugen.LFSaw</see>
+        </doc>
     </ugen>
     <ugen name="Peak">
         <rate name="control"/>
         <rate name="audio">
             <arg name="in" rate="ugen"/> <!-- workaround -->
         </rate>
-        <arg name="in"/>
-        <arg name="trig" type="trig"/>
+        <arg name="in">
+            <doc>
+                input signal to analyze
+            </doc>
+        </arg>
+        <arg name="trig" type="trig">
+            <doc>
+                resets the maximum observed value to the current absolute value of the input signal
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen to measure a signal's peak amplitude. Technically, this UGen works like `RunningMax` after the
+                absolute value of the input signal is taken.
+
+                The UGen keeps an internal state that reflects the maximum absolute input value observed. When a
+                trigger occurs at the reset input, it first copies the current maximum value to its output and then
+                (quasi-simultaneously) resets its internal state to the current absolute input value. This way,
+                the peak value seen from the outside at trigger time is the correct peak value up to that moment.
+                See the 'illustrate timing' example to understand this timing.
+            </text>
+            <example name="illustrate timing">
+                val i  = Impulse.ar(0)
+                // first impulse after 100ms
+                val t1 = DelayN.ar(i * 1.0 , 0.100, 0.100)
+                // one sample later
+                val t2 = Delay1.ar(t1) * 0.5
+                // another sample later
+                val t3 = Delay1.ar(t2)
+                val p  = Peak.ar(t1 + t2, t2)
+                // at t1, peak has already seen t1
+                p.poll(t1, "t1")
+                // at t2, peak still reports 1.0, while internally resetting
+                p.poll(t2, "t2")
+                // at t3, we observe 0.5, therefore peak did reset at t2
+                p.poll(t3, "t3")
+                ()
+            </example>
+            <see>ugen.RunningMin</see>
+            <see>ugen.RunningMax</see>
+            <see>ugen.RunningSum</see>
+            <see>ugen.PeakFollower</see>
+            <see>ugen.Amplitude</see>
+        </doc>
     </ugen>
     <ugen name="RunningMin">
         <rate name="control"/>
         <rate name="audio">
             <arg name="in" rate="ugen"/> <!-- workaround -->
         </rate>
-        <arg name="in"/>
-        <arg name="trig" type="trig"/>
+        <arg name="in">
+            <doc>
+                input signal to analyze
+            </doc>
+        </arg>
+        <arg name="trig" type="trig">
+            <doc>
+                resets the minimum observed value to the current value of the input signal
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen to measure a signal's minimum value between triggers.
+
+                The UGen keeps an internal state that reflects the minimum input value observed. When a
+                trigger occurs at the reset input, it first copies the current minimum value to its output and then
+                (quasi-simultaneously) resets its internal state to the current input value.
+            </text>
+            <example name="illustrate timing">
+                val n = BrownNoise.ar
+                val t = Impulse.ar(4)
+                val r = RunningMin.ar(n, t)
+                // value at the moment the reset
+                // is triggered
+                n.poll(t, "cur")
+                // this is the minimum of the
+                // recent two input samples
+                // (the one during reset and
+                // the current one), therefore
+                // equal or slightly less than
+                // the 'cur' value
+                r.poll(Delay1.ar(t), "min")
+                ()
+            </example>
+            <see>ugen.RunningMax</see>
+            <see>ugen.Peak</see>
+            <see>ugen.RunningSum</see>
+        </doc>
     </ugen>
     <ugen name="RunningMax">
         <rate name="control"/>
         <rate name="audio">
             <arg name="in" rate="ugen"/> <!-- workaround -->
         </rate>
-        <arg name="in"/>
-        <arg name="trig" type="trig"/>
+        <arg name="in">
+            <doc>
+                input signal to analyze
+            </doc>
+        </arg>
+        <arg name="trig" type="trig">
+            <doc>
+                resets the maximum observed value to the current value of the input signal
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen to measure a signal's maximum value between triggers.
+
+                The UGen keeps an internal state that reflects the maximum input value observed. When a
+                trigger occurs at the reset input, it first copies the current maximum value to its output and then
+                (quasi-simultaneously) resets its internal state to the current input value.
+            </text>
+            <example name="illustrate timing">
+                val n = BrownNoise.ar
+                val t = Impulse.ar(4)
+                val r = RunningMax.ar(n, t)
+                // value at the moment the reset
+                // is triggered
+                n.poll(t, "cur")
+                // this is the maximum of the
+                // recent two input samples
+                // (the one during reset and
+                // the current one), therefore
+                // equal or slightly greater than
+                // the 'cur' value
+                r.poll(Delay1.ar(t), "max")
+                ()
+            </example>
+            <see>ugen.RunningMin</see>
+            <see>ugen.Peak</see>
+            <see>ugen.RunningSum</see>
+        </doc>
     </ugen>
     <ugen name="PeakFollower">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in"/>
-        <arg name="decay" default="0.999"/>
+        <arg name="in">
+            <doc>
+
+            </doc>
+        </arg>
+        <arg name="decay" default="0.999">
+            <doc>
+
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that continually reports the peak amplitude of the signal received at the input. If the
+                absolute input level drops below the observed peak value, this value decreases by the factor given
+                as `decay` parameter (but no more than the current absolute input level).
+            </text>
+            <example name="mouse-controlled decay">
+                val in    = Impulse.ar(2)
+                val decay = MouseX.kr(0.995, 1.0001, 1).min(1.0)
+                decay.poll(HPZ1.kr(decay).abs, "decay")
+                val p     = PeakFollower.ar(in, decay)
+                val tr    = Impulse.ar(20)
+                val pm    = RunningMax.ar(p, tr)
+                pm.roundTo(0.001).poll(20, "peak")
+                in
+            </example>
+            <see>ugen.Peak</see>
+            <see>ugen.Amplitude</see>
+            <see>ugen.RunningSum</see>
+            <see>ugen.LagUD</see>
+        </doc>
     </ugen>
     <ugen name="MostChange">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="a"/>
-        <arg name="b"/>
+        <arg name="a">
+            <doc>
+                first input signal to select from
+            </doc>
+        </arg>
+        <arg name="b">
+            <doc>
+                second input signal to select from
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that switches between two input signal depending on which is changing more.
+                Change is based on the absolute of the differentiation of the respective signals.
+            </text>
+            <example name="mouse-x versus mouse-y">
+                val x   = MouseX.kr(lag = 1)
+                val y   = MouseY.kr(lag = 1)
+                val c   = MostChange.kr(x, y)
+                val isX = c sig_== x
+                val isY = 1 - isX
+                // if X change stronger, modulate pan position
+                val p   = LFTri.ar(c * 10 * isX)
+                // if Y change stronger, modulate sine frequency
+                val f   = LFTri.ar(c * 10 * isY).linexp(-1, 1, 100, 4000)
+                // report current state
+                c.poll(5, "c")
+                x.poll(isX, "now X")
+                y.poll(isY, "now Y")
+                Pan2.ar(SinOsc.ar(f) * 0.1, p)
+            </example>
+            <see>ugen.LeastChange</see>
+        </doc>
     </ugen>
     <ugen name="LeastChange">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="a"/>
-        <arg name="b"/>
+        <arg name="a">
+            <doc>
+                first input signal to select from
+            </doc>
+        </arg>
+        <arg name="b">
+            <doc>
+                second input signal to select from
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that switches between two input signal depending on which is changing less.
+                Change is based on the absolute of the differentiation of the respective signals.
+            </text>
+            <example name="mouse-x versus mouse-y">
+                val x   = MouseX.kr(lag = 1)
+                val y   = MouseY.kr(lag = 1)
+                val c   = LeastChange.kr(x, y)
+                val isX = c sig_== x
+                val isY = 1 - isX
+                // if X change weaker, modulate pan position
+                val p   = LFTri.ar(c * 10 * isX)
+                // if Y change weaker, modulate sine frequency
+                val f   = LFTri.ar(c * 10 * isY).linexp(-1, 1, 100, 4000)
+                // report current state
+                c.poll(5, "c")
+                x.poll(isX, "now X")
+                y.poll(isY, "now Y")
+                Pan2.ar(SinOsc.ar(f) * 0.1, p)
+            </example>
+            <see>ugen.MostChange</see>
+        </doc>
     </ugen>
     <ugen name="LastValue">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in"/>
-        <arg name="thresh" default="0.01"/>
+        <arg name="in">
+            <doc>
+                input signal to analyze and filter
+            </doc>
+        </arg>
+        <arg name="thresh" default="0.01">
+            <doc>
+                threshold below which the input sign
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A sample-and-hold UGen that outputs the last value before the input changed more than a threshold.
+                Change is based on the absolute of the differentiation of input signal.
+            </text>
+            <example name="distortion">
+                val in     = SinOsc.ar(262)
+                val thresh = MouseX.kr(1.0e-3, 2.0, 1, lag = 1)
+                thresh.poll(5, "thresh")
+                LeakDC.ar(LastValue.ar(in, thresh)) * 0.1
+            </example>
+            <see>ugen.Slew</see>
+        </doc>
     </ugen>
     <ugen name="Done" side-effect="true">
         <rate name="control" implied="true"/>
