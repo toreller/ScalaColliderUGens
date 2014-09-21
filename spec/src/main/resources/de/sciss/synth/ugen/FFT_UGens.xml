@@ -1,5 +1,5 @@
-<ugens revision="2">
-    <!-- all documented, except IFFT, PartConv -->
+<ugens revision="4">
+    <!-- all documented -->
     <ugen name="FFT" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
@@ -24,10 +24,10 @@
         </arg>
         <arg name="winType" default="0" init="true">
             <doc>
-                The window function applied before each FFT is taken. The default of 0 is a
+                The window function applied before each FFT is taken. The default of `0` is a
                 sine window which is good for phase vocoder applications (using the `PV_...` UGens).
-                For analysis applications, you may want to use -1 which is a rectangle window
-                (effectively no windowing) or 1 which is a Hann window. A Hann window gives
+                For analysis applications, you may want to use `-1` which is a rectangle window
+                (effectively no windowing) or `1` which is a Hann window. A Hann window gives
                 perfect overlap-add reconstruction for a hope size of 0.5 (or 0.25 etc.)
             </doc>
         </arg>
@@ -60,16 +60,70 @@
                 If you use FFT for performing signal analysis and not phase vocoder effects, make sure
                 you change the window type accordingly.
             </text>
+            <example name="perfect reconstruction">
+                // with a hop of 0.5 and forward Hann window,
+                // we get a perfect reconstruction delayed
+                // by the fftSize minus one control-block.
+                // (alternatively, you can use a hop of 1.0,
+                //  and winType of 1 for both FFT and IFFT)
+                val n     = 1024
+                val hop   = 0.5
+                val buf   = LocalBuf(n)
+                val in    = PinkNoise.ar(0.5)
+                val fft   = FFT(buf, in, hop = hop, winType = 1)
+                val out   = IFFT.ar(fft, winType = -1)
+                val dur   = (2 * n * hop) / SampleRate.ir - ControlDur.ir
+                val dly   = DelayN.ar(in, dur, dur)
+                out - dly
+            </example>
             <see>ugen.IFFT</see>
             <see>ugen.FFTTrigger</see>
         </doc>
     </ugen>
     <ugen name="IFFT" reads-fft="true"> <!-- outputs something, like phase? -->
         <rate name="control"/>
-        <rate name="audio"/> <!-- method-alias="apply" -->
-        <arg name="chain" type="fft"/>
-        <arg name="winType" default="0" init="true"/>
-        <arg name="winSize" default="0" init="true"/>
+        <rate name="audio"/>  <!-- not supported nor non-implied rate: method-alias="apply" -->
+        <arg name="chain" type="fft">
+            <doc>
+                reference to the spectral signal, returned as a buffer-identifier from `FFT` or the
+                `PV_...` UGens.
+            </doc>
+        </arg>
+        <arg name="winType" default="0" init="true">
+            <doc>
+                The window function applied after each IFFT is taken. The default of `0` is a
+                sine window, `-1` is a rectangle window, and `1` is a Hann window.
+            </doc>
+        </arg>
+        <arg name="winSize" default="0" init="true">
+            <doc>
+                With the default value of zero, the window size equals the fft size. If you wish to
+                perform zero padding, an explicit window size can be specified.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen performing an inverse FFT, transforming a buffer containing a spectral domain signal back
+                into the time domain.
+            </text>
+            <example name="perfect reconstruction">
+                // with a hop of 0.5 and forward Hann window,
+                // we get a perfect reconstruction delayed
+                // by the fftSize minus one control-block.
+                // (alternatively, you can use a hop of 1.0,
+                //  and winType of 1 for both FFT and IFFT)
+                val n     = 1024
+                val hop   = 0.5
+                val buf   = LocalBuf(n)
+                val in    = PinkNoise.ar(0.5)
+                val fft   = FFT(buf, in, hop = hop, winType = 1)
+                val out   = IFFT.ar(fft, winType = -1)
+                val dur   = (2 * n * hop) / SampleRate.ir - ControlDur.ir
+                val dly   = DelayN.ar(in, dur, dur)
+                out - dly
+            </example>
+            <see>ugen.FFT</see>
+        </doc>
     </ugen>
     <ugen name="FFTTrigger" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
@@ -844,8 +898,72 @@
     <!-- <file name="PartitionedConvolution"> -->
     <ugen name="PartConv" reads-buf="true">
         <rate name="audio"/>
-        <arg name="in"/>
-        <arg name="fftSize" type="ge-int" init="true"/>
-        <arg name="buf" type="buf" init="true"/>
+        <arg name="in">
+            <doc>
+                the realtime input to be convolved
+            </doc>
+        </arg>
+        <arg name="fftSize" type="ge-int" init="true">
+            <doc>
+                FFT size which is twice the input signal partition size. This must be a multiple of the
+                control-block size, and there must be at least two blocks per partition (to allow for amortization)
+            </doc>
+        </arg>
+        <arg name="buf" type="buf" init="true">
+            <doc>
+                buffer identifier for the fixed kernel (init-time only).
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen for partitioned convolution. Its advantage over non-partitioning UGens such as `Convolution2`
+                is that the impulse response can be arbitrarily large amortization is used to spread processing and
+                avoid CPU spikes.
+
+                The impulse response buffer must be specially prepared, using a `/b_gen` command that transforms
+                an existing regularly formatted buffer to a new partitioned convolution ready buffer.
+            </text>
+            <example name="Dan Stowell's reverb" type="full">
+                // synthesize impulse response
+                val ir = (1f +: Vector.fill(100)(0f)) ++ (1f to 0f by -0.00002f).map { f =>
+                  if (math.random &lt; 0.5)
+                    0f
+                  else
+                    f.pow(8) * (math.random - 0.5).signum * 0.1f
+                }
+
+                // ir.plot()
+
+                // send the IR to a regular buffer
+                val irBuf = Buffer(s)
+                irBuf.alloc(ir.size)
+                irBuf.setData(ir)
+
+                // calculate the partitioning parameters
+                val fftSize  = 2048
+                val numPart  = (ir.size * 2.0 / fftSize).ceil.toInt  // 49
+                val partSize = fftSize * numPart  // 100352
+
+                // create the specially formatted partitioned buffer
+                val partBuf  = Buffer(s)
+                partBuf.alloc(partSize)
+                // currently no predefined method for this command!
+                s ! osc.Message("/b_gen", partBuf.id, "PreparePartConv", irBuf.id, fftSize)
+
+                // now we can forget about the input buffer
+                irBuf.free()
+
+                val x = play {
+                  // trigger IR every 4 seconds
+                  val in = Impulse.ar(0.25) * 0.5
+                  PartConv.ar(in, fftSize, partBuf.id)
+                }
+
+                // do not forget to free the buffer eventually
+                x.free(); partBuf.free()
+            </example>
+            <see>ugen.Convolution</see>
+            <see>ugen.Convolution2</see>
+        </doc>
     </ugen>
 </ugens>

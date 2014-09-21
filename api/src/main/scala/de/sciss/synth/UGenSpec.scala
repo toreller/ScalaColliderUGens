@@ -49,8 +49,8 @@ object UGenSpec {
     *                 `spec.doc` will be `None`.
     * @return         a map from UGen names to their specifications.
     */
-  def parseAll(source: xml.InputSource, docs: Boolean = false): Map[String, UGenSpec] =
-    ParserImpl.parseAll(source, docs = docs)
+  def parseAll(source: xml.InputSource, docs: Boolean = false, verify: Boolean = false): Map[String, UGenSpec] =
+    ParserImpl.parseAll(source, docs = docs, verify = verify)
 
   /** Parses an individual XML node for one specific UGen specification.
     *
@@ -58,7 +58,8 @@ object UGenSpec {
     * @param docs if `true`, parses documentation as well. if `false` skips documentation, thus
     *             `spec.doc` will be `None`.
     */
-  def parse(node: xml.Node, docs: Boolean = false): UGenSpec = ParserImpl.parse(node, docs = docs)
+  def parse(node: xml.Node, docs: Boolean = false, verify: Boolean = false): UGenSpec =
+    ParserImpl.parse(node, docs = docs, verify = verify)
 
   // ---- UGen attributes ----
 

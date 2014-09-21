@@ -70,7 +70,7 @@ object Lazy {
   *
   * In most cases, lazy elements will expanded to ugens, and thus the subtype
   * `Lazy.Expander` is the most convenient way to implement this trait, as it already
-  * does most of the logic, and provide's for `GE`s `expand` method.
+  * does most of the logic, and provides for `GE`s `expand` method.
   *
   * @see [[de.sciss.synth.Lazy.Expander]]
   */

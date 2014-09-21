@@ -1,4 +1,5 @@
 <ugens revision="1">
+    <!-- all documented -->
     <ugen name="BeatTrack" reads-fft="true">
         <rate name="control" implied="true"/>
         <arg name="chain" type="fft">
@@ -221,6 +222,8 @@
                 others so maybe try that too. They all have slightly different characteristics, and in tests perform
                 at a similar quality level.
             </text>
+            <see>ugen.PV_JensenAndersen</see>
+            <see>ugen.PV_HainsworthFoote</see>
         </doc>
     </ugen>
 

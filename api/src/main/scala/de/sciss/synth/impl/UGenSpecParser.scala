@@ -19,13 +19,13 @@ import scala.collection.{SeqLike, breakOut}
 import de.sciss.synth.UGenSpec.{ArgumentValue, ArgumentType}
 
 private[synth] object UGenSpecParser {
-  private def DEFAULT_VERIFY = true
+  // private def DEFAULT_VERIFY = true
 
-  def parseAll(source: xml.InputSource, docs: Boolean = false): Map[String, UGenSpec] = {
+  def parseAll(source: xml.InputSource, docs: Boolean, verify: Boolean): Map[String, UGenSpec] = {
     val root      = xml.XML.load(source)
     val ugenNodes = root \\ "ugen"
     ugenNodes.map( n => {
-      val spec = parse(n, docs = docs, verify = DEFAULT_VERIFY)
+      val spec = parse(n, docs = docs, verify = verify)
       spec.name -> spec
     })(breakOut)
   }
@@ -317,7 +317,7 @@ private[synth] object UGenSpecParser {
     val sb    = new StringBuilder
 
     def flush(): Unit =
-      if (!sb.isEmpty) {
+      if (sb.nonEmpty) {
         b += sb.toString
         sb.clear()
       }
@@ -325,7 +325,7 @@ private[synth] object UGenSpecParser {
     var inPre = false
     trim.foreach { line =>
       if (inPre) {
-        if (!sb.isEmpty) sb.append('\n')
+        if (sb.nonEmpty) sb.append('\n')
         sb.append(line)
         if (line == "}}}") inPre = false
       } else {
@@ -334,7 +334,7 @@ private[synth] object UGenSpecParser {
             flush()
             inPre = true
           }
-          if (!sb.isEmpty) sb.append(' ')
+          if (sb.nonEmpty) sb.append(' ')
           sb.append(line)
         }
       }
@@ -375,7 +375,7 @@ private[synth] object UGenSpecParser {
     }
   }
 
-  def parse(node: xml.Node, docs: Boolean = false, verify: Boolean = false): UGenSpec = {
+  def parse(node: xml.Node, docs: Boolean, verify: Boolean): UGenSpec = {
     if (node.label != "ugen") throw new IllegalArgumentException(s"Not a 'ugen' node: $node")
 
     import UGenSpec.{SignalShape => Sig, _}

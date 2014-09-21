@@ -1,9 +1,50 @@
-<ugens revision="1">
+<ugens revision="2">
+    <!-- all documented -->
     <ugen name="KeyState">
         <rate name="control" implied="true"/>
-        <arg name="keyCode"/>
-        <arg name="lo" default="0.0"/>
-        <arg name="hi" default="1.0"/>
-        <arg name="lag" default="0.2"/>
+        <arg name="keyCode">
+            <doc>
+                hardware code for the key to monitor. This is likely platform dependent. For example, on Linux,
+                key-codes 24 to 29 correspond to 'Q', 'W', 'E', 'R', 'T', 'Y'.
+            </doc>
+        </arg>
+        <arg name="lo" default="0.0">
+            <doc>
+                value output when the currently pressed does not match the code
+            </doc>
+        </arg>
+        <arg name="hi" default="1.0">
+            <doc>
+                value output when the currently pressed does match the code
+            </doc>
+        </arg>
+        <arg name="lag" default="0.2">
+            <doc>
+                60 dB lag time in seconds.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that detects a specific keyboard stroke. When the given key is not pressed, the `lo` value is
+                output, while the key is pressed the `hi` value is output. If `lag` is greater than zero, a
+                `Lag`-type operation is applied for a smoother transition between `lo` and `hi`.
+            </text>
+            <example name="determine codes">
+                val code = Phasor.kr(lo = 0, hi = 127)
+                val k    = KeyState.kr(code, lag = 0)
+                val x    = Gate.kr(code, k)
+                val ch   = x sig_!= Delay1.kr(x)
+                // when a code change is detected, print it
+                x.poll(ch, "code")
+                ()
+            </example>
+            <example name="gate sound using the 'A' key">
+                // on Linux, key-code 38 denotes the 'A' key
+                SinOsc.ar(800) * KeyState.kr(38, 0, 0.1)
+            </example>
+            <see>ugen.MouseX</see>
+            <see>ugen.MouseY</see>
+            <see>ugen.MouseButton</see>
+        </doc>
     </ugen>
 </ugens>

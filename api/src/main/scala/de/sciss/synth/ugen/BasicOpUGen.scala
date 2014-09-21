@@ -20,24 +20,18 @@ import de.sciss.synth.ugen.{Constant => c}
 import annotation.switch
 import de.sciss.numbers.{FloatFunctions => rf, FloatFunctions2 => rf2}
 
-//object MulAdd {
-//   def ar( in: GE, mul: GE, add: GE ) : MulAdd = apply( audio, in, mul, add )
-//   def kr( in: GE, mul: GE, add: GE ) : MulAdd = apply( control, in, mul, add )
-//   def ir( in: GE, mul: GE, add: GE ) : MulAdd = apply( scalar, in, mul, add )
-//}
-
-final case class MulAdd(/* rate: MaybeRate, */ in: GE, mul: GE, add: GE)
+final case class MulAdd(in: GE, mul: GE, add: GE)
   extends UGenSource.SingleOut {
 
   protected def makeUGens: UGenInLike = unwrap(Vec(in.expand, mul.expand, add.expand))
 
-  def rate: MaybeRate = in.rate // XXX correct?
+  def rate: MaybeRate = in.rate // XXX TODO - correct?
 
   protected def makeUGen(args: Vec[UGenIn]): UGenInLike = {
     import BinaryOpUGen.{Plus, Minus, Times}
     import UnaryOpUGen.Neg
 
-    val in0 = args(0)
+    val in0  = args(0)
     val mul0 = args(1)
     val add0 = args(2)
     (mul0, add0) match {
@@ -61,15 +55,12 @@ final case class MulAdd(/* rate: MaybeRate, */ in: GE, mul: GE, add: GE)
   override def toString = s"$in.madd($mul, $add)"
 }
 
-/** Unary operations are generally constructed by calling one of the methods of <code>GE</code>.
+/** Unary operations are generally constructed by calling one of the methods of `GEOps`.
   *
-  * @see  GE
+  * @see  GEOps
   * @see  BinaryOpUGen
   */
 object UnaryOpUGen {
-  unop =>
-
-
   object Op {
     def apply(id: Int): Op = (id: @switch) match {
       case Neg        .id => Neg
@@ -365,7 +356,7 @@ object UnaryOpUGen {
   }
 }
 
-final case class UnaryOpUGen(/* rate: MaybeRate, */ selector: UnaryOpUGen.Op, a: GE)
+final case class UnaryOpUGen(selector: UnaryOpUGen.Op, a: GE)
   extends UGenSource.SingleOut {
 
   def rate: MaybeRate = a.rate
@@ -380,15 +371,12 @@ final case class UnaryOpUGen(/* rate: MaybeRate, */ selector: UnaryOpUGen.Op, a:
   override def toString = s"$a.${selector.name}"
 }
 
-/**
- *    Binary operations are generally constructed by calling one of the methods of <code>GEOps</code>.
- *
- *    @see  GEOps
- *    @see  UnaryOpUGen
- */
+/** Binary operations are generally constructed by calling one of the methods of `GEOps`.
+  *
+  * @see  GEOps
+  * @see  UnaryOpUGen
+  */
 object BinaryOpUGen {
-  binop =>
-
   // note: this is not optimizing, as would be `op.make(a, b)`, because it guarantees that the return
   // type is BinaryOpUGen. this is used in deserialization, you should prefer `op.make` instead.
   def apply(op: Op, a: GE, b: GE): BinaryOpUGen = op match {
@@ -790,7 +778,7 @@ object BinaryOpUGen {
   }
 }
 
-// XXX this could become private once the op's make method return type is changed to GE
+// XXX TODO - this could become private once the op's make method return type is changed to GE
 sealed trait BinaryOpUGen extends UGenSource.SingleOut {
   def selector: BinaryOpUGen.Op
   def a: GE

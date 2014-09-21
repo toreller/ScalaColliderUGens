@@ -1,14 +1,39 @@
-<ugens revision="1">
+<ugens revision="2">
+    <!-- all documented -->
     <ugen name="Convolution" reads-buf="true">
         <rate name="audio"/>
-        <arg name="in"/>
-        <arg name="kernel"/>
-        <arg name="frameSize" type="ge-int" init="true"/>
+        <arg name="in">
+            <doc>
+                first operand of the convolution
+            </doc>
+        </arg>
+        <arg name="kernel">
+            <doc>
+                second operand of the convolution
+            </doc>
+        </arg>
+        <arg name="frameSize" type="ge-int" init="true">
+            <doc>
+                convolution size in sample frames, which is half of the FFT size. Must be a power of two.
+                There is maximum frame-size of 16384 (if exceeded, the server may crash).
+            </doc>
+        </arg>
         <doc>
+            <text>
+                A UGen that performs a convolution with an continuously changing kernel. If the kernel is
+                static or must only change occasionally, `Convolution2` will be a more CPU friendly alternative.
+                The process introduces a delay of `frameSize - blockSize`.
+            </text>
+            <example name="sine filter">
+                val a = WhiteNoise.ar
+                val b = SinOsc.ar(MouseY.kr(20, 2000, 1))
+                Convolution.ar(a, b, 512) * 0.01
+            </example>
+            <see>ugen.PartConv</see>
             <see>ugen.Convolution2L</see>
-            <see>ugen.Convolution3</see>
+            <!-- <see>ugen.Convolution3</see> -->
             <see>ugen.Convolution2</see>
-            <see>ugen.StereoConvolution2L</see>
+            <!-- <see>ugen.StereoConvolution2L</see> -->
         </doc>
     </ugen>
     <ugen name="Convolution2" reads-buf="true">
@@ -20,7 +45,9 @@
         </arg>
         <arg name="kernel">
             <doc>
-                buffer identifier for the fixed kernel, which may be modulated in combination with the trigger
+                buffer identifier for the fixed kernel, which may be modulated in combination with the trigger.
+                Even a trigger input of zero is used, upon UGen initialization the kernel must point to
+                a valid buffer, otherwise the UGen aborts.
             </doc>
         </arg>
         <arg name="trig" default="high">
@@ -31,35 +58,136 @@
         <arg name="frameSize" type="ge-int" init="true">
             <doc>
                 size of the kernel. this must be a power of two. the FFT calculated internally
-                by the UGen has a size of twice this value. The maximum allowed frameSize
-                is 65536(?).
+                by the UGen has a size of twice this value. The maximum allowed `frameSize`
+                is 16384.
             </doc>
         </arg>
         <doc>
             <text>
                 A frequency-domain convolution UGen using a fixed kernel which can be updated
-                by a trigger signal. The delay caused by the convolution when the kernel is a dirac impulse
-                is equal to `frameSize - (controlBlockSize + 1)` (measured august 2010), so for a frameSize
-                of 2048 and a controlBlockSize of 64, this is 1983 sample frames.
+                by a trigger signal.
+                The delay caused by the convolution when the kernel is a dirac impulse
+                is equal to `frameSize - controlBlockSize`, so for a `frameSize`
+                of 2048 and a control-block size of 64, this is 1984 sample frames.
             </text>
+            <example name="three example kernels" type="full">
+                // creates a buffer with `n` set values
+                def mkBuf(n: Int, amp: => Double): Buffer = {
+                  val v = Vector.tabulate[FillValue](n) { i =>
+                    (i.linlin(0, n, 0, 2048).toInt, amp)
+                  }
+                  val b = Buffer(s)
+                  b.alloc(2048, completion = b.zeroMsg(b.setMsg(v: _*)))
+                  b
+                }
+
+                val b = mkBuf(3, 1)
+                val c = mkBuf(50, math.random)
+                val d = mkBuf(20, 1)
+
+                val x = play {
+                  val z   = Impulse.ar(1)
+                  val buf = "kernel".kr(b.id)
+                  val tr  = "trig"  .tr
+                  Convolution2.ar(z, buf, tr, 2048) * 0.5
+                }
+
+                // set buffer and trigger kernel actualization
+                x.set("kernel" -> b.id, "trig" -> 1)
+                x.set("kernel" -> c.id, "trig" -> 1)
+                x.set("kernel" -> d.id, "trig" -> 1)
+
+                x.free(); b.free(); c.free(); d.free()
+            </example>
+            <see>ugen.PartConv</see>
             <see>ugen.Convolution2L</see>
-            <see>ugen.Convolution3</see>
+            <!-- <see>ugen.Convolution3</see> -->
             <see>ugen.Convolution</see>
-            <see>ugen.StereoConvolution2L</see>
+            <!-- <see>ugen.StereoConvolution2L</see> -->
         </doc>
     </ugen>
     <ugen name="Convolution2L" reads-buf="true">
         <rate name="audio"/>
-        <arg name="in"/>
-        <arg name="kernel"/>
-        <arg name="trig" default="high"/>
-        <arg name="frameSize" type="ge-int" init="true"/>
-        <arg name="fadePeriods" default="1" init="true"/>
+        <arg name="in">
+            <doc>
+                the realtime input to be convolved
+            </doc>
+        </arg>
+        <arg name="kernel">
+            <doc>
+                buffer identifier for the fixed kernel, which may be modulated in combination with the trigger.
+                Even a trigger input of zero is used, upon UGen initialization the kernel must point to
+                a valid buffer, otherwise the UGen aborts.
+            </doc>
+        </arg>
+        <arg name="trig" default="high">
+            <doc>
+                begins a fade to update the kernel on a change from non-positive to positive (&lt;= 0 to &gt;0).
+            </doc>
+        </arg>
+        <arg name="frameSize" type="ge-int" init="true">
+            <doc>
+                size of the kernel. this must be a power of two. the FFT calculated internally
+                by the UGen has a size of twice this value. The maximum allowed `frameSize`
+                is 16384.
+            </doc>
+        </arg>
+        <arg name="fadePeriods" default="1" init="true">
+            <doc>
+                fade duration expressed as number of convolved blocks. If the desired duration in seconds is `dur`,
+                then the number of periods can be calculated as `fadePeriods = dur * SampleRate.ir / frameSize`.
+            </doc>
+        </arg>
         <doc>
+            <text>
+                A frequency-domain convolution UGen using two linearly interpolated fixed kernels. When a trigger
+                is received, a linear fade will be performed from the previously used kernel
+                (internally stored by the UGen) towards the snapshot of the current kernel content upon receiving
+                the trigger.
+
+                The delay caused by the convolution when the kernel is a dirac impulse
+                is equal to `frameSize - controlBlockSize`, so for a `frameSize`
+                of 2048 and a control-block size of 64, this is 1984 sample frames.
+
+                '''Note''': If a trigger is received before the previous fade is complete, the interpolation is
+                broken and the kernel instead jumps straight to one of the two buffers.
+            </text>
+            <example name="three example kernels" type="full">
+                def mkBuf(n: Int, amp: => Double): Buffer = {
+                  val v = Vector.tabulate[FillValue](n) { i =>
+                    (i.linlin(0, n, 0, 2048).toInt, amp)
+                  }
+                  val b = Buffer(s)
+                  b.alloc(2048, completion = b.zeroMsg(b.setMsg(v: _*)))
+                  b
+                }
+
+                val b = mkBuf(3, 1)
+                val c = mkBuf(50, math.random)
+                val d = mkBuf(20, 1)
+
+                val x = play {
+                  val z     = Impulse.ar(16)
+                  val buf   = "kernel".kr(b.id)
+                  val tr    = "trig"  .tr
+                  val dur   = 4.0          // fade-time in seconds
+                  val n     = 2048
+                  val block = SampleRate.ir / n
+                  val p     = dur * block  // ... in periods
+                  Convolution2L.ar(z, buf, tr, 2048, p) * 0.5
+                }
+
+                x.set("kernel" -> b.id, "trig" -> 1)
+                x.set("kernel" -> c.id, "trig" -> 1)
+                x.set("kernel" -> d.id, "trig" -> 1)
+
+                x.free(); b.free(); c.free(); d.free()
+            </example>
+            <see>ugen.PartConv</see>
             <see>ugen.Convolution2</see>
-            <see>ugen.Convolution3</see>
+            <!-- <see>ugen.Convolution3</see> -->
             <see>ugen.Convolution</see>
-            <see>ugen.StereoConvolution2L</see>
+            <!-- <see>ugen.StereoConvolution2L</see> -->
         </doc>
     </ugen>
     <ugen name="StereoConvolution2L" reads-buf="true">
@@ -91,68 +219,215 @@
         </arg>
         <arg name="frameSize" type="ge-int" init="true">
             <doc>
-                size of each kernel. this must be a power of two. the FFT calculated internally
-                by the UGen has a size of twice this value. The maximum allowed frameSize
-                is 65536(?).
+                size of the kernel. this must be a power of two. the FFT calculated internally
+                by the UGen has a size of twice this value. The maximum allowed `frameSize`
+                is 16384.
             </doc>
         </arg>
         <arg name="fadePeriods" default="1" init="true">
             <doc>
-                The number of periods over which a cross-fade is performed. This must be an integer
+                fade duration expressed as number of convolved blocks. If the desired duration in seconds is `dur`,
+                then the number of periods can be calculated as `fadePeriods = dur * SampleRate.ir / frameSize`.
             </doc>
         </arg>
         <doc>
             <text>
-                A frequency domain stereo convolution UGen, capable of performing linear cross-fades between kernel updates.
-                When receiving a trigger, there is a linear cross-fade between the old kernel the new buffer contents.
-                It operates similar to Convolution2L, however uses two buffers and outputs a stereo signal, resulting
-                in better CPU usage than two discrete instances of Convolution2L as this way one FFT transformation per period
-                is saved.
+                A frequency domain stereo convolution UGen, capable of performing linear cross-fades between kernel
+                updates. When receiving a trigger, there is a linear cross-fade between the old kernel the new buffer
+                contents. It operates similar to `Convolution2L`, however uses two buffers and outputs a stereo
+                signal, resulting in better CPU usage than two discrete instances of `Convolution2L` as this way one
+                FFT transformation per period is saved.
+
+                '''Warning: This UGen seems currently broken (SC 3.6.3)'''
             </text>
+            <see>ugen.PartConv</see>
             <see>ugen.Convolution2</see>
-            <see>ugen.Convolution3</see>
+            <!-- <see>ugen.StereoConvolution2L</see> -->
             <see>ugen.Convolution</see>
             <see>ugen.Convolution2L</see>
         </doc>
     </ugen>
     <ugen name="Convolution3" reads-buf="true">
         <rate name="audio"/>
-        <arg name="in"/>
-        <arg name="kernel"/>
-        <arg name="trig" default="high"/>
-        <arg name="frameSize" type="ge-int" init="true"/>
+        <arg name="in">
+            <doc>
+                the realtime input to be convolved
+            </doc>
+        </arg>
+        <arg name="kernel">
+            <doc>
+                buffer identifier for the fixed kernel, which may be modulated in combination with the trigger.
+                Even a trigger input of zero is used, upon UGen initialization the kernel must point to
+                a valid buffer, otherwise the UGen aborts.
+            </doc>
+        </arg>
+        <arg name="trig" default="high">
+
+        </arg>
+        <arg name="frameSize" type="ge-int" init="true">
+
+        </arg>
         <doc>
             <text>
                 A UGen for triggered convolution in the time domain.
+
+                '''Warning: This UGen seems currently broken (SC 3.6.3)'''
             </text>
+            <see>ugen.PartConv</see>
+            <see>ugen.Convolution2</see>
+            <!-- <see>ugen.Convolution3</see> -->
+            <see>ugen.Convolution</see>
+            <see>ugen.Convolution2L</see>
         </doc>
     </ugen>
 
     <ugen name="PV_ConformalMap" reads-fft="true" writes-fft="true">
         <rate name="control" implied="true" method="apply"/>
         <output name="chain" type="fft"/>
-        <arg name="chain" type="fft"/>
-        <arg name="real" default="0.0"/>
-        <arg name="imag" default="0.0"/>
+        <arg name="chain" type="fft">
+            <doc>
+                the FFT'ed buffer
+            </doc>
+        </arg>
+        <arg name="real" default="0.0">
+            <doc>
+                real part of the complex parameter `a`
+            </doc>
+        </arg>
+        <arg name="imag" default="0.0">
+            <doc>
+                imaginary part of the complex parameter `a`
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that applies the conformal mapping `z => (z - a) / (1 - za*)` to its input FFT bins `z`.
+
+                It makes a transformation of the complex plane so the output is full of phase vocoder artifacts
+                but may be musically interesting. One should usually keep `|a| &lt; 1`, although bigger values
+                may be used to produce noise. A value of `a = 0` gives back the input mostly unperturbed.
+            </text>
+            <example name="mouse control">
+                val sf   = Seq.fill(3)(Rand(0.1, 0.5))
+                val sadd = Seq(1, 1.1, 1.5, 1.78, 2.45, 6.7).map(_ * 220)
+                val in   = Mix(LFSaw.ar(SinOsc.kr(sf).madd(10, sadd)) * 0.3)
+                val fft  = FFT(LocalBuf(2048), in)
+                val re   = MouseX.kr(0.01,  2.0, 1)
+                val im   = MouseY.kr(0.01, 10.0, 1)
+                val pv   = PV_ConformalMap(fft, re, im)
+                val out  = IFFT.ar(pv)
+                val vrb  = CombN.ar(out, 0.1, 0.1, 10)
+                Pan2.ar(out + vrb * 0.5, 0, 0.3)
+            </example>
+        </doc>
     </ugen>
 
     <ugen name="PV_JensenAndersen" reads-fft="true">
         <rate name="audio"/>
-        <arg name="chain" type="fft"/>
-        <arg name="propSC" default="0.25"/>
-        <arg name="propHFE" default="0.25"/>
-        <arg name="propHFC" default="0.25"/>
-        <arg name="propSF" default="0.25"/>
-        <arg name="thresh" default="1.0"/>
-        <arg name="waitTime" default="0.04"/>
+        <arg name="chain" type="fft">
+            <doc>
+                the fft signal (buffer) to analyze
+            </doc>
+        </arg>
+        <arg name="centroid" default="0.25">
+            <doc>
+                proportion (0 to 1) of spectral centroid feature
+            </doc>
+        </arg>
+        <arg name="hfe" default="0.25">
+            <doc>
+                proportion (0 to 1) of high frequency energy feature
+            </doc>
+        </arg>
+        <arg name="hfc" default="0.25">
+            <doc>
+                proportion (0 to 1) of high frequency content feature
+            </doc>
+        </arg>
+        <arg name="flux" default="0.25">
+            <doc>
+                proportion (0 to 1) of spectral flux feature
+            </doc>
+        </arg>
+        <arg name="thresh" default="1.0">
+            <doc>
+                threshold level for detection
+            </doc>
+        </arg>
+        <arg name="waitTime" default="0.04">
+            <doc>
+                after an onset is detected, further detections are suppressed for this period in seconds,
+                preventing multiple rapid triggers
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                An FFT based onset detector UGen using a mix of extracted features. It is based on work described in
+                Jensen and Andersen (2003), "Real-time Beat Estimation Using Feature Extraction," in: Proceedings of
+                the Computer Music Modeling and Retrieval Symposium.
+
+                First order derivatives of the features are taken. The threshold may need to be set low to pick
+                up on changes.
+            </text>
+            <example name="observe detection">
+                val sig = Decay.ar(Dust.ar(2), 0.1) * WhiteNoise.ar(0.25)
+                val th  = MouseX.kr(0.1, 1.0, lag = 0)
+                th.poll(HPZ1.kr(th).abs, "thresh")
+                val tr  = PV_JensenAndersen.ar(FFT(LocalBuf(2048), sig), thresh = th)
+                Seq(sig, SinOsc.ar(440) * Decay.ar(tr * 0.01, 0.1))
+            </example>
+            <see>ugen.Onsets</see>
+            <see>ugen.PV_HainsworthFoote</see>
+        </doc>
     </ugen>
     <ugen name="PV_HainsworthFoote" reads-fft="true">
         <rate name="audio"/>
-        <arg name="chain" type="fft"/>
-        <arg name="propH" default="0.0"/>
-        <arg name="propF" default="0.0"/>
-        <arg name="thresh" default="1.0"/>
-        <arg name="waitTime" default="0.04"/>
+        <arg name="chain" type="fft">
+            <doc>
+                the fft signal (buffer) to analyze
+            </doc>
+        </arg>
+        <arg name="hainsworth" default="0.0">
+            <doc>
+                what strength of detection signal from Hainsworth metric (0 to 1) to use.
+            </doc>
+        </arg>
+        <arg name="foote" default="0.0">
+            <doc>
+                what strength of detection signal from normalized Foote metric (0 to 1) to use.
+            </doc>
+        </arg>
+        <arg name="thresh" default="1.0">
+            <doc>
+                threshold level for detection
+            </doc>
+        </arg>
+        <arg name="waitTime" default="0.04">
+            <doc>
+                after an onset is detected, further detections are suppressed for this period in seconds,
+                preventing multiple rapid triggers
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                An FFT based onset detector UGen using a balance of two features. It is based on work described in
+                Hainsworth (2003), "Techniques for the Automated Analysis of Musical Audio," PhD thesis, University
+                of Cambridge. See especially p. 128. The Hainsworth metric is a modification of the Kullback Liebler
+                distance.
+            </text>
+            <example name="observe detection">
+                val sig = Decay.ar(Dust.ar(2), 0.1) * WhiteNoise.ar(0.25)
+                val th  = MouseX.kr(0.3, 1.0, lag = 0)
+                th.poll(HPZ1.kr(th).abs, "thresh")
+                val h   = MouseY.kr(1.0, 0.1, lag = 0)
+                val f   = 1 - h
+                h.poll(HPZ1.kr(h).abs, "h-f")
+                val tr  = PV_HainsworthFoote.ar(FFT(LocalBuf(2048), sig), h, f, thresh = th)
+                Seq(sig, SinOsc.ar(440) * Decay.ar(tr * 0.01, 0.1))
+            </example>
+            <see>ugen.Onsets</see>
+            <see>ugen.PV_JensenAndersen</see>
+        </doc>
     </ugen>
 
     <ugen name="RunningSum">
@@ -174,6 +449,17 @@
             <text>
                 A UGen calculating the running sum of an input signal over a given number of samples.
             </text>
+            <example name="poll waveform's DC offset">
+                val freq = 441
+                val n    = SampleRate.ir / freq
+                // mean over period of a pulse with 50% duty is 0.5
+                val mean = RunningSum.ar(LFPulse.ar(freq), n) / n
+                mean.roundTo(0.01).poll(label = "mean")
+                ()
+            </example>
+            <see>ugen.Integrator</see>
+            <see>ugen.Median</see>
+            <see>ugen.PulseCount</see>
         </doc>
     </ugen>
 </ugens>

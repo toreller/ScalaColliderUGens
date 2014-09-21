@@ -65,7 +65,7 @@ final class ClassGenerator
     }
     if (write) {
       val specs = (node \ "ugen") map { uNode =>
-        UGenSpec.parse(uNode, docs = docs)
+        UGenSpec.parse(uNode, docs = docs, verify = true)
       }
       performSpecs(specs, f, revision)
     }

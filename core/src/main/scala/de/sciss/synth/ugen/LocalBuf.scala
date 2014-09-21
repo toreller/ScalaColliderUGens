@@ -21,12 +21,12 @@ import collection.immutable.{IndexedSeq => Vec}
 /** A UGen that allocates a buffer local to the synth.
   * This is convenient for example when using an `FFT` chain.
   *
-  * @param numChannels  number of channels for the buffer
   * @param numFrames    number of sample frames for the buffer
+  * @param numChannels  number of channels for the buffer
   *
   * @see [[de.sciss.synth.ugen.FFT]]
   */
-final case class LocalBuf(numChannels: GE, numFrames: GE)
+final case class LocalBuf(numFrames: GE, numChannels: GE = 1)
   extends UGenSource.SingleOut with ScalarRated with IsIndividual {
 
   protected def makeUGens: UGenInLike = unwrap(Vector(numChannels.expand, numFrames.expand))
