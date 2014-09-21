@@ -1,4 +1,4 @@
-<ugens revision="3">
+<ugens revision="4">
     <!-- all documented -->
     <ugen name="Trig1">
         <rate name="audio"/>
@@ -57,6 +57,7 @@
         </doc>
     </ugen>
     <ugen name="SendTrig" side-effect="true">
+        <no-outputs/>
         <rate name="audio"/>
         <rate name="control"/>
         <arg name="trig" type="trig" pos="0" rate="ugen">
@@ -80,7 +81,7 @@
         <doc warn-pos="true">
             <text>
                 A UGen that sends a value from the server to all notified clients upon receiving triggers.
-                The message sent is `OSCMessage("/tr", &lt;(Int) nodeID&gt;, &lt;(Int) trigID&gt;, &lt;(Float) value&gt;)`.
+                The message sent is `osc.Message("/tr", &lt;(Int) nodeID&gt;, &lt;(Int) trigID&gt;, &lt;(Float) value&gt;)`.
 
                 For sending an array of values, or using an arbitrary reply command, see `SendReply`.
             </text>
@@ -89,6 +90,7 @@
     </ugen>
 
     <ugen name="SendReply" side-effect="true">
+        <no-outputs/>
         <rate name="control"/>
         <rate name="audio"/>
         <arg name="trig" type="trig" pos="0" rate="ugen">
@@ -100,13 +102,13 @@
             <doc>
                 an integer identifier which is contained in the reply message. While you can
                 distinguish different `SendReply` instances from the same Synth by choosing different
-                OSCMessage names, depending on the application you may use the same message name but
+                OSC message names, depending on the application you may use the same message name but
                 different ids (similar to `SendTrig`).
             </doc>
         </arg>
         <arg name="msgName" type="ge-string" default="/reply" pos="2">
             <doc>
-                a string specifying the OSCMessage's name. by convention, this should
+                a string specifying the OSC message's name. by convention, this should
                 start with a forward slash and contain only 7-bit ascii characters.
             </doc>
         </arg>
@@ -118,7 +120,7 @@
         <doc warn-pos="true">
             <text>
                 A UGen which sends an sequence of values from the server to all notified clients upon receiving triggers.
-                The message sent is `OSCMessage(&lt;(String) msgName&gt;, &lt;(Int) nodeID&gt;, &lt;(Int) replyID&gt;, &lt;(Float) values&gt;*)`.
+                The message sent is `osc.Message(&lt;(String) msgName&gt;, &lt;(Int) nodeID&gt;, &lt;(Int) replyID&gt;, &lt;(Float) values&gt;*)`.
 
                 For sending a single value, `SendTrig` provides an alternative.
             </text>
@@ -453,7 +455,9 @@
         <rate name="control"/>
         <rate name="audio"/>
         <arg name="in" rate="ugen">
-            signal to analyze
+            <doc>
+                signal to analyze
+            </doc>
         </arg>
         <doc>
             <text>

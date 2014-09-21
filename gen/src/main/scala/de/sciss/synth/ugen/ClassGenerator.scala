@@ -210,13 +210,9 @@ final class ClassGenerator
     def feed(pre: List[String], post: List[String]): List[String] =
       if (pre.isEmpty) post else pre ::: "" :: post
 
-    val bodyLines = linesFromParagraphs(bodyDoc)
+    val body0 = linesFromParagraphs(bodyDoc)
 
-    val bodyAndWarn = if (!warnPos) bodyLines else {
-      feed(bodyLines, "@note The argument order is different from its sclang counterpart." :: Nil)
-    }
-
-    val bodyAndEx: List[String] = if (!examples || doc.examples.isEmpty) bodyAndWarn else {
+    val body1: List[String] = if (!examples || doc.examples.isEmpty) body0 else {
       // Note: the @example tag isn't really helpful. All it does is prepend the text with
       // a plain 'Examples:' line, plus inserting stupid commas.
       //
@@ -243,10 +239,14 @@ final class ClassGenerator
         ("{{{" :: s"// ${ex.name}" :: codeLines) :+ "}}}"
       }
 
-      bodyAndWarn ++ ("" :: "===Examples===" :: "" :: exList)
+      body0 ++ ("" :: "===Examples===" :: "" :: exList)
     }
 
-    val bodyAndArgs = if (argDocs.isEmpty) bodyAndEx else {
+    val body2 = if (!warnPos) body1 else {
+      feed(body1, "@note The argument order is different from its sclang counterpart." :: Nil)
+    }
+
+    val body3 = if (argDocs.isEmpty) body2 else {
       val argLines = argDocs.flatMap { case (aName, aDoc) =>
         val aDocL = linesWrap(aDoc, DocWidth - ParamColumns) // 80 - 23 = 57 columns
         aDocL.zipWithIndex.map { case (ln, idx) =>
@@ -255,15 +255,15 @@ final class ClassGenerator
           tab + ln
         }
       }
-      feed(bodyAndEx, argLines)
+      feed(body2, argLines)
     }
 
-    val all = if (linkDocs.isEmpty) bodyAndArgs else {
+    val body4 = if (linkDocs.isEmpty) body3 else {
       val linkLines = linkDocs.map { link0 => s"@see ${mkLink(link0)}" }
-      feed(bodyAndArgs, linkLines)
+      feed(body3, linkLines)
     }
 
-    DocDef(DocComment(all.mkString(s"\n\n/** ", "\n  * ", "\n  */\n"), NoPosition), tree)
+    DocDef(DocComment(body4.mkString(s"\n\n/** ", "\n  * ", "\n  */\n"), NoPosition), tree)
   }
 
   private def mkLink(link0: String): String = {
