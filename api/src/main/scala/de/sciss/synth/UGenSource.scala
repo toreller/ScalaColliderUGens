@@ -35,24 +35,24 @@ object UGenSource {
   }
 }
 
-sealed trait UGenSource[U] extends Lazy.Expander[U] with Product {
+sealed trait UGenSource[U] extends Lazy.Expander[U] /* with Product */ {
   protected def makeUGen(args: Vec[UGenIn]): U
 
   final def name: String = productPrefix
 
   final protected def unwrap(args: Vec[UGenInLike]): U = {
-    var uins    = Vec.empty[UGenIn]
-    var uinsOk  = true
+    var uIns    = Vec.empty[UGenIn]
+    var uInsOk  = true
     var exp     = 0
     args.foreach(_.unbubble match {
-      case u: UGenIn => if (uinsOk) uins :+= u
+      case u: UGenIn => if (uInsOk) uIns :+= u
       case g: ugen.UGenInGroup =>
         exp     = math.max(exp, g.numOutputs)
-        uinsOk  = false // don't bother adding further UGenIns to uins
+        uInsOk  = false // don't bother adding further UGenIns to uIns
     })
-    if (uinsOk) {
-      // aka uins.size == args.size
-      makeUGen(uins)
+    if (uInsOk) {
+      // aka uIns.size == args.size
+      makeUGen(uIns)
     } else {
       rewrap(args, exp)
     }

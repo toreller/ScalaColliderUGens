@@ -1,15 +1,76 @@
-<ugens revision="3">
+<ugens revision="4">
     <ugen name="Vibrato">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="freq" default="440.0"/>
-        <arg name="beat" default="6.0"/>
-        <arg name="depth" default="0.02"/>
-        <arg name="delay" default="0.0" init="true"/>
-        <arg name="onset" default="0.0" init="true"/>
-        <arg name="beatVar" default="0.04"/>
-        <arg name="depthVar" default="0.1"/>
-        <arg name="iphase" default="0.0" init="true"/>
+        <arg name="freq" default="440.0">
+            <doc>
+                fundamental frequency in Hertz. If the Vibrato UGen is running at audio rate, this must
+                be an audio-rate input as well.
+            </doc>
+        </arg>
+        <arg name="beat" default="6.0">
+            <doc>
+                vibrato rate, that is the speed of wobble in Hertz. Note that if this is set to a too low value,
+                you may never get vibrato back, since this input is only checked at the end of a cycle.
+            </doc>
+        </arg>
+        <arg name="depth" default="0.02">
+            <doc>
+                amount of vibrato frequency deviation around the fundamental, as a proportion of the fundamental.
+            </doc>
+        </arg>
+        <arg name="delay" default="0.0" init="true">
+            <doc>
+                delay in seconds before vibrato is established.
+            </doc>
+        </arg>
+        <arg name="onset" default="0.0" init="true">
+            <doc>
+                transition time in seconds from no vibrato to full vibrato after the initial delay time.
+            </doc>
+        </arg>
+        <arg name="beatVar" default="0.04">
+            <doc>
+                random (noise) variation on the beat parameter, expressed as a proportion of `beat`. It can
+                change once per cycle of vibrato.
+            </doc>
+        </arg>
+        <arg name="depthVar" default="0.1">
+            <doc>
+                random (noise) variation on the depth of modulation, expressed as a proportion of `depth`. It can
+                change once per cycle of vibrato. The noise affects independently the up and the down part of
+                vibrato shape within a cycle.
+            </doc>
+        </arg>
+        <arg name="iphase" default="0.0" init="true">
+            <doc>
+                initial phase of vibrato modulation, allowing starting above or below the fundamental rather
+                than on it.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A low frequency oscillator UGen for modelling vibrato. It produces a modulating frequency value in
+                Hertz that can be used as the frequency parameter of another UGen.
+
+                By setting more extreme settings, one
+                can get back to the timbres of FM synthesis. One can also add in some noise to the vibrato rate
+                and vibrato size (modulation depth) to make for a more realistic motor pattern.
+
+                The vibrato output is a waveform based on a squared envelope shape with four stages marking out
+                0.0 to 1.0, 1.0 to 0.0, 0.0 to -1.0, and -1.0 back to 0.0. The vibrato rate determines how quickly
+                one moves through these stages.
+            </text>
+            <example name="constant setting">
+                SinOsc.ar(Vibrato.ar(DC.ar(400.0), 1, 0.02)) * 0.2
+            </example>
+            <example name="beat and beatVar mouse control">
+                val beat    = MouseX.kr(2.0, 100.0)
+                val beatVar = MouseY.kr(0.0, 1.0)
+                val freq    = Vibrato.ar(DC.ar(400.0), beat, 0.1, 1.0, 1.0, beatVar, 0.1)
+                SinOsc.ar(freq) * 0.2
+            </example>
+        </doc>
     </ugen>
     <ugen name="LFPulse">
         <rate name="control"/>
@@ -45,6 +106,15 @@
                 A non-band-limited pulse oscillator UGen.
                 Outputs a high value of one and a low value of zero.
             </text>
+            <example name="modulating frequency">
+                LFPulse.ar(XLine.kr(1, 200, 10), 0, 0.2) * 0.1
+            </example>
+            <example name="modulating amplitude">
+                LFPulse.kr(XLine.kr(1, 200, 10), 0, 0.2) * SinOsc.ar(440) * 0.1
+            </example>
+            <example name="used as both oscillator and LFO">
+                LFPulse.ar(LFPulse.kr(3, 0, 0.3).madd(200, 200), 0, 0.2) * 0.1
+            </example>
             <see>ugen.Pulse</see>
         </doc>
     </ugen>
@@ -70,20 +140,76 @@
                 that is it does not use band-limiting. For a band-limited version use
                 `Saw` instead. The signal range is -1 to +1.
             </text>
+            <example name="modulating frequency">
+                LFSaw.ar(XLine.kr(1, 200, 10)) * 0.1
+            </example>
+            <example name="modulating amplitude">
+                LFSaw.kr(XLine.kr(1, 200, 10)) * SinOsc.ar(440) * 0.1
+            </example>
+            <example name="neuer deutscher Sägezahn">
+                LFSaw.ar(LFSaw.kr(3).madd(200, 200)) * 0.1
+            </example>
             <see>ugen.Saw</see>
         </doc>
     </ugen>
     <ugen name="LFPar">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="freq" default="440.0"/>
-        <arg name="iphase" default="0.0" init="true"/>
+        <arg name="freq" default="440.0">
+            <doc>
+                oscillator frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="iphase" default="0.0" init="true">
+            <doc>
+                initial phase in cycle (0 to 1)
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A sine-like oscillator UGen with a shape made of two parabolas. It has audible odd harmonics
+                and is non-band-limited. Its output ranges from -1 to +1.
+            </text>
+            <example name="modulating frequency">
+                LFPar.ar(XLine.kr(100, 20000, 10)) * 0.1
+            </example>
+            <example name="modulating amplitude">
+                LFPar.kr(XLine.kr(1, 200, 10)) * SinOsc.ar(440) * 0.1
+            </example>
+            <example name="used as both oscillator and LFO">
+                LFPar.ar(LFPar.kr(LFPar.kr(0.2).madd(8,10)).madd(400,800)) * 0.1
+            </example>
+            <see>ugen.LFCub</see>
+        </doc>
     </ugen>
     <ugen name="LFCub">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="freq" default="440.0"/>
-        <arg name="iphase" default="0.0" init="true"/>
+        <arg name="freq" default="440.0">
+            <doc>
+                oscillator frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="iphase" default="0.0" init="true">
+            <doc>
+                initial phase in cycle (0 to 1)
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A sine-like oscillator UGen with a shape made of two cubic pieces. It is smoother than `LFPar`.
+            </text>
+            <example name="modulating frequency">
+                LFPar.ar(XLine.kr(100, 20000, 10)) * 0.1
+            </example>
+            <example name="modulating amplitude">
+                LFPar.kr(XLine.kr(1, 200, 10)) * SinOsc.ar(440) * 0.1
+            </example>
+            <example name="used as both oscillator and LFO">
+                LFPar.ar(LFPar.kr(LFPar.kr(0.2).madd(8,10)).madd(400,800)) * 0.1
+            </example>
+            <see>ugen.LFPar</see>
+        </doc>
     </ugen>
     <ugen name="LFTri">
         <rate name="control"/>
@@ -95,13 +221,13 @@
         </arg>
         <arg name="iphase" default="0.0" init="true">
             <doc>
-                Initial phase of the oscillator. A full phase (2 Pi or 360 degrees) is represented by
+                initial phase of the oscillator. A full phase (2 Pi or 360 degrees) is represented by
                 an `iphase` value of 4. The initial phase cannot be modulated.
             </doc>
         </arg>
         <doc>
             <text>
-                A triangle oscillator designed for low frequency control signals (being non-band-limited).
+                A triangle oscillator UGen designed for low frequency control signals (being non-band-limited).
                 The output varies from -1 to 1.
 
                 With an initial phase of zero, the oscillator begins at 0, rises to 1, then falls to -1 and goes
@@ -109,23 +235,79 @@
                 the oscillator begins at 1 and then falls to -1. With an initial phase of 3 (or 270 degrees),
                 the oscillator begins at -1 and then rises to 1.
             </text>
+            <example name="modulating frequency">
+                LFTri.ar(XLine.kr(100, 20000, 10)) * 0.1
+            </example>
+            <example name="modulating amplitude">
+                LFTri.kr(XLine.kr(1, 200, 10)) * SinOsc.ar(440) * 0.1
+            </example>
+            <example name="used as both oscillator and LFO">
+                LFTri.ar(LFTri.kr(LFTri.kr(0.2).madd(8,10)).madd(400,800)) * 0.1
+            </example>
         </doc>
     </ugen>
     <ugen name="LFGauss">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="dur" default="1.0"/>
-        <arg name="width" default="0.1"/>
-        <arg name="phase" default="0.0"/>   <!-- in the current implementation can be modulated! -->
-        <arg name="loop" default="true"/>
-        <arg name="doneAction" default="doNothing"/>
+        <arg name="dur" default="1.0">
+            <doc>
+                duration in seconds of a full -1 &lt;= x &lt;= 1 cycle, or the reciprocal of the frequency
+            </doc>
+        </arg>
+        <arg name="width" default="0.1">
+            <doc>
+                relative width of the bell. Best to keep below 0.25 when used as envelope.
+            </doc>
+        </arg>
+        <arg name="phase" default="0.0">    <!-- in the current implementation can be modulated! -->
+            <doc>
+                phase offset
+            </doc>
+        </arg>
+        <arg name="loop" default="true">
+            <doc>
+                if greater than zero, the UGen oscillates. Otherwise it calls `doneAction` after one cycle.
+            </doc>
+        </arg>
+        <arg name="doneAction" default="doNothing">
+            <doc>
+                evaluated after cycle completes
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A non-band-limited gaussian function oscillator UGen. Output ranges from `minVal` to 1. It
+                implements the formula:
+                {{{
+                f(x) = exp((x - phase).squared / (-2 * width.squared))
+                }}}
+                where `x` is to vary in the range -1 to 1 over the period `dur`. `minVal` is the initial value
+                at -1. E.g. for default parameters, it is `exp(-50)` or roughly zero.
+            </text>
+            <example name="dur and width can be modulated at audio rate">
+                val dur = SinOsc.ar(MouseX.kr(2, 1000, 1) * Seq(1.0, 1.1)).linlin(-1, 1, 0.0006, 0.01)
+                val width = SinOsc.ar(Seq(0.5, 0.55)).linlin(-1, 1, 0.01, 0.3)
+                LFGauss.ar(dur, width) * 0.2
+            </example>
+            <example name="several frequencies and widths combined">
+                val x    = MouseX.kr(1, 0.07, 1)
+                val y    = MouseY.kr(1, 3)
+                val mod  = LFGauss.ar(x, (-1 to -6 by -1).map(i => y.pow(i)))
+                val carr = SinOsc.ar((0 to 5).map(i => 200 * 1.3.pow(i)))
+                Mix(carr * mod) * 0.1
+            </example>
+            <example name="test spectrum">
+                val son = LeakDC.ar(LFGauss.ar(0.005, 0.2))
+                BPF.ar(son * 3, MouseX.kr(60, 2000, 1), 0.05)
+            </example>
+        </doc>
     </ugen>
     <ugen name="Impulse">
         <rate name="control"/>
         <rate name="audio"/>
         <arg name="freq" default="440.0">
             <doc>
-                frequency in Hertz
+                frequency in Hertz. A value of zero can be used to generate a singular impulse.
             </doc>
         </arg>
         <arg name="phase" default="0.0">
@@ -133,6 +315,23 @@
                 phase offset in cycles (0 to 1)
             </doc>
         </arg>
+        <doc>
+            <text>
+                A non-band-limited generator UGen for single sample impulses.
+            </text>
+            <example name="modulating frequency">
+                Impulse.ar(XLine.kr(100, 20000, 10)) * 0.3
+            </example>
+            <example name="modulating amplitude">
+                Impulse.kr(XLine.kr(1, 200, 10)) * SinOsc.ar(440) * 0.3
+            </example>
+            <example name="modulating phase">
+                Impulse.ar(4, Seq(DC.kr(0), MouseX.kr(0, 1))) * 0.3
+            </example>
+            <see>ugen.LFPulse</see>
+            <see>ugen.Dust</see>
+            <see>ugen.Blip</see>
+        </doc>
     </ugen>
     <ugen name="VarSaw">
         <rate name="control"/>
