@@ -336,23 +336,122 @@
     <ugen name="VarSaw">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="freq" default="440.0"/>
-        <arg name="iphase" default="0.0"/>
-        <arg name="width" default="0.5"/>
+        <arg name="freq" default="440.0">
+            <doc>
+                frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="iphase" default="0.0">
+            <doc>
+                initial phase offset in cycle (0 to 1)
+            </doc>
+        </arg>
+        <arg name="width" default="0.5">
+            <doc>
+                duty cycle from zero to one.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A sawtooth-triangle oscillator UGen with variable duty. A `width` of zero produces a sawtooth
+                of falling slope, with an initial phase of zero making it start at +1. A `width` of 0.5 produces
+                a triangle wave, starting at -1 then raising to +1, then falling again to -1. A `width` of 1.0
+                produces a sawtooth of rising slope, starting -1.
+
+                Increasing the initial wave will increase the
+                offset into the waveform. For example, with a phase of 0.5 and a width of 0.5, the result is
+                a triangle waveform that starts at +1.
+
+                There is a strange anomaly for the falling sawtooth (zero width): Instead of starting directly
+                at +1, the first sample is -1 and only from the second sample at +1 the waveform starts falling.
+                In other words, the waveform has a delay of one sample.
+            </text>
+            <example name="width modulation">
+                val freq  = LFPulse.kr(3, 0, 0.3).madd(200, 200)
+                val width = LFTri.kr(1.0).madd(0.5, 0.5)
+                VarSaw.ar(freq, 0, width) * 0.2
+            </example>
+            <see>ugen.Saw</see>
+            <see>ugen.LFSaw</see>
+            <see>ugen.SyncSaw</see>
+        </doc>
     </ugen>
     <ugen name="SyncSaw">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="syncFreq" default="440.0"/>
-        <arg name="sawFreq" default="440.0"/>
+        <arg name="syncFreq" default="440.0">
+            <doc>
+                synchronizing (master) frequency which is the perceived fundamental
+            </doc>
+        </arg>
+        <arg name="sawFreq" default="440.0">
+            <doc>
+                sawtooth (slave) frequency. It should typically be greater than `syncFreq`.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A sawtooth oscillator UGen that is hard sync'ed to a fundamental pitch. That is, a sawtooth waveform
+                is produced at one frequency, `sawFreq`, whereas a trigger at a another frequency, `syncFreq`, resets
+                the phase of the sawtooth to zero.
+
+                This produces an effect similar to moving formants or pulse width modulation. This is not a band
+                limited waveform, so it may alias.
+            </text>
+            <example name="modulate saw frequency">
+                SyncSaw.ar(100, Line.kr(100, 800, 12)) * 0.2
+            </example>
+            <see>ugen.Saw</see>
+            <see>ugen.VarSaw</see>
+            <see>ugen.LFSaw</see>
+        </doc>
     </ugen>
     <ugen name="K2A">
         <rate name="audio" implied="true"/>
-        <arg name="in"/>
+        <arg name="in">
+            <doc>
+                control-rate signal to convert
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A converter UGen that takes a control-rate input and produces an audio-rate output by means of
+                linear interpolation. The current control input value is always reached in at the beginning of
+                the subsequent control block. A special case is the initialization which begins directly at the
+                first control input value (therefore, the first control block of the audio-rate output is
+                is always constant.)
+
+                For example, if the block size is 64, and the first three input values are -0.5, 0.6, 0.3, then
+                the output signal will be 65 samples of value -0.5, followed by a linear ramp of 64 samples
+                towards 0.6, followed by a linear ramp of 64 samples to towards 0.3.
+            </text>
+            <example name="compare control and audio rate">
+                val a = K2A.ar(WhiteNoise.kr(0.3))
+                val b =        WhiteNoise.ar(0.3)
+                val c = LFPulse.ar(1, Seq(0, 0.5))
+                c * Seq(a, b)
+            </example>
+            <see>A2K</see>
+            <see>T2A</see>
+            <see>DC</see>
+        </doc>
     </ugen>
     <ugen name="A2K">
         <rate name="control" implied="true"/>
-        <arg name="in"/>
+        <arg name="in">
+            <doc>
+                audio-rate signal to convert
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A converter UGen that takes an audio-rate input and produces a control-rate output by means of
+                sampling. The sample is always taken at the beginning of each control-block, while all other
+                samples of the audio-rate input within that block are ignored.
+            </text>
+            <see>K2A</see>
+            <see>T2K</see>
+        </doc>
     </ugen>
     <ugen name="T2K">
         <rate name="control" implied="true"/>

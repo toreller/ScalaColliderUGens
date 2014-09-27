@@ -639,6 +639,12 @@ object BinaryOpUGen {
     protected def make1(a: Float, b: Float) = rf.hypotx(a, b)
   }
 
+  /** '''Warning:''' Unlike a normal power operation, the signum of the
+    * left operand is always preserved. I.e. `DC.kr(-0.5).pow(2)` will
+    * not output `0.25` but `-0.25`. This is to avoid problems with
+    * floating point noise and negative input numbers, so
+    * `DC.kr(-0.5).pow(2.001)` does not result in a `NaN`, for example.
+    */
   case object Pow extends Op {
     final val id = 25
     protected def make1(a: Float, b: Float) = rf.pow(a, b)
