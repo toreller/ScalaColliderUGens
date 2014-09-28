@@ -1,4 +1,5 @@
-<ugens revision="5">
+<ugens revision="6">
+    <!-- all documented -->
     <ugen name="Vibrato">
         <rate name="control"/>
         <rate name="audio"/>
@@ -515,6 +516,14 @@
                 <!-- NOT: If the input is variadic, so will be the UGen's output (no multi-channel
                 expansion needed). -->
             </text>
+            <example name="create a silent audio signal">
+                // Note: Select.ar requires audio-rate input.
+                // Therefore, DC can be used to wrap the otherwise
+                // incompatible constant zero. In future versions of
+                // ScalaCollider, this wrapping will be done
+                // automatically, however.
+                Select.ar(MouseButton.kr(lag = 0), Seq(DC.ar(0), SinOsc.ar * 0.2))
+            </example>
             <see>ugen.LeakDC</see>
         </doc>
     </ugen>
@@ -551,6 +560,9 @@
             <text>
                 A line generator UGen that moves from a start value to the end value in a given duration.
             </text>
+            <example name="pan from left to right">
+                Pan2.ar(PinkNoise.ar(0.3), Line.kr(-1, 1, 10, freeSelf))
+            </example>
             <see>ugen.XLine</see>
             <see>ugen.EnvGen</see>
             <see>ugen.Ramp</see>
@@ -576,7 +588,7 @@
         </arg>
         <arg name="doneAction" default="doNothing">
             <doc>
-                A done-action that is evaluated when the Line has reached the end value after the
+                A done-action that is evaluated when the `Line` has reached the end value after the
                 given duration
             </doc>
         </arg>
@@ -591,6 +603,10 @@
                 otherwise the UGen will output a `NaN`! While in the case of `end` being zero the UGen will also
                 output zero, it is recommended to treat this case as pathological as well.
             </text>
+            <example name="glissando">
+                SinOsc.ar(Line.kr(200, 2000, 10, freeSelf)) * 0.2
+            </example>
+            <see>ugen.Line</see>
         </doc>
     </ugen>
 
@@ -598,25 +614,118 @@
         <rate name="scalar"/>
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in"/>
-        <arg name="lo" default="0.0"/>
-        <arg name="hi" default="1.0"/>
+        <arg name="in">
+            <doc>
+                input signal to constrain
+            </doc>
+        </arg>
+        <arg name="lo" default="0.0">
+            <doc>
+                lower margin of wrapping (inclusive)
+            </doc>
+        </arg>
+        <arg name="hi" default="1.0">
+            <doc>
+                upper margin of wrapping (exclusive)
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that constrains a signal to a given range, by
+                "wrapping" values outside the range. This is similar to
+                the `wrap2` binary operator but permits both a lower
+                range value `lo` and an upper range value `hi`.
+
+                An input value greater than or equal to `hi` will be wrapped
+                back to `(in - hi) % (hi - lo) + lo`. An input value less than
+                `lo` will be wrapped back to `hi - (lo - in) % (hi - lo)`.
+            </text>
+            <example name="wrap pulse wave to modulate timbre">
+                val hi = SinOsc.ar(0.1).linexp(-1, 1, 0.01, 1.0)
+                Wrap.ar(Pulse.ar(300), 0, hi) * 0.2 / hi
+            </example>
+            <see>ugen.Fold</see>
+            <see>ugen.Clip</see>
+        </doc>
     </ugen>
     <ugen name="Fold">
         <rate name="scalar"/>
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in"/>
-        <arg name="lo" default="0.0"/>
-        <arg name="hi" default="1.0"/>
+        <arg name="in">
+            <doc>
+                input signal to constrain
+            </doc>
+        </arg>
+        <arg name="lo" default="0.0">
+            <doc>
+                lower margin of folding
+            </doc>
+        </arg>
+        <arg name="hi" default="1.0">
+            <doc>
+                upper margin of folding
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that constrains a signal to a given range, by
+                "folding" values outside the range. This is similar to
+                the `fold2` binary operator but permits both a lower
+                range value `lo` and an upper range value `hi`.
+
+                Folding can be understood as "reflecting" around the boundaries.
+                For example, if the upper margin is 3, then if an input value
+                exceeds 3, the excess is negatively reflected; 3.1 becomes 2.9,
+                3.2 becomes 2.8, etc. until the lower margin is reached again
+                where another reflection occurs. Likewise, if the lower margin
+                is 1, then if an input value falls below 1, the undershoot is
+                reflected; 0.9 becomes 1.1, 0.8 becomes 1.2, etc. until the upper
+                margin is reached again where another reflection occurs.
+            </text>
+            <example name="fold sawtooth wave to modulate timbre">
+                val hi = SinOsc.ar(0.1).linexp(-1, 1, 0.01, 1.0)
+                Fold.ar(Saw.ar(300), 0, hi) * 0.2 / hi
+            </example>
+            <see>ugen.Wrap</see>
+            <see>ugen.Clip</see>
+        </doc>
     </ugen>
     <ugen name="Clip">
         <rate name="scalar"/>
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in"/>
-        <arg name="lo" default="0.0"/>
-        <arg name="hi" default="1.0"/>
+        <arg name="in">
+            <doc>
+                input signal to constrain
+            </doc>
+        </arg>
+        <arg name="lo" default="0.0">
+            <doc>
+                lower margin of clipping
+            </doc>
+        </arg>
+        <arg name="hi" default="1.0">
+            <doc>
+                upper margin of clipping
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that constrains a signal to a given range, by
+                limiting values outside the range to the range margins. This is similar to
+                the `clip2` binary operator but permits both a lower
+                range value `lo` and an upper range value `hi`.
+
+                Mathematically, this is equivalent to `in.max(lo).min(hi)`.
+            </text>
+            <example name="clip sine wave to modulate timbre">
+                val hi = SinOsc.ar(0.1).linexp(-1, 1, 0.01, 1.0)
+                Clip.ar(SinOsc.ar(300), 0, hi) * 0.2 / hi
+            </example>
+            <see>ugen.Wrap</see>
+            <see>ugen.Fold</see>
+        </doc>
     </ugen>
     <!-- this should exist according to plugin sources...
     <ugen name="Unwrap"/>
@@ -627,9 +736,48 @@
         <rate name="audio">
             <arg name="freq" rate="ugen"/>
         </rate>
-        <arg name="freq" default="261.626"/>
-        <arg name="root" default="261.626"/>
-        <arg name="expon" default="0.3333"/>
+        <arg name="freq" default="261.626">
+            <doc>
+                the frequency in Hertz for which to determine the compensation factor
+            </doc>
+        </arg>
+        <arg name="root" default="261.626">
+            <doc>
+                the base frequency corresponding to a compensation factor of 1.0
+            </doc>
+        </arg>
+        <arg name="expon" default="0.3333">
+            <doc>
+                the exponent determines how steep the compensation curve decreases for
+                increasing frequencies. In general, the louder a signal is played,
+                the shallower the equal loudness contours become.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that produces a psychoacoustic amplitude compensation factor for
+                a given frequency.
+
+                Implements the formula: `(root / freq).pow(exp)`
+
+                Higher frequencies are normally perceived as louder, therefore `AmpComp` outputs
+                lower values for them. For example, with default parameters, the pitch C4
+                (frequency 262 Hz) produces the base factor of 1.0, whereas a pitch one octave up,
+                C5 (or 523 Hz) produces a factor of 0.793719 (an attenuation of -2 dB).
+
+                An alternative is `AmpCompA` that better models the bell-shaped equal loudness
+                contours of the hearing system. Especially note that the output of this UGen can
+                become very high for frequencies much lower than the `root` parameter.
+            </text>
+            <example name="activate with mouse button">
+                val freq = MouseX.kr(300, 15000, 1)
+                val mod  = freq * SinOsc.ar(MouseY.kr(3, 200, 1)).madd(0.5, 1)
+                val corr = AmpComp.ar(mod, 300) * 2
+                val amp  = Select.ar(MouseButton.kr(lag = 0), Seq(DC.ar(1), corr))
+                SinOsc.ar(mod) * 0.1 * amp
+            </example>
+            <see>ugen.AmpCompA</see>
+        </doc>
     </ugen>
     <ugen name="AmpCompA">
         <rate name="scalar"/>
@@ -637,29 +785,132 @@
         <rate name="audio">
             <arg name="freq" rate="ugen"/>
         </rate>
-        <arg name="freq" default="1000.0"/>
-        <arg name="root" default="0.0"/>
-        <arg name="minAmp" default="0.32"/>
-        <arg name="rootAmp" default="1.0"/>
+        <arg name="freq" default="1000.0">
+            <doc>
+                the frequency in Hertz for which to determine the compensation factor
+            </doc>
+        </arg>
+        <arg name="root" default="0.0" init="true">
+            <doc>
+                the root frequency in Hertz, relative to which the curve is calculated. This is
+                usually lowest expected frequency.
+            </doc>
+        </arg>
+        <arg name="minAmp" default="0.32" init="true">
+            <doc>
+                amplitude at the minimum point of the curve. This is the factor
+                output when `freq` is approx. 2512 Hz.
+            </doc>
+        </arg>
+        <arg name="rootAmp" default="1.0" init="true">
+            <doc>
+                amplitude at the root frequency of the curve. This is the factor
+                output when `freq == root`.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that produces a psychoacoustic amplitude compensation factor for
+                a given frequency. It uses the A-weighting curve that is based on the
+                Fletcher-Munson curve for rather low volume sounds (40 phon).
+
+                Only the `freq` parameter can be modulated, the other parameters are read at
+                initialization time only.
+            </text>
+            <example name="activate with mouse button">
+                val freq = MouseX.kr(300, 15000, 1)
+                val mod  = freq * SinOsc.ar(MouseY.kr(3, 200, 1)).madd(0.5, 1)
+                val corr = AmpCompA.ar(mod, 300) * 2
+                val amp  = Select.ar(MouseButton.kr(lag = 0), Seq(DC.ar(1), corr))
+                SinOsc.ar(mod) * 0.1 * amp
+            </example>
+            <see>ugen.AmpComp</see>
+        </doc>
     </ugen>
     <ugen name="InRange">
         <rate name="scalar"/>
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in"/>
-        <arg name="lo" default="0.0"/>
-        <arg name="hi" default="1.0"/>
+        <arg name="in">
+            <doc>
+                input signal to test
+            </doc>
+        </arg>
+        <arg name="lo" default="0.0">
+            <doc>
+                lower margin of test range (inclusive)
+            </doc>
+        </arg>
+        <arg name="hi" default="1.0">
+            <doc>
+                upper margin of test range (inclusive)
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that tests if a signal is within a given range. If `in &gt;= lo` and `in &lt;= hi`, outputs 1.0,
+                otherwise outputs 0.0.
+            </text>
+            <example name="detect whether mouse is in specific horizontal range">
+                val x = MouseX.kr
+                InRange.kr(x, 0.4, 0.6) * PinkNoise.ar(0.3)
+            </example>
+            <see>ugen.InRect</see>
+            <see>ugen.Clip</see>
+            <see>ugen.Schmidt</see>
+        </doc>
     </ugen>
     <ugen name="InRect">
         <rate name="scalar"/>
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="x"/>
-        <arg name="y"/>
-        <arg name="left" default="0.0"/>
-        <arg name="top" default="0.0"/>
-        <arg name="right" default="1.0"/>
-        <arg name="bottom" default="1.0"/>
+        <arg name="x">
+            <doc>
+                "horizontal" signal to test
+            </doc>
+        </arg>
+        <arg name="y">
+            <doc>
+                "vertical" signal to test
+            </doc>
+        </arg>
+        <arg name="left" default="0.0">
+            <doc>
+                lower margin of horizontal test range (inclusive)
+            </doc>
+        </arg>
+        <arg name="top" default="0.0">
+            <doc>
+                lower margin of vertical test range (inclusive)
+            </doc>
+        </arg>
+        <arg name="right" default="1.0">
+            <doc>
+                upper margin of horizontal test range (inclusive)
+            </doc>
+        </arg>
+        <arg name="bottom" default="1.0">
+            <doc>
+                upper margin of vertical test range (inclusive)
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that tests if two signals lie both within a given ranges. The two input signals can be
+                understood as horizontal and vertical coordinates, therefore the test become one that
+                determines whether the input is within a given "rectangle".
+
+                If `x &gt;= left` and `x &lt;= right` and `y &gt; top` and `y &lt;= bottom`, outputs 1.0,
+                otherwise outputs 0.0.
+            </text>
+            <example name="detect whether mouse is in specific horizontal and vertical range">
+                val x  = MouseX.kr; val y = MouseY.kr(1, 0)
+                val in = InRect.kr(x = x, y = y, left = 0.4, top = 0.2, right = 0.6, bottom = 0.4)
+                in * PinkNoise.ar(0.3)
+            </example>
+            <see>ugen.InRange</see>
+            <see>ugen.Clip</see>
+        </doc>
     </ugen>
     <ugen name="LinExp"> <!-- TODO: first arg rate has to be rate ? -->
         <rate name="scalar"/>
@@ -695,8 +946,15 @@
                 A UGen which maps a linear range to an exponential range.
                 The equivalent formula is `(dstHi / dstLo).pow((in - srcLo) / (srcHi - srcLo)) * dstLo`.
 
-                '''Note''': No clipping is performed. If the input signal exceeds the input range, the output will also exceed its range.
+                '''Note''': No clipping is performed. If the input signal exceeds the input range,
+                the output will also exceed its range.
             </text>
+            <example name="translate linear noise into exponential frequencies">
+                val mod = LFNoise2.ar(10)
+                val lo  = MouseX.kr(200, 8000, 1)
+                val hi  = MouseY.kr(200, 8000, 1)
+                SinOsc.ar(LinExp.ar(mod, -1, 1, lo, hi)) * 0.1
+            </example>
             <see>ugen.LinExp</see>
             <see>ugen.Clip</see>
         </doc>
@@ -745,26 +1003,226 @@
     <ugen name="EnvGen" side-effect="true" done-flag="true">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="gate" default="open" pos="1"/>       <!-- negative values have special meaning, though... -->
-        <arg name="levelScale" default="1.0" pos="2"/>  <!-- like init="true" but can be re-triggered... -->
-        <arg name="levelBias" default="0.0" pos="3"/>
-        <arg name="timeScale" default="1.0" pos="4"/>
-        <arg name="doneAction" default="doNothing" pos="5"/>
-        <arg name="envelope" variadic="true" pos="0"/>
+        <arg name="gate" default="open" pos="1">  <!-- negative values have special meaning, though... -->
+            <doc>
+                triggers the envelope and holds it open while greater than zero. If the envelope is of
+                fixed duration (e.g. `Env.linen`, `Env.perc`), the `gate` argument is used as a simple trigger.
+                If it contains a sustained segment (e.g. `Env.adsr`, `Env.asr`), the envelope is held open until
+                the gate becomes 0, at which point is released. If `gate` is less than zero, a release is
+                enforced with duration `-1.0 - gate`.
+            </doc>
+        </arg>
+        <arg name="levelScale" default="1.0" pos="2">  <!-- like init="true" but can be re-triggered... -->
+            <doc>
+                amplitude factor with which the nominal envelope is multiplied.
+            </doc>
+        </arg>
+        <arg name="levelBias" default="0.0" pos="3">
+            <doc>
+                amplitude offset which is added to the nominal envelope.
+            </doc>
+        </arg>
+        <arg name="timeScale" default="1.0" pos="4">
+            <doc>
+                time scale factor with which the envelope segment durations are multiplied.
+            </doc>
+        </arg>
+        <arg name="doneAction" default="doNothing" pos="5">
+            <doc>
+                action to be performed when the envelope reaches its end point.
+            </doc>
+        </arg>
+        <arg name="envelope" variadic="true" pos="0">
+            <doc>
+                the description of the envelope break-points. Typically you pass an instance of `Env` which
+                will then automatically expand to the correct format.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                An envelope generator UGen. It uses a break point description in its `envelope` input, typically
+                coming from an `Env` object. The envelope may be re-triggered using the `gate` input. Upon start
+                and upon re-triggering, the `envelope`, `levelScale`, `levelBias` and `timeScale` parameters are
+                polled and remain constant for the duration of the envelope.
+
+                To construct a manual envelope without the use of the `Env` class, the format should be as
+                follows:
+
+                {{{
+                val env = Seq[GE](startLevel, numSegments, releaseNode, loopNode,
+                                  targetLevel1, duration1, curveType1, curvature1,
+                                  targetLevel2, duration2, curveType2, curvature2,
+                                  ...)
+                }}}
+
+                Where the curve-type is one of `Curve.step.id`, `Curve.lin.id`, `Curve.exp.id`, etc. The
+                curvature values are only relevant for the parametric curve type. The `releaseNode` and
+                `loopNode` parameters are segment indices or the special value `-99` indicating that there
+                are no release or loop segments.
+
+                '''Note''': The actual minimum duration of a segment is not zero, but one sample step for audio
+                rate and one block for control rate. This may result in asynchronicity when in two envelopes of
+                different number of levels, the envelope times add up to the same total duration. Similarly, when
+                modulating times, the new time is only updated at the end of the current segment; this may lead to
+                asynchronicity of two envelopes with modulated times.
+            </text>
+            <example name="percussive one-shot">
+                PinkNoise.ar(EnvGen.kr(Env.perc, doneAction = freeSelf))
+            </example>
+            <example name="fixed duration amplitude envelope">
+                val env = Env(0, Seq(0.01 -> 1, 0.5 -> 0.5, 0.02 -> 1, 0.5 -> 0))
+                SinOsc.ar(470) * EnvGen.kr(env, doneAction = freeSelf)
+            </example>
+            <example name="amplitude and frequency modulation">
+                val env  = Env(0, Seq(0.01 -> 1, 0.5 -> 0.5, 0.02 -> 0.8, 0.5 -> 0, 0.2 -> 1.2, 0.5 -> 0))
+                val gate = Impulse.kr(MouseX.kr(0.2, 3), 0.5)
+                val gen  = EnvGen.kr(env, gate)
+                SinOsc.ar(270, SinOsc.ar(gen * 473)) * gen * 0.2
+            </example>
+            <example name="Dust-triggered envelope">
+                val c   = Curve.parametric(-4)
+                val env = Env(0, Seq((0.05,0.5,c), (0.1,0.0,c), (0.01,1.0,c), (1.0,0.9,c), (1.5,0.0,c)))
+                val gen = EnvGen.ar(env, Dust.ar(1))
+                SinOsc.ar(gen * 1000 + 440) * gen * 0.1
+            </example>
+            <example name="two channels">
+                val p = Curve.parametric(-4)
+
+                def mkEnv(a: Double, b: Double) = {
+                  val env = Env(0.0, Seq((0.05,a,p), (0.1,0.0,p), (0.01,1.0,p), (1.0,b,p), (1.5,0.0,p)))
+                  EnvGen.ar(env, Dust.ar(1))
+                }
+
+                val gen: GE = Seq(mkEnv(-0.2, -0.4), mkEnv(0.5, 0.9))
+                SinOsc.ar(gen * 440 + 550) * gen * 0.1
+            </example>
+            <example name="control gate and done-action" type="full">
+                val x = play {
+                  var gen = EnvGen.kr(Env.adsr(), "gate".kr(0), doneAction = "done".kr(0))
+                  SinOsc.ar(440) * gen * 0.1
+                }
+
+                x.set("gate" -> 1)  // turn on
+                x.set("gate" -> 0)  // turn off
+                x.set("gate" -> 1)  // turn on
+                x.set("done" -> freeSelf.id, "gate" -> 0) // turn off and free
+            </example>
+            <example name="fast triggering">
+                val freq = MouseX.kr(1, 100, 1)
+                val gate = Impulse.ar(freq)
+                val env  = Env.perc(0.1, 0.9)
+                val gen  = EnvGen.ar(env, gate = gate, timeScale = freq.reciprocal)
+                SinOsc.ar(440) * gen * 0.1
+            </example>
+            <see>ugen.Env</see>
+            <see>ugen.IEnvGen</see>
+            <see>ugen.Line</see>
+            <see>ugen.XLine</see>
+            <see>ugen.Linen</see>
+            <see>ugen.Decay</see>
+        </doc>
     </ugen>
     <ugen name="Linen" side-effect="true" done-flag="true">
         <rate name="control"/>
         <!-- NOT SUPPORTED: <rate name="audio"/> -->
-        <arg name="gate" default="open"/>
-        <arg name="attack" default="0.01"/>
-        <arg name="sustain" default="1.0"/>
-        <arg name="release" default="1.0"/>
-        <arg name="doneAction" default="doNothing"/>
+        <arg name="gate" default="open">
+            <doc>
+                triggers the envelope and holds it open while greater than zero. A value of less than zero
+                enforces a release with duration `-1.0 - gate`.
+            </doc>
+        </arg>
+        <arg name="attack" default="0.01">
+            <doc>
+                duration (seconds) of the attack segment
+            </doc>
+        </arg>
+        <arg name="sustain" default="1.0">
+            <doc>
+                level of the sustain segment
+            </doc>
+        </arg>
+        <arg name="release" default="1.0">
+            <doc>
+                duration (seconds) of the release segment
+            </doc>
+        </arg>
+        <arg name="doneAction" default="doNothing">
+            <doc>
+                action to be performed when the envelope reaches its end point.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A linear ASR-type envelope generator UGen.
+            </text>
+            <example name="repeated trigger">
+                val gen = Linen.kr(Impulse.kr(2), 0.01, 0.6, 1.0)
+                SinOsc.ar(440) * gen * 0.1
+            </example>
+            <example name="play once and end the synth">
+                val gen = Linen.kr(Impulse.kr(0), 0.01, 0.6, 1.0, doneAction = freeSelf)
+                SinOsc.ar(440) * gen * 0.1
+            </example>
+            <example name="play once and sustain" type="full">
+                val x = play {
+                  val gen = Linen.kr("gate".kr(1), 0.01, 0.6, 1.0, doneAction = freeSelf)
+                  SinOsc.ar(440) * gen * 0.1
+                }
+
+                x.release(4)    // release envelope with given duration
+            </example>
+            <example name="longer gate to sustain for a given duration">
+                val gate = Trig.kr(1, dur = 2)
+                val gen = Linen.kr(gate, 0.01, 0.6, 1.0, doneAction = freeSelf)
+                SinOsc.ar(440) * gen * 0.1
+            </example>
+            <see>ugen.EnvGen</see>
+        </doc>
     </ugen>
     <ugen name="IEnvGen">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="index" pos="1"/>  <!-- default="1.0" -->
-        <arg name="envelope" variadic="true" pos="0"/>
+        <arg name="index" pos="1">  <!-- default="1.0" -->
+            <doc>
+                index point into the envelope, given as time in seconds
+            </doc>
+        </arg>
+        <arg name="envelope" variadic="true" pos="0">
+            <doc>
+                the description of the envelope break-points. Typically you pass an instance of `IEnv` which
+                will then automatically expand to the correct format.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                Envelope generator UGen with random access index pointer into the break-point function.
+
+                '''Warning''': The envelope must be generated using `IEnv` not `Env`. `IEnv` has a completely
+                different format. Using the wrong format (`Env`) may crash the server.
+
+                To construct a manual envelope without the use of the `IEnv` class, the format should be as
+                follows:
+
+                {{{
+                val env = Seq[GE](offset, startLevel, numSegments, totalDuration,
+                  duration1, curveType1, curvature1, targetLevel1,
+                  duration2, curveType2, curvature2, targetLevel2
+                  ...)
+                }}}
+            </text>
+            <example name="mouse controls index">
+                import Curve._
+                val env = IEnv(0, Seq(
+                  (0.10, 0.6, lin),
+                  (0.02, 0.3, exp),
+                  (0.40, 1.0, parametric(-6)),
+                  (1.10, 0.0, sine)))
+                val dur = Mix(env.segments.map(_.dur))
+                val gen = IEnvGen.kr(env, MouseX.kr(0, dur))
+                SinOsc.ar(gen * 500 + 440) * 0.2
+            </example>
+            <see>ugen.IEnv</see>
+            <see>ugen.EnvGen</see>
+        </doc>
     </ugen>
 </ugens>
