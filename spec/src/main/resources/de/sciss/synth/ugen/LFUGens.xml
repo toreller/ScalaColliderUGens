@@ -1,4 +1,4 @@
-<ugens revision="4">
+<ugens revision="5">
     <ugen name="Vibrato">
         <rate name="control"/>
         <rate name="audio"/>
@@ -455,17 +455,68 @@
     </ugen>
     <ugen name="T2K">
         <rate name="control" implied="true"/>
-        <arg name="in" rate="audio"/>
+        <arg name="in" rate="audio">
+            <doc>
+                audio-rate trigger input
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that converts an audio-rate trigger input into a control-rate trigger output. A trigger
+                occurs when a signal changes from less than or equal to zero to greater than zero. The UGen
+                behaves strangely in that for a rising slope input signal, it will report the maximum value
+                seen within the calculation block, but if the slope extends to the next block, it will output
+                that second's block maximum value again instead of waiting for a fall to &lt;= 0.
+            </text>
+            <example name="down-sample audio-rate dust">
+                val trig = T2K.kr(Dust.ar(4))
+                Trig.kr(trig, 0.1) * SinOsc.ar(800) * 0.1
+            </example>
+            <see>ugen.K2A</see>
+            <see>ugen.T2K</see>
+            <see>ugen.Trig</see>
+        </doc>
     </ugen>
     <ugen name="T2A">
         <rate name="audio" implied="true"/>
-        <arg name="in"/>
+        <arg name="in">
+            <doc>
+                control-rate trigger input
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that converts a control-rate trigger input into an audio-rate trigger output. A trigger
+                occurs when a signal changes from less than or equal to zero to greater than zero. The output
+                will have a single sample spike of the input trigger's amplitude at the beginning of the
+                calculation block.
+            </text>
+            <example name="up-sample control-rate impulses">
+                val trig = Impulse.kr(MouseX.kr(1, 100, 1))
+                Ringz.ar(T2A.ar(trig), 800, 0.01) * 0.4
+            </example>
+            <see>ugen.K2A</see>
+            <see>ugen.T2K</see>
+            <see>ugen.Trig</see>
+        </doc>
     </ugen>
     <ugen name="DC">
         <rate name="control"/>
         <rate name="audio"/>
-        <output variadic="in"/>
-        <arg name="in" variadic="true"/>
+        <!-- NOT: <output variadic="in"/> -->
+        <arg name="in" init="true"> <!-- NOT: variadic="true" -->
+            <doc>
+                constant value to output, fixed at initialisation time.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that creates a constant signal at a given calculation rate.
+                <!-- NOT: If the input is variadic, so will be the UGen's output (no multi-channel
+                expansion needed). -->
+            </text>
+            <see>ugen.LeakDC</see>
+        </doc>
     </ugen>
     <!--        <ugen name="Silent">
                 <rate name="audio" implied="true"/>
