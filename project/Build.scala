@@ -9,6 +9,7 @@ object Build extends sbt.Build {
   def scoptVersion        = "3.2.0"
   def refactoringVersion  = "0.1.0"
   def fileUtilVersion     = "1.1.1"
+  def scalaXMLVersion     = "1.0.2"
 
   lazy val root: Project = Project(
     id        = "scalacolliderugens",
@@ -53,7 +54,7 @@ object Build extends sbt.Build {
       libraryDependencies ++= {
         val sv = scalaVersion.value
         if (sv startsWith "2.11") {
-          ("org.scala-lang.modules" %% "scala-xml" % "1.0.1") :: Nil
+          ("org.scala-lang.modules" %% "scala-xml" % scalaXMLVersion) :: Nil
         } else Nil
       },
       sourceGenerators in Compile <+= buildInfo,
