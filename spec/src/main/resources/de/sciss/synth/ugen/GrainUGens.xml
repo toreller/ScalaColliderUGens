@@ -1,4 +1,4 @@
-<ugens name="GrainUGens" revision="1">
+<ugens name="GrainUGens" revision="2">
     <ugen name="GrainIn" reads-buf="true">  <!-- accepts demand rate -->
         <rate name="audio" implied="true"/>
         <output variadic="numChannels"/>
@@ -38,17 +38,73 @@
     <ugen name="GrainBuf" reads-buf="true">  <!-- accepts demand rate -->
         <rate name="audio" implied="true"/>
         <output variadic="numChannels"/>
-        <arg name="numChannels" type="int" default="1" pos="1"/>
-        <arg name="trig" type="trig" pos="2"/>  <!-- default="0" -->
-        <arg name="dur" default="1.0" pos="3"/>
-        <arg name="buf" type="buf" pos="0"/>
-        <arg name="speed" default="1.0" pos="4"/>
-        <arg name="pos" default="0.0" pos="5"/>
-        <arg name="interp" default="2" pos="6"/>
-        <arg name="pan" default="0.0" pos="7"/>
-        <arg name="envBuf" default="-1" pos="8"/>
-        <arg name="maxGrains" default="512" pos="9"/>
-        <doc warn-pos="true"/>
+        <arg name="numChannels" type="int" default="1" pos="1">
+            <doc>
+                the number of channels to output. If `1`, a monophonic signal is returned and the `pan` argument
+                is ignored.
+            </doc>
+        </arg>
+        <arg name="trig" type="trig" pos="2">  <!-- default="0" -->
+            <doc>
+                a control- or audio-rate trigger to start a new grain. For audio-rate, timing is sample frame accurate.
+            </doc>
+        </arg>
+        <arg name="dur" default="1.0" pos="3">
+            <doc>
+                grain duration in seconds
+            </doc>
+        </arg>
+        <arg name="buf" type="buf" pos="0">
+            <doc>
+                buffer holding a mono audio signal portions of which are read as grains
+            </doc>
+        </arg>
+        <arg name="speed" default="1.0" pos="4">
+            <doc>
+                playback speed of the grain, where `1.0` is original rate, `0.5` is half speed etc.
+            </doc>
+        </arg>
+        <arg name="pos" default="0.0" pos="5">
+            <doc>
+                grain start position, where `0` is beginning and `1` is the end of the input buffer
+            </doc>
+        </arg>
+        <arg name="interp" default="2" pos="6">
+            <doc>
+                interpolation type when using pitch-shifting via `speed`. `1` for no interpolation (nearest
+                sample), `2` for linear interpolation, and `4` for cubic interpolation.
+            </doc>
+        </arg>
+        <arg name="pan" default="0.0" pos="7">
+            <doc>
+                panning position when `numChannels` is greater than one. Equivalent to the pan position
+                of `Pan2` (for stereo output) or `PanAz` (for more than two channels)
+            </doc>
+        </arg>
+        <arg name="envBuf" default="-1" pos="8">
+            <doc>
+                identifier of a buffer containing a signal to use for the grain envelope. The default value
+                of `-1` means that a built-in Hann envelope is used.
+            </doc>
+        </arg>
+        <arg name="maxGrains" default="512" pos="9">
+            <doc>
+                maximum number of overlapping grains that can be used at a given time. This value is set at the
+                UGens init time and cannot be modified later. Lower value mean that less memory is used.
+            </doc>
+        </arg>
+        <doc warn-pos="true">
+            <text>
+                A granular synthesis UGen taking sound stored in a buffer. Another buffer can be used
+                to provide an amplitude envelope. The input sound buffer must be monophonic, but output
+                may be multi-channel, using a panorama control.
+
+                All arguments except `numChannels` and `maxGrain` are polled at grain creation (trigger) time.
+            </text>
+            <see>ugen.TGrains</see>
+            <see>ugen.PlayBuf</see>
+            <see>ugen.PanAz</see>
+        </doc>
     </ugen>
     <ugen name="Warp1" reads-buf="true">  <!-- accepts demand rate -->
         <rate name="audio" implied="true"/>

@@ -1,4 +1,4 @@
-<ugens revision="3">
+<ugens revision="4">
     <!-- all documented -->
     <ugen name="ControlRate">
         <rate name="scalar" implied="true"/>    <!-- method="" -->
@@ -1592,10 +1592,11 @@
             <text>
                 Triggers generate grains from a buffer. Each grain has a Hanning envelope
                 {{{
-                (sin2(x) for x from 0 to π)
+                (sin2(x) for x from 0 to pi)
                 }}}
                 and is panned between two channels of multiple outputs.
             </text>
+            <see>ugen.GrainBuf</see>
         </doc>
     </ugen>
     <ugen name="ScopeOut" writes-buf="true">
