@@ -1,4 +1,4 @@
-<ugens revision="1">
+<ugens revision="2">
     <ugen name="WhiteNoise" random="true">
         <rate name="control"/>
         <rate name="audio"/>
@@ -167,9 +167,30 @@
     <ugen name="TIRand" random="true">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="lo" default="0"/>
-        <arg name="hi" default="127"/>
-        <arg name="trig" type="trig"/>
+        <arg name="lo" default="0">
+            <doc>
+                lower margin of number range
+            </doc>
+        </arg>
+        <arg name="hi" default="127">
+            <doc>
+                upper margin of number range (inclusive)
+            </doc>
+        </arg>
+        <arg name="trig" type="trig">
+            <doc>
+                triggers a change in the random output. A trigger occurs when the signal
+                passes from non-positive to positive value.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that outputs integer random numbers when triggered. The values have
+                a uniform distribution from `lo` to `hi` (inclusive).
+            </text>
+            <see>ugen.IRand</see>
+            <see>ugen.TRand</see>
+        </doc>
     </ugen>
     <ugen name="NRand" random="true">
         <rate name="scalar" implied="true" method="apply"/>
