@@ -1,4 +1,4 @@
-<ugens revision="4">
+<ugens revision="5">
     <!-- all documented -->
     <ugen name="ControlRate">
         <rate name="scalar" implied="true"/>    <!-- method="" -->
@@ -1595,6 +1595,9 @@
                 (sin2(x) for x from 0 to pi)
                 }}}
                 and is panned between two channels of multiple outputs.
+
+                '''Warning''': Due to a bug (SC 3.6.6), this UGen does not work with `LocalBuf` but requires
+                a regular buffer.
             </text>
             <see>ugen.GrainBuf</see>
         </doc>
@@ -1708,13 +1711,51 @@
         </doc>
     </ugen>
 
-    <!-- XXX TODO
-    <ugen name="LocalBuf">
+    <!-- <ugen name="MaxLocalBufs"/> -->
+    <!-- <ugen name="LocalBuf"/> -->
+
+    <!-- XXX TODO:
+    <ugen name="SetBuf" writes-buf="true">
+        NOTE: the multi arg is preceded by its size
+        <rate name="scalar" implied="true"/>
+        <arg name="buf">
+            <doc>
+                the buffer to write the values into
+            </doc>
+        </arg>
+        <arg name="offset" default="0" pos="1">
+            <doc>
+                frame offset into the buffer
+            </doc>
+        </arg>
+        <arg name="values" variadic="true" pos="0">
+            <doc>
+                values to write into the buffer
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A scalar (init-time) UGen that overwrites contents of a buffer with given values.
+            </text>
+            <see>ugen.LocalBuf</see>
+            <see>ugen.ClearBuf</see>
+        </doc>
     </ugen>
-    <ugen name="MaxLocalBufs">
+    -->
+
+    <ugen name="ClearBuf" writes-buf="true">
+        <rate name="scalar" implied="true"/>
+        <arg name="buf">
+            <doc>
+                the buffer to clear
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A scalar (init-time) UGen that fills the contents of a buffer with zeroes.
+            </text>
+            <see>ugen.LocalBuf</see>
+            <see>ugen.SetBuf</see>
+        </doc>
     </ugen>
-    <ugen name="SetBuf">
-    </ugen>
-    <ugen name="ClearBuf">
-    </ugen> -->
 </ugens>
