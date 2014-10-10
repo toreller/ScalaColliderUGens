@@ -44,6 +44,11 @@ final case class LocalBuf(numFrames: GE, numChannels: GE = 1)
     val index         = maxLocalBufs.alloc()
     UGen.SingleOut(name, rate, _args :+ Constant(index), isIndividual = true)
   }
+
+  /** Convenience method for `ClearBuf(this)` */
+  def clear(): this.type = { ClearBuf(this); this }
+
+  // XXX TODO: def set(values: GE, offset: GE = 0): this.type = { SetBuf(this, values, offset); this }
 }
 
 private[synth] final case class MaxLocalBufs() extends UGenSource.SingleOut with ScalarRated with HasSideEffect {
