@@ -1,4 +1,4 @@
-<ugens revision="2">
+<ugens revision="3">
     <!-- all documented -->
     <ugen name="LFDNoise0" random="true">
         <rate name="control"/>
@@ -95,18 +95,20 @@
         <doc>
             <text>
                 A UGen that randomly generates the values -1 or +1 at a rate given by the nearest integer
-                division of the sample rate by the frequency argument.
+                division of the sample rate by the frequency argument. The difference to `LFClipNoise` is
+                that this UGen does not quantize time and recovers fast from frequency input changes.
             </text>
             <example name="generator">
-                LFClipNoise.ar(500) * 0.2
+                LFDClipNoise.ar(500) * 0.2
             </example>
             <example name="random panning">
-                val pos = LFClipNoise.ar(4)
+                val pos = LFDClipNoise.ar(4)
                 Pan2.ar(PinkNoise.ar, pos)
             </example>
             <example name="modulate frequency">
-                LFClipNoise.ar(XLine.kr(100, 10000, 20)) * 0.2
+                LFDClipNoise.ar(XLine.kr(100, 10000, 20)) * 0.2
             </example>
+            <see>ugen.LFClipNoise</see>
             <see>ugen.LFNoise0</see>
             <see>ugen.LFNoise1</see>
             <see>ugen.CoinGate</see>

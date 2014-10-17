@@ -1,28 +1,143 @@
-<ugens revision="2">
+<ugens revision="3">
+    <!-- all documented, except: LFNoise2, Rand, IRand, TRand, TExpRand, TIRand, NRand, LinRand, ExpRand, CoinGate, RandSeed, RandID -->
     <ugen name="WhiteNoise" random="true">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="mul" default="1.0" type="mul"/>
+        <arg name="mul" default="1.0" type="mul">
+            <doc>
+                Not actually a UGen input, this argument produces a multiplication of the output
+                by this factor. A multi-channel `mul` argument will cause the generation of
+                multiple independent noise generators.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A noise generator UGens whose spectrum has equal power at all frequencies. Output values
+                range from `-1` to `+1` (before being multiplied by `mul`). The RMS is approx. -4.8 dB.
+            </text>
+            <example name="plain noise">
+                WhiteNoise.ar(Seq(0.25, 0.25))
+            </example>
+            <see>ugen.PinkNoise</see>
+            <see>ugen.BrownNoise</see>
+            <see>ugen.GrayNoise</see>
+            <see>ugen.ClipNoise</see>
+            <see>ugen.RandSeed</see>
+            <see>ugen.LFNoise0</see>
+            <see>ugen.Dust</see>
+        </doc>
     </ugen>
     <ugen name="GrayNoise" random="true">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="mul" default="1.0" type="mul"/>
+        <arg name="mul" default="1.0" type="mul">
+            <doc>
+                Not actually a UGen input, this argument produces a multiplication of the output
+                by this factor. A multi-channel `mul` argument will cause the generation of
+                multiple independent noise generators.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A noise generator UGen which results from flipping random bits in a word. The resulting
+                waveform looks like a sample-and-hold function with values between `-1` and `+1`
+                (before being multiplied by `mul`).
+
+                This type of noise has a high RMS level relative to its peak to peak level. With approx. -4.8 dB,
+                the RMS is the same as white noise, but the spectrum is emphasized towards lower frequencies.
+            </text>
+            <example name="plain noise">
+                GrayNoise.ar(Seq(0.2, 0.2))
+            </example>
+            <see>ugen.WhiteNoise</see>
+            <see>ugen.PinkNoise</see>
+            <see>ugen.BrownNoise</see>
+            <see>ugen.ClipNoise</see>
+            <see>ugen.RandSeed</see>
+            <see>ugen.LFNoise0</see>
+            <see>ugen.Dust</see>
+        </doc>
     </ugen>
     <ugen name="ClipNoise" random="true">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="mul" default="1.0" type="mul"/>
+        <arg name="mul" default="1.0" type="mul">
+            <doc>
+                Not actually a UGen input, this argument produces a multiplication of the output
+                by this factor. A multi-channel `mul` argument will cause the generation of
+                multiple independent noise generators.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A noise generator UGen whose values are either `-1` or `+1` (before being multiplied by `mul`).
+                This produces the maximum energy (an RMS of 0 dB) for the least peak to peak amplitude.
+            </text>
+            <example name="plain noise">
+                ClipNoise.ar(Seq(0.2, 0.2))
+            </example>
+            <see>ugen.LFClipNoise</see>
+            <see>ugen.WhiteNoise</see>
+            <see>ugen.PinkNoise</see>
+            <see>ugen.BrownNoise</see>
+            <see>ugen.GrayNoise</see>
+            <see>ugen.RandSeed</see>
+            <see>ugen.LFNoise0</see>
+            <see>ugen.Dust</see>
+        </doc>
     </ugen>
     <ugen name="PinkNoise" random="true">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="mul" default="1.0" type="mul"/>
+        <arg name="mul" default="1.0" type="mul">
+            <doc>
+                Not actually a UGen input, this argument produces a multiplication of the output
+                by this factor. A multi-channel `mul` argument will cause the generation of
+                multiple independent noise generators.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A noise generator UGen whose spectrum falls off in power by 3 dB per octave. This gives equal
+                power over the span of each octave. This version gives 8 octaves of pink noise.
+
+                The values produced by this UGen were observed to lie with very high probability between
+                approx. `-0.65` and `+0.81` (before being multiplied by `mul`). The RMS is approx. -16 dB.
+            </text>
+            <example name="plain noise">
+                ClipNoise.ar(Seq(0.2, 0.2))
+            </example>
+            <see>ugen.WhiteNoise</see>
+            <see>ugen.BrownNoise</see>
+            <see>ugen.GrayNoise</see>
+            <see>ugen.ClipNoise</see>
+            <see>ugen.RandSeed</see>
+        </doc>
     </ugen>
     <ugen name="BrownNoise" random="true">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="mul" default="1.0" type="mul"/>
+        <arg name="mul" default="1.0" type="mul">
+            <doc>
+                Not actually a UGen input, this argument produces a multiplication of the output
+                by this factor. A multi-channel `mul` argument will cause the generation of
+                multiple independent noise generators.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A noise generator UGen whose spectrum falls off in power by 6 dB per octave. The values produced
+                by this UGen lie between `-1` and `+1`, the RMS is approx. -4.8 dB (the same as white noise).
+            </text>
+            <example name="plain noise">
+                BrownNoise.ar(Seq(0.2, 0.2))
+            </example>
+            <see>ugen.WhiteNoise</see>
+            <see>ugen.PinkNoise</see>
+            <see>ugen.GrayNoise</see>
+            <see>ugen.ClipNoise</see>
+            <see>ugen.RandSeed</see>
+        </doc>
     </ugen>
     <ugen name="Dust" random="true">
         <rate name="control"/>
@@ -38,8 +153,15 @@
                 `0` to `+1`. The pulse duration is one sample for audio-rate
                 and one block for control-rate operation.
             </text>
+            <example name="decreasing density">
+                Dust.ar(XLine.kr(20000, 2, Seq(20, 20))) * 0.5
+            </example>
             <see>ugen.Dust2</see>
             <see>ugen.TRand</see>
+            <see>ugen.RandSeed</see>
+            <see>ugen.ClipNoise</see>
+            <see>ugen.GrayNoise</see>
+            <see>ugen.CoinGate</see>
         </doc>
     </ugen>
     <ugen name="Dust2" random="true">
@@ -56,37 +178,155 @@
                 `-1` to `+1`. The pulse duration is one sample for audio-rate
                 and one block for control-rate operation.
             </text>
+            <example name="decreasing density">
+                Dust2.ar(XLine.kr(20000, 2, Seq(20, 20))) * 0.5
+            </example>
             <see>ugen.Dust</see>
             <see>ugen.TRand</see>
+            <see>ugen.RandSeed</see>
+            <see>ugen.ClipNoise</see>
+            <see>ugen.CoinGate</see>
         </doc>
     </ugen>
-    <ugen name="Crackle">
+    <ugen name="Crackle" random="true">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="chaos" default="1.5"/>
+        <arg name="chaos" default="1.5">
+            <doc>
+                A parameter of the chaotic function with useful values from just below 1.0 to just above 2.0.
+                Towards 2.0 the sound crackles. Values greater than 2.01 are not safe, as the UGen can
+                switch to outputting NaNs.
+                A early more crackling sound appears with a value of `1.33`.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A noise generator UGen based on a chaotic function. Output values lie between zero and one.
+                Although this is a deterministic process, it is randomly seeded.
+            </text>
+            <example name="increasing parameter">
+                val chaos = Line.kr(1.0, 2.01, 15)
+                chaos.poll(2, "chaos")
+                Crackle.ar(Seq(chaos, chaos)) * 0.5
+            </example>
+            <see>ugen.Dust</see>
+            <see>ugen.LatoocarfianN</see>
+            <see>ugen.Logistic</see>
+        </doc>
     </ugen>
     <ugen name="Logistic">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="chaos" default="3.0"/>
-        <arg name="freq" default="1000.0"/>
-        <arg name="init" default="0.5"/>
+        <arg name="chaos" default="3.0">
+            <doc>
+                a parameter of the chaotic function with useful values from 0.0 to 4.0.
+                Chaotic behavior occurs from 3.57 up. Using values outside this range can make
+                the UGen blow up, resulting in NaNs.
+            </doc>
+        </arg>
+        <arg name="freq" default="1000.0">
+            <doc>
+                Frequency of calculation in Hertz. The value is limited by the sampling rate.
+            </doc>
+        </arg>
+        <arg name="init" default="0.5">
+            <doc>
+                Initial value of the recursive function
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A noise generator UGen based on the logistic map. Its formula is
+                {{{
+                y[n+1] = chaos * y[n] * (1.0 - y[n])
+                }}}
+            </text>
+            <example name="increasing parameter">
+                Logistic.ar(Line.kr(3.55, 4.0, 15), 1000) * 0.5
+            </example>
+            <see>ugen.Crackle</see>
+            <see>ugen.LatoocarfianN</see>
+        </doc>
     </ugen>
     <ugen name="Hasher">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in"/>
+        <arg name="in">
+            <doc>
+                input to calculate the hash function for
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that returns a unique output value from zero to one for each input value according to
+                a hash function. The same input value will always produce the same output value.
+                The input values can have any range.
+            </text>
+            <example name="scramble mouse motion">
+                SinOsc.ar(
+                  Hasher.kr(MouseX.kr(0,10)).madd(300, 500)
+                ) * 0.2
+            </example>
+            <example name="distort pulse wave">
+                val lag  = MouseY.kr(0.001, 0.1, 1)
+                val freq = MouseX.kr(1, 500, 1)
+                Hasher.ar(Lag.ar(LFPulse.ar(freq), lag)) * 0.2
+            </example>
+        </doc>
     </ugen>
     <ugen name="MantissaMask">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in"/>
-        <arg name="bits" default="3"/>
+        <arg name="in">
+            <doc>
+                input signal to quantize
+            </doc>
+        </arg>
+        <arg name="bits" default="3">
+            <doc>
+                The number of mantissa bits to preserve, from 0 to 23.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that masks off bits in the mantissa of the floating point sample value. This introduces
+                a quantization noise, but is less severe than linearly quantizing the signal.
+            </text>
+            <example name="mouse-x controls resolution">
+                val bits = MouseX.kr(0, 12)
+                MantissaMask.ar(SinOsc.ar(SinOsc.kr(0.2).madd(400, 500)) * 0.4, bits)
+            </example>
+        </doc>
     </ugen>
     <ugen name="LFClipNoise" random="true">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="freq" default="500.0"/>
+        <arg name="freq" default="500.0">
+            <doc>
+                rate at which to generate random values.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that randomly generates the values -1 or +1 at a rate given by the nearest integer
+                division of the sample rate by the frequency argument. The difference to `LFClipNoise` is
+                that this UGen quantizes time to the nearest integer division of the sample-rate, and
+                the frequency input is only polled at the moment a new output value is scheduled.
+            </text>
+            <example name="generator">
+                LFClipNoise.ar(500) * 0.2
+            </example>
+            <example name="random panning">
+                val pos = LFClipNoise.ar(4)
+                Pan2.ar(PinkNoise.ar, pos)
+            </example>
+            <example name="modulate frequency">
+                LFClipNoise.ar(XLine.kr(100, 10000, 20)) * 0.2
+            </example>
+            <see>ugen.ClipNoise</see>
+            <see>ugen.LFNoise0</see>
+            <see>ugen.LFDClipNoise</see>
+        </doc>
     </ugen>
     <ugen name="LFNoise0" random="true">
         <rate name="control"/>
@@ -105,10 +345,16 @@
                 changes in frequency are only picked up at the next trigger. In contrast,
                 variant `LFDNoise0` has precise frequency and reacts to frequency changes instantly.
             </text>
+            <example name="plain noise">
+                LFNoise0.ar(1000) * 0.25
+            </example>
             <see>ugen.LFDNoise0</see>
             <see>ugen.LFNoise1</see>
             <see>ugen.LFNoise2</see>
             <see>ugen.TRand</see>
+            <see>ugen.WhiteNoise</see>
+            <see>ugen.Dust</see>
+            <see>ugen.RandSeed</see>
         </doc>
     </ugen>
     <ugen name="LFNoise1" random="true">
@@ -129,6 +375,9 @@
                 changes in frequency are only picked up at the next trigger. In contrast,
                 variant `LFDNoise1` has precise frequency and reacts to frequency changes instantly.
             </text>
+            <example name="plain noise">
+                LFNoise1.ar(1000) * 0.25
+            </example>
             <see>ugen.LFDNoise1</see>
             <see>ugen.LFNoise0</see>
             <see>ugen.LFNoise2</see>
