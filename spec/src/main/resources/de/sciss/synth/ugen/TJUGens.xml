@@ -1,4 +1,4 @@
-<ugens revision="1"> <!-- http://jeremah.co.uk/dfm1ugen.html -->
+<ugens revision="1"> <!-- extension from sc3-plugins -->
     <!-- all documented -->
     <ugen name="DFM1">
         <rate name="audio"/>

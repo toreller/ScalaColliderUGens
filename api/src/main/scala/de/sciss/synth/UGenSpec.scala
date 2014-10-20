@@ -28,11 +28,24 @@ object UGenSpec {
     "TriggerUGens", "UnpackFFTUGens"
   )
 
-  /** Lazily computes the specs of the UGens bundled with the standard SuperCollider distribution.
-    * This reads and parses the `standard-ugens.xml` resource. The result maps from UGen names
-    * to their specifications.
+  /** List of third-party UGens as per https://github.com/supercollider/sc3-plugins,
+    * This is currently incomplete.
     */
-  lazy val standardUGens: Map[String, UGenSpec] = standardPlugins.flatMap { name =>
+  final val thirdPartyPlugins = List(
+    "MCLDBufferUGens", "TJUGens"
+  )
+
+  /** Lazily computes the specs of the UGens bundled with the standard SuperCollider distribution.
+    * The result maps from UGen names to their specifications.
+    */
+  lazy val standardUGens: Map[String, UGenSpec] = mkUGens(standardPlugins)
+
+  /** Lazily computes the specs of the UGens found in the sc3-plugins project.
+    * The result maps from UGen names to their specifications.
+    */
+  lazy val thirdPartyUGens: Map[String, UGenSpec] = mkUGens(thirdPartyPlugins)
+
+  private def mkUGens(names: List[String]): Map[String, UGenSpec] = names.flatMap { name =>
     val is = ugen.Control.getClass.getResourceAsStream(s"$name.xml")
     try {
       val source = xml.Source.fromInputStream(is)

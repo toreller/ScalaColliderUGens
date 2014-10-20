@@ -22,11 +22,29 @@ import scala.collection.immutable.{IndexedSeq => Vec}
 import de.sciss.file._
 
 object Gen extends App {
-  case class Config(resources: Boolean = false, forceOverwrite: Boolean = false, outDir: File = new File("out"),
+  sealed trait Input {
+    def switch: String
+    def plugins: List[String]
+  }
+  case object CustomUGens extends Input {
+    def switch = ""
+    def plugins = Nil
+  }
+  case object StandardUGens extends Input {
+    def switch = "--standard"
+    def plugins = UGenSpec.standardPlugins
+  }
+  case object ThirdPartyUGens extends Input {
+    def switch = "--plugins"
+    def plugins = UGenSpec.thirdPartyPlugins
+  }
+
+  case class Config(input: Input = CustomUGens, forceOverwrite: Boolean = false, outDir: File = new File("out"),
                     inFiles: Vec[File] = Vec.empty, docs: Boolean = true)
 
   val parser  = new OptionParser[Config]("ScalaCollider-UGens") {
-    opt[Unit]('r', "resources") text "Use resources as input"           action { (_, c) => c.copy(resources      = true ) }
+    opt[Unit]("standard"      ) text "Use standard resources as input"  action { (_, c) => c.copy(input          = StandardUGens  ) }
+    opt[Unit]("plugins"       ) text "Use third-party resources as input" action{(_, c) => c.copy(input          = ThirdPartyUGens) }
     opt[Unit]('f', "force"    ) text "Force overwrite of output files"  action { (_, c) => c.copy(forceOverwrite = true ) }
     opt[File]('d', "dir"      ) text "Source output root directory"     action { (f, c) => c.copy(outDir         = f    ) }
     opt[Unit]("no-docs"       ) text "Do not include scaladoc comments" action { (_, c) => c.copy(docs           = false) }
@@ -46,12 +64,12 @@ object Gen extends App {
 
   val synth = new ClassGenerator
 
-  val inputs: Iterator[(String, InputSource)] = if (resources) {
-    UGenSpec.standardPlugins.iterator.map { name =>
+  val inputs: Iterator[(String, InputSource)] = if (input == CustomUGens) {
+    inFiles.iterator.map(f => f.base -> xml.Source.fromFile(f))
+  } else {
+    input.plugins.iterator.map { name =>
       name -> xml.Source.fromInputStream(getClass.getResourceAsStream(s"$name.xml"))
     }
-  } else {
-    inFiles.iterator.map(f => f.base -> xml.Source.fromFile(f))
   }
 
   inputs.foreach { case (name, source) =>

@@ -4,6 +4,9 @@ import sbt.File
 import sbtbuildinfo.Plugin._
 
 object Build extends sbt.Build {
+  def baseName  = "ScalaColliderUGens"
+  def baseNameL = baseName.toLowerCase
+
   def numbersVersion      = "0.1.1"
   def scalaTestVersion    = "2.2.2"
   def scoptVersion        = "3.2.0"
@@ -12,15 +15,11 @@ object Build extends sbt.Build {
   def scalaXMLVersion     = "1.0.2"
 
   lazy val root: Project = Project(
-    id        = "scalacolliderugens",
+    id        = baseNameL,
     base      = file("."),
-    aggregate = Seq(spec, api, gen, core),
+    aggregate = Seq(spec, api, gen, core, plugins),
     settings  = Project.defaultSettings ++ Seq(
-      // publishLocal  := (),
-      // publish       := (),
-      // signedArtifacts := Map.empty,
       packagedArtifacts := Map.empty    // don't send this to Sonatype
-      // publishSigned := ()
     )
   )
 
@@ -28,10 +27,12 @@ object Build extends sbt.Build {
   lazy val ugenGenerator = TaskKey[Seq[File]]("ugen-generate", "Generate UGen class files")
 
   def licenseURL(licName: String, sub: String) =
-    licenses <<= (name in root) { n => Seq(licName -> url("https://raw.github.com/Sciss/" + n + "/master/" + sub + "/LICENSE")) }
+    licenses <<= (name in root) { n =>
+      Seq(licName -> url(s"https://raw.github.com/Sciss/$n/master/$sub/LICENSE"))
+    }
 
   lazy val spec = Project(
-    id        = "scalacolliderugens-spec",
+    id        = s"$baseNameL-spec",
     base      = file("spec"),
     settings  = Project.defaultSettings /* ++ buildInfoSettings */ ++ Seq(
       description := "UGens XML specification files for ScalaCollider",
@@ -44,7 +45,7 @@ object Build extends sbt.Build {
   )
 
   lazy val api = Project(
-    id        = "scalacolliderugens-api",
+    id        = s"$baseNameL-api",
     base      = file("api"),
     //    dependencies = Seq(xml),
     settings  = Project.defaultSettings ++ buildInfoSettings ++ Seq(
@@ -71,7 +72,7 @@ object Build extends sbt.Build {
   )
 
   lazy val gen = Project(
-    id            = "scalacolliderugens-gen",
+    id            = s"$baseNameL-gen",
     base          = file("gen"),
     dependencies  = Seq(spec, api),
     settings      = Project.defaultSettings ++ Seq(
@@ -89,7 +90,7 @@ object Build extends sbt.Build {
   )
 
   lazy val core = Project(
-    id            = "scalacolliderugens-core",
+    id            = s"$baseNameL-core",
     base          = file("core"),
     dependencies  = Seq(api),
     settings      = Project.defaultSettings ++ Seq(
@@ -101,12 +102,30 @@ object Build extends sbt.Build {
          sourceManaged       in Compile,
          dependencyClasspath in Runtime in gen,
          streams) map {
-          (spec, src, cp, st) => runUGenGenerator(spec, src, cp.files, st.log)
+          (spec, src, cp, st) => runUGenGenerator("--standard", spec, src, cp.files, st.log)
         }
-      )
-    ) // .dependsOn(gen)
+    )
+  )
 
-  def runUGenGenerator(specDir: File, outputDir: File, cp: Seq[File], log: Logger): Seq[File] = {
+  lazy val plugins = Project(
+    id            = s"$baseNameL-plugins",
+    base          = file("plugins"),
+    dependencies  = Seq(core),
+    settings      = Project.defaultSettings ++ Seq(
+      description := "Additional third-party UGens for ScalaCollider",
+      licenseURL("GPL v2+", "core"),
+      sourceGenerators in Compile <+= (ugenGenerator in Compile),
+      ugenGenerator in Compile <<=
+        (resourceDirectory   in Compile in spec,
+         sourceManaged       in Compile,
+         dependencyClasspath in Runtime in gen,
+         streams) map {
+          (spec, src, cp, st) => runUGenGenerator("--plugins", spec, src, cp.files, st.log)
+        }
+    )
+  )
+
+  def runUGenGenerator(switch: String, specDir: File, outputDir: File, cp: Seq[File], log: Logger): Seq[File] = {
     val scalaOutput = outputDir / "scala"
     val mainClass   = "de.sciss.synth.ugen.Gen"
     val tmp         = java.io.File.createTempFile("sources", ".txt")
@@ -118,7 +137,7 @@ object Build extends sbt.Build {
       val outs  = CustomOutput(os)
       val fOpt  = ForkOptions(javaHome = None, outputStrategy = Some(outs), /* runJVMOptions = Nil, */ bootJars = cp,
         workingDirectory = None, connectInput = false)
-      val res: Int = Fork.scala(config = fOpt, arguments = mainClass :: "-r" :: "-d" :: scalaOutput.getAbsolutePath :: Nil)
+      val res: Int = Fork.scala(config = fOpt, arguments = mainClass :: switch :: "-d" :: scalaOutput.getAbsolutePath :: Nil)
 
       if (res != 0) {
         sys.error(s"UGen class file generator failed with exit code $res")
