@@ -1,4 +1,4 @@
-<ugens revision="4">
+<ugens revision="5">
     <!-- all documented -->
     <ugen name="Trig1">
         <rate name="audio"/>
@@ -908,6 +908,11 @@
                 A UGen that, when triggered, frees enclosing synth.
                 It frees the enclosing synth when the input signal crosses from non-positive to positive.
 
+                ''Note'' that if the trigger is initially high the UGen will not react. For example,
+                `FreeSelf.kr("foo".kr)` will not work if the control is initially `1`. A work-around is
+                to wrap the input in this case in a `Trig` object: `FreeSelf.kr(Trig.kr("foo".kr))`.
+                This is most likely a bug.
+
                 This UGen outputs its input signal for convenience.
             </text>
             <see>ugen.Free</see>
@@ -925,6 +930,11 @@
             <text>
                 A UGen that, when triggered, pauses enclosing synth.
                 It pauses the enclosing synth when the input signal crosses from non-positive to positive.
+
+                ''Note'' that if the trigger is initially high the UGen will not react. For example,
+                `PauseSelf.kr("foo".kr)` will not work if the control is initially `1`. A work-around is
+                to wrap the input in this case in a `Trig` object: `PauseSelf.kr(Trig.kr("foo".kr))`.
+                This is most likely a bug.
 
                 This UGen outputs its input signal for convenience.
             </text>

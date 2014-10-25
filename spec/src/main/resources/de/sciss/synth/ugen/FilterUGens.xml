@@ -1,4 +1,4 @@
-<ugens revision="3">
+<ugens revision="4">
     <!-- all documented, except: APF -->
     <ugen name="Ramp">
         <rate name="control"/>
@@ -900,6 +900,13 @@
             <text>
                 A slew rate limiter UGen.
                 Limits the slope of an input signal. The slope is expressed in units per second.
+
+                Since the UGen is initialized with the initial value of the input signal, some tricks
+                must be applied to set it to an alternative start value. For example:
+                {{{
+                val in = Select.kr(ToggleFF.kr(1), Seq("start".ir, "target".kr))
+                Slew.kr(in)  // begins at "start" and moves towards "target"
+                }}}
             </text>
         </doc>
     </ugen>
