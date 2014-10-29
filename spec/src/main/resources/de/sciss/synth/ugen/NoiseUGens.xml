@@ -152,6 +152,10 @@
                 A UGen generating random impulses with values ranging from
                 `0` to `+1`. The pulse duration is one sample for audio-rate
                 and one block for control-rate operation.
+
+                The approximate RMS energy is `(density/sr).log2 * 3 - 4.8`
+                where `sr` is the sample-rate. For example, at 44.1 kHz, a
+                density of 1000 Hz yields an RMS of approx. -21.2 dB.
             </text>
             <example name="decreasing density">
                 Dust.ar(XLine.kr(20000, 2, Seq(20, 20))) * 0.5
