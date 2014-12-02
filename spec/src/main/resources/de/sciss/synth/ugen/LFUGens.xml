@@ -1,4 +1,4 @@
-<ugens revision="6">
+<ugens revision="8">
     <!-- all documented -->
     <ugen name="Vibrato">
         <rate name="control"/>
@@ -432,9 +432,9 @@
                 val c = LFPulse.ar(1, Seq(0, 0.5))
                 c * Seq(a, b)
             </example>
-            <see>A2K</see>
-            <see>T2A</see>
-            <see>DC</see>
+            <see>ugen.A2K</see>
+            <see>ugen.T2A</see>
+            <see>ugen.DC</see>
         </doc>
     </ugen>
     <ugen name="A2K">
@@ -450,8 +450,8 @@
                 sampling. The sample is always taken at the beginning of each control-block, while all other
                 samples of the audio-rate input within that block are ignored.
             </text>
-            <see>K2A</see>
-            <see>T2K</see>
+            <see>ugen.K2A</see>
+            <see>ugen.T2K</see>
         </doc>
     </ugen>
     <ugen name="T2K">

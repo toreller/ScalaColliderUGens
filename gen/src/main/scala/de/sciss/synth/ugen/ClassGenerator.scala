@@ -14,22 +14,24 @@
 package de.sciss.synth
 package ugen
 
-import tools.nsc.symtab.Flags
-import tools.refactoring
-import refactoring.Refactoring
-import refactoring.util.CompilerProvider
-import collection.breakOut
-import collection.immutable.{IndexedSeq => Vec}
-import refactoring.transformation.TreeFactory
-import refactoring.common.{CompilerAccess, Tracing}
-import tools.nsc.io.AbstractFile
+import de.sciss.file._
+
+import java.io.FileOutputStream
+
+import scala.annotation.tailrec
+import scala.collection.breakOut
+import scala.collection.immutable.{IndexedSeq => Vec}
+import scala.io.Source
+import scala.tools.nsc.symtab.Flags
+import scala.tools.refactoring.Refactoring
+import scala.tools.refactoring.util.CompilerProvider
+import scala.tools.refactoring.transformation.TreeFactory
+import scala.tools.refactoring.common.{CompilerAccess, Tracing}
+import scala.tools.nsc.io.AbstractFile
+import scala.util.control.NonFatal
+
 import UGenSpec.{SignalShape => Sig, _}
 import ArgumentType.GE
-import annotation.tailrec
-import java.io.FileOutputStream
-import scala.io.Source
-import de.sciss.file._
-import scala.util.control.NonFatal
 
 final class ClassGenerator
   extends Refactoring with Tracing with CompilerProvider with CompilerAccess with TreeFactory {
@@ -42,6 +44,8 @@ final class ClassGenerator
 
   val DocWidth      = 80
   val ParamColumns  = 24
+
+  private[this] val forceCompanion = true
 
   def performFile(node: xml.Node, dir: File, name: String, docs: Boolean = true,
                   forceOverwrite: Boolean = false): Unit = try {
@@ -140,14 +144,14 @@ final class ClassGenerator
     val sb    = new StringBuilder
 
     def flush(): Unit =
-      if (!sb.isEmpty) {
+      if (sb.nonEmpty) {
         b += sb.toString().trim
         sb.clear()
       }
 
     @tailrec def loop(rem: List[String]): List[String] = rem match {
       case head :: tail =>
-        if (!sb.isEmpty && sb.length + head.length >= width) {
+        if (sb.nonEmpty && sb.length + head.length >= width) {
           flush()
           // in Scala-Doc Wiki Syntax, lines beginning with '='
           // are interpreted as headings! a simple work-around is
@@ -496,7 +500,7 @@ final class ClassGenerator
 
     // the complete companion object. this is given as a List[Tree],
     // because there might be no object (in that case objectDef is Nil).
-    val objectDef = if (objectMethodDefs.nonEmpty) {
+    val objectDef = if (forceCompanion || objectMethodDefs.nonEmpty) {
       val mod = ModuleDef(
         NoMods,
         name,
