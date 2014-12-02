@@ -1,39 +1,187 @@
-<ugens revision="1">
+<ugens revision="3">
+    <!-- all documented -->
     <ugen name="FreeVerb">
         <rate name="audio" implied="true"/>
-        <arg name="in" rate="ugen"/>
-        <arg name="mix" default="0.33"/>
-        <arg name="room" default="0.5"/>
-        <arg name="damp" default="0.5"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                input signal to reverberate
+            </doc>
+        </arg>
+        <arg name="mix" default="0.33">
+            <doc>
+                dry/wet balance from zero (only dry) to one (only wet)
+            </doc>
+        </arg>
+        <arg name="room" default="0.5">
+            <doc>
+                room size
+            </doc>
+        </arg>
+        <arg name="damp" default="0.5">
+            <doc>
+                high frequency attenuation (1 is maximum attenuation)
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A monophonic reverb UGen. All parameters are specified in and automatically
+                clipped to the range 0 to 1. The UGen is stateless insofar it does not use
+                a random number generator.
+            </text>
+            <example name="mouse control for mix and room">
+                val in   = Decay.ar(Impulse.ar(1), 0.25) * LFCub.ar(1200) * 0.1
+                val mix  = MouseX.kr
+                val room = MouseY.kr
+                val verb = FreeVerb.ar(in, mix, room, "damp".kr(0.5))
+                Pan2.ar(verb)
+            </example>
+            <see>ugen.FreeVerb2</see>
+            <see>ugen.GVerb</see>
+        </doc>
     </ugen>
     <ugen name="FreeVerb2">
         <rate name="audio" implied="true">
             <arg name="inL" rate="ugen"/>
             <arg name="inR" rate="ugen"/>
         </rate>
-        <output name="left"/>
-        <output name="right"/>
-        <arg name="inL"/>
-        <arg name="inR"/>
-        <arg name="mix" default="0.33"/>
-        <arg name="room" default="0.5"/>
-        <arg name="damp" default="0.5"/>
+        <output name="left">
+            <doc>
+                left channel of reverberated signal
+            </doc>
+        </output>
+        <output name="right">
+            <doc>
+                right channel of reverberated signal
+            </doc>
+        </output>
+        <arg name="inL">
+            <doc>
+                left channel of input signal to reverberate
+            </doc>
+        </arg>
+        <arg name="inR">
+            <doc>
+                right channel of input signal to reverberate
+            </doc>
+        </arg>
+        <arg name="mix" default="0.33">
+            <doc>
+                dry/wet balance from zero (only dry) to one (only wet)
+            </doc>
+        </arg>
+        <arg name="room" default="0.5">
+            <doc>
+                room size
+            </doc>
+        </arg>
+        <arg name="damp" default="0.5">
+            <doc>
+                high frequency attenuation (1 is maximum attenuation)
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A stereophonic reverb UGen. All parameters are specified in and automatically
+                clipped to the range 0 to 1. The UGen is stateless insofar it does not use
+                a random number generator. However, if the same input is used for left and
+                right channel, the output channels are different and uncorrelated. There is
+                also some cross-feed between the two channels.
+            </text>
+            <example name="mouse control for mix and room, random input pan">
+                val tr   = Impulse.ar(1)
+                val in   = Decay.ar(tr, 0.25) * LFCub.ar(1200) * 0.1
+                val in2  = Pan2.ar(in, TRand.ar(-1, 1, tr))
+                val mix  = MouseX.kr
+                val room = MouseY.kr
+                FreeVerb2.ar(in2 \ 0, in2 \ 1, mix, room, "damp".kr(0.5))
+            </example>
+            <see>ugen.FreeVerb</see>
+            <see>ugen.GVerb</see>
+        </doc>
     </ugen>
     <ugen name="GVerb">
         <rate name="audio" implied="true">
             <arg name="in" rate="ugen"/>
         </rate>
-        <output name="left"/>
-        <output name="right"/>
+        <output name="left">
+            <doc>
+                left channel of input signal to reverberate
+            </doc>
+        </output>
+        <output name="right">
+            <doc>
+                right channel of input signal to reverberate
+            </doc>
+        </output>
         <arg name="in"/>
-        <arg name="roomSize" default="10.0"/>
-        <arg name="revTime" default="3.0"/>
-        <arg name="damping" default="0.5"/>
-        <arg name="inputBW" default="0.5"/>
-        <arg name="spread" default="15.0"/>
-        <arg name="dryLevel" default="1.0"/>
-        <arg name="earlyRefLevel" default="0.7"/>
-        <arg name="tailLevel" default="0.5"/>
-        <arg name="maxRoomSize" default="300.0" init="true"/>
+        <arg name="roomSize" default="10.0">
+            <doc>
+                Size of the virtual room in meters. It must not be greater than
+                `maxRoomSize`.
+                Note that quick changes in `roomSize` may result in zipper noise and
+                an audible Doppler effect.
+            </doc>
+        </arg>
+        <arg name="revTime" default="3.0">
+            <doc>
+                reverberation time in seconds.
+            </doc>
+        </arg>
+        <arg name="damping" default="0.5">
+            <doc>
+                high frequency attenuation (1 is maximum attenuation)
+            </doc>
+        </arg>
+        <arg name="inputBW" default="0.5">
+            <doc>
+                high frequency attenuation of the input signal (0 to 1)
+            </doc>
+        </arg>
+        <arg name="spread" default="15.0">
+            <doc>
+                stereo spread of the reverb signal. Units?
+            </doc>
+        </arg>
+        <arg name="dryLevel" default="1.0">
+            <doc>
+                amount of dry signal
+            </doc>
+        </arg>
+        <arg name="earlyRefLevel" default="0.7">
+            <doc>
+                amount of early reflections
+            </doc>
+        </arg>
+        <arg name="tailLevel" default="0.5">
+            <doc>
+                amount of late reverberation
+            </doc>
+        </arg>
+        <arg name="maxRoomSize" default="300.0" init="true">
+            <doc>
+                maximum value that `roomSize` can take. This is used for the
+                early reflection delay lines and is only read at initialization time.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A stereophonic reverb UGen. It is based on the GVerb LADSPA effect by Juhana Sadeharju.
+
+                '''Note:''' A CPU spike may occur when the synth is instantiated.
+                '''Warning:''' The UGen has a bug which results in loud noise if the room size is
+                increased during playback. It seems safe to start with a large room size and ''decrease''
+                the value during playing.
+                '''Warning:''' The UGen may crash the server if `roomSize` becomes larger than `maxRoomSize`.
+            </text>
+            <example name="mouse control for time and damping">
+                val tr   = Impulse.ar(1)
+                val in   = Decay.ar(tr, 0.25) * LFCub.ar(1200) * 0.1
+                val damp = MouseX.kr
+                val tail = MouseY.kr(1, 100, 1)
+                GVerb.ar(in, roomSize = 20, revTime = tail, damping = damp, maxRoomSize = 20)
+            </example>
+            <see>ugen.FreeVerb</see>
+            <see>ugen.FreeVerb2</see>
+        </doc>
     </ugen>
 </ugens>

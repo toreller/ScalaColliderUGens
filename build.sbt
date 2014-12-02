@@ -8,9 +8,9 @@ description        in ThisBuild := "UGens for ScalaCollider"
 
 homepage           in ThisBuild := Some(url("https://github.com/Sciss/" + name.value))
 
-scalaVersion       in ThisBuild := "2.11.2"
+scalaVersion       in ThisBuild := "2.11.4"
 
-crossScalaVersions in ThisBuild := Seq("2.11.2", "2.10.4")
+crossScalaVersions in ThisBuild := Seq("2.11.4", "2.10.4")
 
 // retrieveManaged    in ThisBuild := true
 
