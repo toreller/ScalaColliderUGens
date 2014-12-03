@@ -1,4 +1,4 @@
-<ugens revision="2">
+<ugens revision="3">
     <ugen name="DegreeToKey" reads-buf="true">
         <rate name="control"/>
         <rate name="audio"/>
@@ -269,8 +269,34 @@
     <ugen name="FSinOsc">
         <rate name="audio"/>
         <rate name="control"/>
-        <arg name="freq" default="440.0"/>
-        <arg name="iphase" default="0.0" init="true"/>
+        <arg name="freq" default="440.0">
+            <doc>
+                frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="iphase" default="0.0" init="true">
+            <doc>
+                initial phase of the oscillator in radians. This cannot be modulated. A value
+                of `0.5 Pi` means the output starts at +1. A value of `1.5 Pi` means the output
+                starts at -1,
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A sine oscillator UGen using a fast approximation. It uses a ringing filter and is less
+                CPU expensive than `SinOsc`. However, the amplitude of the wave will vary with frequency.
+                Generally the amplitude will go down when the frequency rises and it will go up as if the
+                frequency is lowered.
+
+                '''Warning''': In the current implementation, the amplitude can blow up if the frequency
+                is modulated by certain alternating signals (e.g. abruptly by `TRand`).
+            </text>
+            <example name="plain oscillator">
+                FSinOsc.ar(441) * 0.2
+            </example>
+            <see>ugen.SinOsc</see>
+            <see>ugen.SinOscFB</see>
+        </doc>
     </ugen>
     <ugen name="SinOsc">
         <rate name="audio"/>

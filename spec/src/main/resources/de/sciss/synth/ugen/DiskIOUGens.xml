@@ -1,4 +1,4 @@
-<ugens revision="1">
+<ugens revision="2">
     <!-- all documented -->
     <!-- // side-effect: advancing sf offset -->
     <ugen name="DiskIn" reads-buf="true" side-effect="true">
@@ -46,6 +46,8 @@
                 with a `write` command whose `leaveOpen` argument is true. Note that the number of channels of
                 the buffer and of the input signal must be the same, otherwise `DiskOut` will fail silently
                 (and not write anything to the file).
+
+                '''Warning''': Crashes the server if the number of channels exceeds 32.
             </doc>
         </arg>
         <arg name="in" variadic="true">

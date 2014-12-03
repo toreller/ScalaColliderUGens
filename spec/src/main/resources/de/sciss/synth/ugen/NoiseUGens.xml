@@ -1,5 +1,5 @@
-<ugens revision="3">
-    <!-- all documented, except: LFNoise2, Rand, IRand, TRand, TExpRand, TIRand, NRand, LinRand, ExpRand, CoinGate, RandSeed, RandID -->
+<ugens revision="5">
+    <!-- all documented -->
     <ugen name="WhiteNoise" random="true">
         <rate name="control"/>
         <rate name="audio"/>
@@ -391,49 +391,169 @@
     <ugen name="LFNoise2" random="true">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="freq" default="500.0"/>
+        <arg name="freq" default="500.0">
+            <doc>
+                rate at which to generate new breakpoints.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A quadratically interpolating noise UGen. This interpolation happens between breakpoints
+                chosen randomly between `-1` and `+1` at a specified frequency.
+
+                The frequency is quantized to the nearest integer division of the sample rate, and
+                changes in frequency are only picked up at the next trigger. In contrast,
+                variant `LFDNoise3` has precise frequency and reacts to frequency changes instantly.
+
+                '''Note:''' Due to the interpolation, the output values can occasionally extend beyond
+                the normal range of -1 to +1, if the frequency varies in certain ways.
+            </text>
+            <example name="plain noise">
+                LFNoise2.ar(1000) * 0.25
+            </example>
+            <see>ugen.LFDNoise3</see>
+            <see>ugen.LFNoise0</see>
+            <see>ugen.LFNoise1</see>
+        </doc>
     </ugen>
     <ugen name="Rand" random="true">
         <rate name="scalar" implied="true" method="apply"/>
-        <arg name="lo" default="0.0"/>
-        <arg name="hi" default="1.0"/>
+        <arg name="lo" default="0.0">
+            <doc>
+                lower limit of the output range
+            </doc>
+        </arg>
+        <arg name="hi" default="1.0">
+            <doc>
+                upper limit of the output range
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A scalar UGen that generates a single random decimal value, using a uniform distribution from
+                `lo` to `hi`.
+            </text>
+            <example name="random sine frequencies">
+                val m = Mix.fill(10)(FSinOsc.ar(Rand(200.0, 800.0)))
+                m * Line.kr(0.025, 0, 4, doneAction = freeSelf)
+            </example>
+            <see>ugen.IRand</see>
+            <see>ugen.TRand</see>
+            <see>ugen.ExpRand</see>
+            <see>ugen.RandSeed</see>
+        </doc>
     </ugen>
     <ugen name="IRand" random="true">
         <rate name="scalar" implied="true" method="apply"/>
-        <arg name="lo" default="0"/>
-        <arg name="hi" default="127"/>
+        <arg name="lo" default="0">
+            <doc>
+                lower limit of the output range
+            </doc>
+        </arg>
+        <arg name="hi" default="127">
+            <doc>
+                upper limit of the output range (inclusive)
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A scalar UGen that generates a single random integer value, using a uniform distribution from
+                `lo` to `hi`.
+            </text>
+            <example name="random sine frequencies">
+                val m = Mix.fill(10)(FSinOsc.ar(IRand(40, 100).midicps))
+                m * Line.kr(0.025, 0, 4, doneAction = freeSelf)
+            </example>
+            <see>ugen.Rand</see>
+            <see>ugen.TIRand</see>
+            <see>ugen.ExpRand</see>
+            <see>ugen.RandSeed</see>
+        </doc>
     </ugen>
     <ugen name="TRand" random="true">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="lo" default="0.0"/>
-        <arg name="hi" default="1.0"/>
-        <arg name="trig" type="trig"/>
+        <arg name="lo" default="0.0">
+            <doc>
+                lower limit of the output range
+            </doc>
+        </arg>
+        <arg name="hi" default="1.0">
+            <doc>
+                upper limit of the output range
+            </doc>
+        </arg>
+        <arg name="trig" type="trig">
+            <doc>
+                signal to trigger new random number
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that generates a new random decimal value each time it is triggered,
+                using a uniform distribution from `lo` to `hi`.
+            </text>
+            <example name="random sine frequencies, triggered by mouse button">
+                val tr = MouseButton.kr(lag = 0)
+                val m  = Mix.fill(10)(SinOsc.ar(TRand.kr(200.0, 800.0, tr)))
+                m * Linen.kr(tr, sustain = 0.025, release = 2)
+            </example>
+            <see>ugen.IRand</see>
+            <see>ugen.TRand</see>
+            <see>ugen.ExpRand</see>
+            <see>ugen.RandSeed</see>
+        </doc>
     </ugen>
     <ugen name="TExpRand" random="true">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="lo" default="0.01"/>
-        <arg name="hi" default="1.0"/>
-        <arg name="trig" type="trig"/>
+        <arg name="lo" default="0.01">
+            <doc>
+                lower limit of the output range
+            </doc>
+        </arg>
+        <arg name="hi" default="1.0">
+            <doc>
+                upper limit of the output range
+            </doc>
+        </arg>
+        <arg name="trig" type="trig">
+            <doc>
+                signal to trigger new random number
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that generates a new random decimal value each time it is triggered,
+                using an exponential distribution from `lo` to `hi`.
+                Values `lo` and `hi` must both have the same sign and be non-zero.
+            </text>
+            <example name="random sine frequencies, triggered by mouse button">
+                val tr = MouseButton.kr(lag = 0)
+                val m  = Mix.fill(10)(SinOsc.ar(TExpRand.kr(200.0, 800.0, tr)))
+                m * Linen.kr(tr, sustain = 0.025, release = 2)
+            </example>
+            <see>ugen.TRand</see>
+            <see>ugen.ExpRand</see>
+            <see>ugen.RandSeed</see>
+        </doc>
     </ugen>
     <ugen name="TIRand" random="true">
         <rate name="control"/>
         <rate name="audio"/>
         <arg name="lo" default="0">
             <doc>
-                lower margin of number range
+                lower limit of the output range
             </doc>
         </arg>
         <arg name="hi" default="127">
             <doc>
-                upper margin of number range (inclusive)
+                upper limit of the output range (inclusive)
             </doc>
         </arg>
         <arg name="trig" type="trig">
             <doc>
-                triggers a change in the random output. A trigger occurs when the signal
-                passes from non-positive to positive value.
+                signal to trigger new random number
             </doc>
         </arg>
         <doc>
@@ -441,43 +561,211 @@
                 A UGen that outputs integer random numbers when triggered. The values have
                 a uniform distribution from `lo` to `hi` (inclusive).
             </text>
+            <example name="random sine frequencies, triggered by mouse button">
+                val tr = MouseButton.kr(lag = 0)
+                val m  = Mix.fill(10)(SinOsc.ar(TIRand.kr(40, 100, tr).midicps))
+                m * Linen.kr(tr, sustain = 0.025, release = 2)
+            </example>
             <see>ugen.IRand</see>
             <see>ugen.TRand</see>
         </doc>
     </ugen>
     <ugen name="NRand" random="true">
         <rate name="scalar" implied="true" method="apply"/>
-        <arg name="lo" default="0.0"/>
-        <arg name="hi" default="1.0"/>
-        <arg name="n" default="0"/>
+        <arg name="lo" default="0.0">
+            <doc>
+                lower limit of the output range
+            </doc>
+        </arg>
+        <arg name="hi" default="1.0">
+            <doc>
+                upper limit of the output range
+            </doc>
+        </arg>
+        <arg name="n" default="2">
+            <doc>
+                the number of random numbers to average. For `n = 1`, the result is
+                identical to `Rand`, for `n = 2`, the distribution is triangular,
+                and for larger values the distribution converges towards a Gaussian.
+                '''Warning''': The value should be not be less than one.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A scalar UGen that generates a single random decimal value, averaging a given
+                number of samples from a uniform distribution between `lo` and `hi`.
+            </text>
+            <example name="three clusters with different distributions">
+                val z = 1 to 3 map { n =>
+                  Mix.fill(10)(FSinOsc.ar(NRand(200, 800, n))) * SinOsc.ar(0.4, n).max(0)
+                }
+                SplayAz.ar(2, z) * 0.025
+            </example>
+            <see>ugen.IRand</see>
+            <see>ugen.TRand</see>
+            <see>ugen.ExpRand</see>
+            <see>ugen.RandSeed</see>
+        </doc>
     </ugen>
     <ugen name="LinRand" random="true">
         <rate name="scalar" implied="true" method="apply"/>
-        <arg name="lo" default="0.0"/>
-        <arg name="hi" default="1.0"/>
-        <arg name="minMax" default="0"/>
+        <arg name="lo" default="0.0">
+            <doc>
+                lower limit of the output range
+            </doc>
+        </arg>
+        <arg name="hi" default="1.0">
+            <doc>
+                upper limit of the output range
+            </doc>
+        </arg>
+        <arg name="minMax" default="0">
+            <doc>
+                if `0`, the output is skewed towards `lo`, if `1`, the output is
+                skewed towards `hi`.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A scalar UGen that generates a single random decimal value between `lo` and `hi` with
+                a selectable skew towards either end.
+
+                The `minMax &lt;= 0` behaves rather odd: If `minMax` is less than 1, the distribution is skewed
+                towards `lo` (with `lo = 0` and `hi = 1`, the mean is approx. 0.33). If `minMax` is greater than
+                or equal to 1, the distribution is skewed towards `hi` (with `lo = 0` and `hi = 1`, the mean
+                is approx 0.66).
+            </text>
+            <example name="two clusters with opposite skew">
+                val z: GE = 0 to 1 map { n =>
+                  Mix.fill(10)(FSinOsc.ar(LinRand(200, 800, n))) * SinOsc.ar(0.4, n * math.Pi).max(0)
+                }
+                z * 0.025
+            </example>
+            <see>ugen.Rand</see>
+            <see>ugen.ExpRand</see>
+            <see>ugen.NRand</see>
+            <see>ugen.RandSeed</see>
+        </doc>
     </ugen>
     <ugen name="ExpRand" random="true">
         <rate name="scalar" implied="true" method="apply"/>
-        <arg name="lo" default="0.01"/>
-        <arg name="hi" default="1.0"/>
+        <arg name="lo" default="0.01">
+            <doc>
+                lower limit of the output range
+            </doc>
+        </arg>
+        <arg name="hi" default="1.0">
+            <doc>
+                upper limit of the output range
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A scalar UGen that generates a single random decimal value, using an exponential distribution from
+                `lo` to `hi`.
+                Values `lo` and `hi` must both have the same sign and be non-zero.
+            </text>
+            <example name="random sine frequencies">
+                val m = Mix.fill(10)(FSinOsc.ar(ExpRand(200.0, 800.0)))
+                m * Line.kr(0.025, 0, 4, doneAction = freeSelf)
+            </example>
+            <see>ugen.Rand</see>
+            <see>ugen.TExpRand</see>
+            <see>ugen.RandSeed</see>
+        </doc>
     </ugen>
     <ugen name="CoinGate" random="true">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="prob" default="0.5" pos="1"/>
-        <arg name="in" type="trig" pos="0"/>
-        <doc warn-pos="true"/>
+        <arg name="prob" default="0.5" pos="1">
+            <doc>
+                the probability between zero (no trigger passed) and 1 (all triggers passed)
+            </doc>
+        </arg>
+        <arg name="in" type="trig" pos="0">
+            <doc>
+                the input triggers to filter
+            </doc>
+        </arg>
+        <doc warn-pos="true">
+            <text>
+                A UGen that randomly filters an input trigger signal. When a trigger arrives, it may
+                pass with a probability given by the `prob` argument.
+            </text>
+            <example name="filter dust, probability controlled by mouse">
+                val p = MouseX.kr
+                CoinGate.ar(Dust.ar(400), p)
+            </example>
+            <see>ugen.Gate</see>
+            <see>ugen.PulseDivider</see>
+            <see>ugen.TRand</see>
+        </doc>
     </ugen>
     <ugen name="RandSeed" side-effect="true">
         <rate name="scalar"/>
         <rate name="control"/>
-        <arg name="trig" default="high"/>
-        <arg name="seed" default="56789"/>
+        <arg name="trig" default="high">
+            <doc>
+                trigger that causes the seed to be set
+            </doc>
+        </arg>
+        <arg name="seed" default="56789">
+            <doc>
+                the seed for the random number generator, read
+                at the moment the trigger arrives.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that resets the seed of the synth's random number generator upon receiving a trigger.
+                All synths that use the same random number generator reproduce the same sequence of numbers again.
+                The generator can be set using the `RandID` UGen.
+            </text>
+            <example name="reset seed via mouse button">
+                val freq = TIRand.kr(40, 100, Impulse.kr(4)).midicps
+                RandSeed.kr(MouseButton.kr(lag = 0) + Impulse.kr(0), 234)
+                SinOsc.ar(freq) * 0.2
+            </example>
+            <see>ugen.Rand</see>
+            <see>ugen.RandID</see>
+            <see>ugen.IRand</see>
+            <see>ugen.WhiteNoise</see>
+        </doc>
     </ugen>
     <ugen name="RandID" side-effect="true">
         <rate name="scalar"/>
         <rate name="control"/>
-        <arg name="id" default="0"/>
+        <arg name="id" default="0">
+            <doc>
+                the random number generator identifier from zero until
+                the maximum number of generators specified with the server
+                switch `-r` (default: 64)
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that determines which random number generator is used for the enclosing synth.
+                All synths that use the same generator reproduce the same sequence of numbers when the
+                same seed is set again.
+            </text>
+            <example name="button alternatingly resets left and right seed" type="full">
+                0 to 1 map { i =>
+                  play {
+                    RandID.ir(i)
+                    val x     = Impulse.kr(4)
+                    val pch   = TIRand.kr(40, 100, x)
+                    val b     = MouseButton.kr(lag = 0)
+                    val tr    = PulseDivider.kr(b, 2, i)
+                    pch.poll(x, if (i == 0) "left " else "right")
+                    RandSeed.kr(tr + Impulse.kr(0), 234)
+                    Out.ar(i, SinOsc.ar(pch.midicps) * 0.2)
+                  }
+                }
+            </example>
+            <see>ugen.Rand</see>
+            <see>ugen.RandSeed</see>
+            <see>ugen.IRand</see>
+            <see>ugen.WhiteNoise</see>
+        </doc>
     </ugen>
 </ugens>
