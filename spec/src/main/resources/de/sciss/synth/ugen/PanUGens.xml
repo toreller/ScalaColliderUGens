@@ -1,14 +1,49 @@
-<ugens revision="1">
+<ugens revision="2">
+    <!-- all documented, except: Pan4, Balance2, Rotate2, PanB, PanB2, BiPan2, DecodeB2 -->
     <ugen name="Pan2">
         <rate name="control"/>
         <rate name="audio">
             <arg name="in" rate="ugen"/>
         </rate>
-        <output name="left"/>
-        <output name="right"/>
-        <arg name="in"/>
-        <arg name="pos" default="0.0"/>
-        <arg name="level" default="1.0"/>
+        <output name="left">
+            <doc>
+                left channel of the panned signal
+            </doc>
+        </output>
+        <output name="right">
+            <doc>
+                right channel of the panned signal
+            </doc>
+        </output>
+        <arg name="in">
+            <doc>
+                (monophonic) input signal to be panned
+            </doc>
+        </arg>
+        <arg name="pos" default="0.0">
+            <doc>
+                panorama position between -1 (hard left) via 0 (center) to +1 (hard right)
+            </doc>
+        </arg>
+        <arg name="level" default="1.0">
+            <doc>
+                additional gain control
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A stereo panorama UGen based on equal-power amplitude control. When in center
+                position (`pos = 0`), the signal is attenuated by sqrt(0.5) or approx. -3 dB.
+            </text>
+            <example name="periodic left-right oscillation">
+                Pan2.ar(PinkNoise.ar(0.4), SinOsc.kr(0.25), 0.3)
+            </example>
+            <see>ugen.LinPan2</see>
+            <see>ugen.PanAz</see>
+            <see>ugen.Pan4</see>
+            <see>ugen.Balance2</see>
+            <see>ugen.XFade2</see>
+        </doc>
     </ugen>
     <ugen name="Pan4">
         <rate name="control"/>
@@ -29,11 +64,44 @@
         <rate name="audio">
             <arg name="in" rate="ugen"/>
         </rate>
-        <output name="left"/>
-        <output name="right"/>
-        <arg name="in"/>
-        <arg name="pos" default="0.0"/>
-        <arg name="level" default="1.0"/>
+        <output name="left">
+            <doc>
+                left channel of the panned signal
+            </doc>
+        </output>
+        <output name="right">
+            <doc>
+                right channel of the panned signal
+            </doc>
+        </output>
+        <arg name="in">
+            <doc>
+                (monophonic) input signal to be panned
+            </doc>
+        </arg>
+        <arg name="pos" default="0.0">
+            <doc>
+                panorama position between -1 (hard left) via 0 (center) to +1 (hard right)
+            </doc>
+        </arg>
+        <arg name="level" default="1.0">
+            <doc>
+                additional gain control
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A stereo panorama UGen based on linear amplitude control. When in center
+                position (`pos = 0`), the signal is attenuated by 0.5 or approx. -6 dB.
+            </text>
+            <example name="periodic left-right oscillation">
+                LinPan2.ar(PinkNoise.ar(0.4), SinOsc.kr(0.25), 0.3)
+            </example>
+            <see>ugen.Pan2</see>
+            <see>ugen.PanAz</see>
+            <see>ugen.Balance2</see>
+            <see>ugen.LinXFade2</see>
+        </doc>
     </ugen>
     <ugen name="Balance2">
         <rate name="control"/>
@@ -114,9 +182,12 @@
         </arg>
         <doc>
             <text>
-                An equal power two channel cross fading UGen.
+                An equal power two channel cross fading UGen. In center position
+                (`pan = 0`), both input signals are attenuated by sqrt(0.5) or approx. -3 dB.
             </text>
             <see>ugen.LinXFade2</see>
+            <see>ugen.Pan2</see>
+            <see>ugen.XOut</see>
         </doc>
     </ugen>
     <ugen name="LinXFade2">
@@ -151,9 +222,12 @@
         </arg>
         <doc>
             <text>
-                An linear two channel cross fading UGen.
+                An linear two channel cross fading UGen. In center position
+                (`pan = 0`), both input signals are attenuated by 0.5 or approx. -6 dB.
             </text>
             <see>ugen.LinXFade2</see>
+            <see>ugen.LinPan2</see>
+            <see>ugen.XOut</see>
         </doc>
     </ugen>
     <ugen name="PanB">
@@ -261,6 +335,8 @@
                 input channel where the pan position
                 is `inChanIdx * 2f / (inChannels - 1) * (outChannels - 1) / outChannels`.
             </text>
+            <see>ugen.Pan2</see>
+            <see>ugen.SplayAz</see>
         </doc>
     </ugen>
     <ugen name="DecodeB2">
