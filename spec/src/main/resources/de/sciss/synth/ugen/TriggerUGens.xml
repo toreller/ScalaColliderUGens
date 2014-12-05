@@ -390,7 +390,7 @@
                 to `hi` if it were to fall below `lo`.
             </doc>
         </arg>
-        <arg name="hi" default="7">
+        <arg name="hi" default="inf" type="ge-int">
             <doc>
                 The maximum value output. For an incremental `step` value, the counter jumps
                 to `lo` if it were to rise beyond `hi`.
