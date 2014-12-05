@@ -1,5 +1,5 @@
-<ugens revision="2">
-    <!-- all documented, except: Pan4, Balance2, Rotate2, PanB, PanB2, BiPan2, DecodeB2 -->
+<ugens revision="4">
+    <!-- all documented -->
     <ugen name="Pan2">
         <rate name="control"/>
         <rate name="audio">
@@ -50,14 +50,63 @@
         <rate name="audio">
             <arg name="in" rate="ugen"/>
         </rate>
-        <output name="leftFront"/>
-        <output name="rightFront"/>
-        <output name="leftBack"/>
-        <output name="rightBack"/>
-        <arg name="in"/>
-        <arg name="xpos" default="0.0"/>
-        <arg name="ypos" default="0.0"/>
-        <arg name="level" default="1.0"/>
+        <output name="leftFront">
+            <doc>
+                output signal corresponding to front-left corner (first channel)
+            </doc>
+        </output>
+        <output name="rightFront">
+            <doc>
+                output signal corresponding to front-right corner (second channel)
+            </doc>
+        </output>
+        <output name="leftBack">
+            <doc>
+                output signal corresponding to rear-left corner (third channel)
+            </doc>
+        </output>
+        <output name="rightBack">
+            <doc>
+                output signal corresponding to rear-right corner (fourth channel)
+            </doc>
+        </output>
+        <arg name="in">
+            <doc>
+                (monophonic) input signal to be panned
+            </doc>
+        </arg>
+        <arg name="xpos" default="0.0">
+            <doc>
+                horizontal panorama position from -1 (left) to +1 (right)
+            </doc>
+        </arg>
+        <arg name="ypos" default="0.0">
+            <doc>
+                front-to-back panorama position from -1 (back) to +1 (front)
+            </doc>
+        </arg>
+        <arg name="level" default="1.0">
+            <doc>
+                additional gain control
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A four channel equal-power panorama UGen. The outputs are in order `leftFront`,
+                `rightFront`, `leftBack`, `rightBack`.
+            </text>
+            <example name="mouse controlled pan position">
+                val x = MouseX.kr(-1, 1)
+                val y = MouseY.kr(-1, 1)
+                val p = Pan4.ar(PinkNoise.ar, x, y)
+                // make a stereo mix with different timbre front and back
+                val f = Resonz.ar(Seq(p.leftFront, p.rightFront), 4000, 0.2) * 4
+                val r = Resonz.ar(Seq(p.leftBack , p.rightBack ), 1500, 0.2) * 4
+                f + r
+            </example>
+            <see>ugen.Pan2</see>
+            <see>ugen.PanAz</see>
+        </doc>
     </ugen>
     <ugen name="LinPan2">
         <rate name="control"/>
@@ -136,6 +185,7 @@
                 and attenuates them according to the `pos` value, producing again a stereophonic output.
             </text>
             <see>ugen.XFade2</see>
+            <see>ugen.Pan2</see>
         </doc>
     </ugen>
     <ugen name="Rotate2">
@@ -144,11 +194,59 @@
             <arg name="x" rate="ugen"/>
             <arg name="y" rate="ugen"/>
         </rate>
-        <output name="xr"/>
-        <output name="yr"/>
-        <arg name="x"/>
-        <arg name="y"/>
-        <arg name="pos" default="0.0"/>
+        <output name="xr">
+            <doc>
+                rotated X (first) channel signal
+            </doc>
+        </output>
+        <output name="yr">
+            <doc>
+                rotated Y (second) channel signal
+            </doc>
+        </output>
+        <arg name="x">
+            <doc>
+                B-format X input channel
+            </doc>
+        </arg>
+        <arg name="y">
+            <doc>
+                B-format Y input channel
+            </doc>
+        </arg>
+        <arg name="pos" default="0.0">
+            <doc>
+                angle to rotate around the circle, normalized between -1 and +1.
+                -1 and +1 corresponds to -180 and +180 degrees (behind), -0.5 is 90 degrees left,
+                0 is frontal, +0.5 is 90 degrees right.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that can be used for rotating an ambisonic B-format sound field around an axis.
+                It uses an equal-power rotation so it also works well on stereo sounds. It takes two audio
+                inputs (`x`, `y`) and an angle control (`pos`). It outputs again two channels, using these formulas:
+                {{{
+                xr = cos(angle) * x + sin(angle) * y
+                yr = cos(angle) * y - sin(angle) * x
+                }}}
+                where `angle = pos * Pi`. This allows, for example, the use of `LFSaw` to create a
+                continuous rotation around a circle.
+
+                '''Note''': Be careful when accessing the output channels. `xr` and `yr` are the X and Y
+                output channels, whereas `x` and `y` refers to the X and Y input channel.
+            </text>
+            <example name="4-channel rotation of opposite sounds">
+                val p = WhiteNoise.ar(0.05)                     // first source
+                val q = Mix(LFSaw.ar(Seq(200, 200.37))) * 0.03  // second source
+                // B-format encode 2 signals at opposite sides of the circle
+                val enc = PanB2.ar(p, -0.5) + PanB2.ar(q, +0.5)
+                val Seq(w, x, y) = (0 to 2).map(enc \ _)
+                val rot = Rotate2.ar(x, y, MouseX.kr(-1, +1))
+                // B-format decode to quad (front-left, front-right, rear-left, rear-right)
+                DecodeB2.ar(4, w, rot.xr, rot.yr)
+            </example>
+        </doc>
     </ugen>
     <ugen name="XFade2">
         <rate name="control"/>
@@ -235,26 +333,117 @@
         <rate name="audio">
             <arg name="in" rate="ugen"/>
         </rate>
-        <output name="w"/>
-        <output name="x"/>
-        <output name="y"/>
-        <output name="z"/>
-        <arg name="in"/>
-        <arg name="azimuth" default="0.0"/>
-        <arg name="elevation" default="0.0"/>
-        <arg name="level" default="1.0"/>
+        <output name="w">
+            <doc>
+                the W (first) channel of the B-format output
+            </doc>
+        </output>
+        <output name="x">
+            <doc>
+                the X (second) channel of the B-format output
+            </doc>
+        </output>
+        <output name="y">
+            <doc>
+                the Y (third) channel of the B-format output
+            </doc>
+        </output>
+        <output name="z">
+            <doc>
+                the Z (fourth) channel of the B-format output
+            </doc>
+        </output>
+        <arg name="in">
+            <doc>
+                (monophonic) input signal to be encoded
+            </doc>
+        </arg>
+        <arg name="azimuth" default="0.0">
+            <doc>
+                position around the circle in radians. -Pi/+Pi is behind, -Pi/2 is left, 0 is front, +Pi/2 is right.
+            </doc>
+        </arg>
+        <arg name="elevation" default="0.0">
+            <doc>
+                elevation in radians, from -Pi/2 (bottom) to +Pi/2 (top)
+            </doc>
+        </arg>
+        <arg name="level" default="1.0">
+            <doc>
+                additional gain control
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                An Ambisonics B-format encoding UGen. B-format is the name for first order
+                Ambisonics which has four channels W, X, Y, Z. By omitting the elevation control,
+                we get a two dimensional planar encoded signal consisting only of the X and Y channels.
+
+                Note that unlike `PanB2`, azimuth is in radians.
+            </text>
+            <see>ugen.PanB2</see>
+            <see>ugen.DecodeB2</see>
+        </doc>
     </ugen>
     <ugen name="PanB2">
         <rate name="control"/>
         <rate name="audio">
             <arg name="in" rate="ugen"/>
         </rate>
-        <output name="w"/>
-        <output name="x"/>
-        <output name="y"/>
-        <arg name="in"/>
-        <arg name="azimuth" default="0.0"/>
-        <arg name="level" default="1.0"/>
+        <output name="w">
+            <doc>
+                the W (first) channel of the B-format output
+            </doc>
+        </output>
+        <output name="x">
+            <doc>
+                the X (second) channel of the B-format output
+            </doc>
+        </output>
+        <output name="y">
+            <doc>
+                the Y (third) channel of the B-format output
+            </doc>
+        </output>
+        <arg name="in">
+            <doc>
+                (monophonic) input signal to be encoded
+            </doc>
+        </arg>
+        <arg name="azimuth" default="0.0">
+            <doc>
+                position around the circle from -1 to +1. -1 and +1 correspond to -180/+180 degrees (behind),
+                -0.5 is 90 degrees to the left, 0 is frontal, +0.5 is 90 degrees to the right.
+            </doc>
+        </arg>
+        <arg name="level" default="1.0">
+            <doc>
+                additional gain control
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A two dimensional Ambisonics B-format encoding UGen. B-format is the name for first order
+                Ambisonics which normally has four channels W, X, Y, Z. By omitting the elevation control,
+                we get a two dimensional planar encoded signal consisting only of the W, X and Y channels.
+
+                Note that unlike `PanB`, azimuth is normalized between -1 and +1.
+            </text>
+            <example name="4-channel rotation of opposite sounds">
+                val p = WhiteNoise.ar(0.05)                     // first source
+                val q = Mix(LFSaw.ar(Seq(200, 200.37))) * 0.03  // second source
+                // B-format encode 2 signals at opposite sides of the circle
+                val enc = PanB2.ar(p, -0.5) + PanB2.ar(q, +0.5)
+                val Seq(w, x, y) = (0 to 2).map(enc \ _)
+                val rot = Rotate2.ar(x, y, MouseX.kr(-1, +1))
+                // B-format decode to quad (front-left, front-right, rear-left, rear-right)
+                DecodeB2.ar(4, w, rot.xr, rot.yr)
+            </example>
+            <see>ugen.PanB</see>
+            <see>ugen.BiPanB2</see>
+            <see>ugen.DecodeB2</see>
+            <see>ugen.Pan2</see>
+        </doc>
     </ugen>
     <ugen name="BiPanB2">
         <rate name="control"/>
@@ -262,13 +451,53 @@
             <arg name="inA" rate="ugen"/>
             <arg name="inB" rate="ugen"/>
         </rate>
-        <output name="w"/>
-        <output name="x"/>
-        <output name="y"/>
-        <arg name="inA"/>
-        <arg name="inB"/>
+        <output name="w">
+            <doc>
+                W (first) channel of the B-format output signal
+            </doc>
+        </output>
+        <output name="x">
+            <doc>
+                X (second) channel of the B-format output signal
+            </doc>
+        </output>
+        <output name="y">
+            <doc>
+                Y (third) channel of the B-format output signal
+            </doc>
+        </output>
+        <arg name="inA">
+            <doc>
+                the first (monophonic) input signal, which will appear opposite to the first second signal
+            </doc>
+        </arg>
+        <arg name="inB">
+            <doc>
+                the second (monophonic) input signal, which will appear opposite to the first input signal
+            </doc>
+        </arg>
         <arg name="azimuth" default="0.0"/>
         <arg name="level" default="1.0"/>
+        <doc>
+            <text>
+                A two dimensional Ambisonics B-format encoder UGen for a two-channel input signal.
+                ambisonic B-format. It places the two input channels at opposite poles of the 2D (W, X, Y)
+                Ambisonics field. It is equivalent to:
+                {{{
+                PanB2(_, inA, azimuth, level) + PanB2(_, inB, azimuth + 1, level)
+                }}}
+            </text>
+            <example name="4-channel rotation of opposite sounds">
+                val p = WhiteNoise.ar(0.05)                     // first source
+                val q = Mix(LFSaw.ar(Seq(200, 200.37))) * 0.03  // second source
+                // B-format encode 2 signals at opposite sides of the circle
+                val enc = BiPanB2.ar(p, q, MouseX.kr(-1, +1))
+                // B-format decode to quad (front-left, front-right, rear-left, rear-right)
+                DecodeB2.ar(4, enc.w, enc.x, enc.y)
+            </example>
+            <see>ugen.PanB2</see>
+            <see>ugen.DecodeB2</see>
+        </doc>
     </ugen>
     <ugen name="PanAz">
         <rate name="control"/>
@@ -347,10 +576,52 @@
             <arg name="y" rate="ugen"/>
         </rate>
         <output variadic="numChannels"/>
-        <arg name="numChannels" type="int"/>
-        <arg name="w"/>
-        <arg name="x"/>
-        <arg name="y"/>
-        <arg name="orient" default="0.5"/>
+        <arg name="numChannels" type="int">
+            <doc>
+                the number of output channels to produce
+            </doc>
+        </arg>
+        <arg name="w">
+            <doc>
+                W (first) channel of B-format input signal
+            </doc>
+        </arg>
+        <arg name="x">
+            <doc>
+                X (second) channel of B-format input signal
+            </doc>
+        </arg>
+        <arg name="y">
+            <doc>
+                Y (third) channel of B-format input signal
+            </doc>
+        </arg>
+        <arg name="orient" default="0.5">
+            <doc>
+                orientation of the first channel. If zero, the first channel corresponds
+                to the front vertex of the polygon. If the polygon does not have an edge at the front
+                but a vertex, then an `orient` of 0.5 indicates that the first channel corresponds to the
+                speaker left of the center.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A two dimensional Ambisonics B-format decoding UGen. It assumes a set of speakers in a regular
+                polygon. The output channels are in clockwise order. The position of the first speaker is
+                specified by the `orient` argument.
+            </text>
+            <example name="4-channel rotation of opposite sounds">
+                val p = WhiteNoise.ar(0.05)                     // first source
+                val q = Mix(LFSaw.ar(Seq(200, 200.37))) * 0.03  // second source
+                // B-format encode 2 signals at opposite sides of the circle
+                val enc = PanB2.ar(p, -0.5) + PanB2.ar(q, +0.5)
+                val Seq(w, x, y) = (0 to 2).map(enc \ _)
+                val rot = Rotate2.ar(x, y, MouseX.kr(-1, +1))
+                // B-format decode to quad (front-left, front-right, rear-left, rear-right)
+                DecodeB2.ar(4, w, rot.xr, rot.yr)
+            </example>
+            <see>ugen.PanB</see>
+            <see>ugen.PanB2</see>
+        </doc>
     </ugen>
 </ugens>

@@ -1,4 +1,5 @@
 <ugens revision="3">
+    <!-- all documented, except: DegreeToKey, Shaper, SinOscFB, VOsc, VOsc3, Osc, OscN, COsc, Formant, Blip, Saw, Pulse, Klang, Klank -->
     <ugen name="DegreeToKey" reads-buf="true">
         <rate name="control"/>
         <rate name="audio"/>
