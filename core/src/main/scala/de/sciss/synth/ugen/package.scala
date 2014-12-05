@@ -15,6 +15,7 @@ package de.sciss.synth
 
 import collection.immutable.{IndexedSeq => Vec}
 import collection.breakOut
+import scala.annotation.tailrec
 
 package object ugen {
   import language.implicitConversions
@@ -26,21 +27,46 @@ package object ugen {
 
   private[ugen] def nyquist: GE = BinaryOpUGen.Times.make(SampleRate.ir, 0.5f)
 
-  private[ugen] def replaceZeroesWithSilence(ins: Vec[UGenIn]): Vec[UGenIn] = {
-    val numZeroes = ins.foldLeft(0)((sum, in) => in match {
-      case Constant(0)  => sum + 1
-      case _            => sum
-    })
-    if (numZeroes == 0) {
-      ins
-    } else {
-      // WARNING: Silent has been removed now from scsynth !!!
-      //         val silent = Silent.ar( numZeroes ).outputs.iterator
-      //         val silent = new UGen.MultiOut( "Silent", audio, Vec.fill( numZeroes )( audio ), Vec.empty ).outputs.iterator
-      val silent = UGen.MultiOut("DC", audio, Vec(audio), Vec(Constant(0))).outputs.head
-      ins.map {
-        case Constant(0) => silent // .next()
-        case x => x
+  // if the input at index `idx` has a different rate than `target`, update the
+  // that input by wrapping it inside a conversion UGen
+  private[ugen] def matchRate(ins: Vec[UGenIn], idx: Int, target: Rate): Vec[UGenIn] = {
+    val in = ins(idx)
+    if (in.rate == target) ins else {
+      if (target == audio) {
+        val ugenName  = if (in.rate == scalar) "DC" else "K2A"
+        val upd       = UGen.SingleOut(ugenName, audio, Vector(in))
+        ins.updated(idx, upd)
+      } else {  // target == control | scalar
+        if (in.rate == audio) {
+          val ugenName  = if (target == scalar) "DC" else "A2K"
+          val upd       = UGen.SingleOut(ugenName, control, Vector(in))
+          ins.updated(idx, upd)
+        } else ins  // can use `scalar` where `control` is required
+      }
+    }
+  }
+
+  // repeats `matchRate` for all arguments beginning at `idx` to the end of `ins`
+  @tailrec private[ugen] def matchRateFrom(ins: Vec[UGenIn], idx: Int, target: Rate): Vec[UGenIn] =
+    if (idx == ins.size) ins else {
+      val ins1 = matchRate(ins, idx, target)
+      matchRateFrom(ins1, idx + 1, target)
+    }
+
+  // same as matchRate but assuming that the input is a trigger signal
+  private[ugen] def matchRateT(ins: Vec[UGenIn], idx: Int, target: Rate): Vec[UGenIn] = {
+    val in = ins(idx)
+    if (in.rate == target) ins else {
+      if (target == audio) {
+        val ugenName  = if (in.rate == scalar) "DC" else "T2A"
+        val upd       = UGen.SingleOut(ugenName, audio, Vector(in))
+        ins.updated(idx, upd)
+      } else {  // target == control | scalar
+        if (in.rate == audio) {
+          val ugenName  = if (target == scalar) "DC" else "T2K"
+          val upd       = UGen.SingleOut(ugenName, control, Vector(in))
+          ins.updated(idx, upd)
+        } else ins  // can use `scalar` where `control` is required
       }
     }
   }

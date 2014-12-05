@@ -40,6 +40,9 @@ final class ClassGenerator
   import global._
   import me.{global => gl}
 
+  private def termName(s: String): TermName = stringToTermName(s) // deprecated in 2.11 but required in 2.10
+  private def typeName(s: String): TypeName = stringToTypeName(s) // deprecated in 2.11 but required in 2.10
+
   val CHARSET       = "UTF-8"
 
   val DocWidth      = 80
@@ -94,13 +97,13 @@ final class ClassGenerator
 
       // ...if so, include the alias import for `inf`
       val imports0 = if(importFloat)
-       Import(identFloat, ImportSelector(strPositiveInfinity: TermName, -1, strInf: TermName, -1 ) :: Nil ) :: Nil
+       Import(identFloat, ImportSelector(termName(strPositiveInfinity), -1, termName(strInf), -1 ) :: Nil ) :: Nil
       else
         Nil
 
       // the imports always include the `Vec` alias, and optionally the `inf` alias.
       val imports = Import(Select(Ident("collection" ),"immutable"),
-        ImportSelector("IndexedSeq": TermName, -1, strVec: TypeName, -1) :: Nil) :: imports0
+        ImportSelector(termName("IndexedSeq"), -1, typeName(strVec), -1) :: Nil) :: imports0
 
       // the package definition defines the `synth` and `ugen` packages, adds the imports and then the classes
       val pkg     = PackageDef(Select(Select(Ident("de"), "sciss"), "synth"),
@@ -267,7 +270,8 @@ final class ClassGenerator
       feed(body3, linkLines)
     }
 
-    DocDef(DocComment(body4.mkString(s"\n\n/** ", "\n  * ", "\n  */\n"), NoPosition), tree)
+    // `body == false` is used for methods; in that case do not prepend new-lines
+    DocDef(DocComment(body4.mkString(if (body) s"\n\n/** " else s"/** ", "\n  * ", "\n  */\n"), NoPosition), tree)
   }
 
   private def mkLink(link0: String): String = {
@@ -342,10 +346,10 @@ final class ClassGenerator
     }
   }
 
-  private val traitSideEffect   = TypeDef(Modifiers(Flags.TRAIT), "HasSideEffect": TypeName, Nil, EmptyTree)
-  private val traitDoneFlag     = TypeDef(Modifiers(Flags.TRAIT), "HasDoneFlag":   TypeName, Nil, EmptyTree)
+  private val traitSideEffect   = TypeDef(Modifiers(Flags.TRAIT), typeName("HasSideEffect"), Nil, EmptyTree)
+  private val traitDoneFlag     = TypeDef(Modifiers(Flags.TRAIT), typeName("HasDoneFlag"  ), Nil, EmptyTree)
   // val traitRandom       = TypeDef(Modifiers(Flags.TRAIT), "UsesRandSeed":  TypeName, Nil, EmptyTree)
-  private val traitIndiv        = TypeDef(Modifiers(Flags.TRAIT), "IsIndividual":  TypeName, Nil, EmptyTree)
+  private val traitIndiv        = TypeDef(Modifiers(Flags.TRAIT), typeName("IsIndividual" ), Nil, EmptyTree)
   // val traitWritesBuffer = TypeDef(Modifiers(Flags.TRAIT), "WritesBuffer":  TypeName, Nil, EmptyTree)
   // val traitWritesFFT    = TypeDef(Modifiers(Flags.TRAIT), "WritesFFT":     TypeName, Nil, EmptyTree)
   // val traitWritesBus    = TypeDef(Modifiers(Flags.TRAIT), "WritesBus":     TypeName, Nil, EmptyTree)
@@ -372,6 +376,9 @@ final class ClassGenerator
   private val strRateMethod       = "rate"
   private val identRateArg        = Ident(strRateArg)
   private val identStringArg      = Ident("stringArg")
+  private val identMatchRate      = Ident("matchRate")
+  private val identMatchRateT     = Ident("matchRateT")
+  private val identMatchRateFrom  = Ident("matchRateFrom")
   private val strEmpty            = "empty"
   private val strPlusPlus         = "++"
   private val strMinus            = "-"
@@ -426,7 +433,7 @@ final class ClassGenerator
       val objectMethodArgs: List[ValDef] = argsIn.map { uArgInfo =>
         ValDef(
           Modifiers(Flags.PARAM),
-          uArgInfo.name,
+          termName(uArgInfo.name),
           Ident(uArgInfo.typeString),
           uArgInfo.defaultTree(rate)
         )
@@ -437,6 +444,7 @@ final class ClassGenerator
         if (objectMethodArgs.nonEmpty) objectMethodArgs :: Nil else Nil
 
       // e.g. `apply(audio, freq, phase)
+      // -- now replaced by `new SinOsc(audio, freq, phase)` to avoid overloading problems
       val methodBody = {
         val argIdents = argsIn.map(i => Ident(i.name))
         // prepend the rate argument if necessary
@@ -445,14 +453,15 @@ final class ClassGenerator
         else
           argIdents
 
-        Apply(identApply, applyArgs)
+        New(Ident(name), applyArgs :: Nil)
+        // Apply(identApply, applyArgs)
       }
 
       val methodNames = rates.method match {
         case RateMethod.Default     => rate.methodName :: Nil
         case RateMethod.Custom(m)   => m :: Nil
         case RateMethod.Alias(m)    => rate.methodName :: m :: Nil
-        case RateMethod.None        => Nil
+        // case RateMethod.None        => Nil
       }
 
       // e.g. `def ar(freq: GE, phase: GE = 0f): SinOsc`
@@ -460,13 +469,13 @@ final class ClassGenerator
       val fullMethods: List[(String, Tree)] = methodNames.map { mName =>
         val df = DefDef(
           NoMods withPosition(Flags.METHOD, NoPosition),
-          mName: TermName,
+          termName(mName),
           Nil,                   // tparams
           objectMethodArgsList,  // vparamss
 
           // Note: to help faster compilation of use site code, always produce the return type annotation
           // if (mName != strApply) EmptyTree else
-          TypeDef(NoMods, name: TypeName, Nil, EmptyTree),
+          TypeDef(NoMods, typeName(name), Nil, EmptyTree),
           methodBody             // rhs
         )
         mName -> wrapDoc(spec, df, /* indent = 1, */ body = false, args = true, examples = false)
@@ -485,15 +494,19 @@ final class ClassGenerator
           // e.g. `def kr: SinOsc = kr()
           val overloadedMethod  = DefDef(
             NoMods withPosition(Flags.METHOD, NoPosition),
-            mName: TermName,
+            termName(mName),
             Nil,            // tparams
             Nil,            // vparams
-            TypeDef(NoMods, name: TypeName, Nil, EmptyTree),
+            TypeDef(NoMods, typeName(name), Nil, EmptyTree),
             overloadedBody  // rhs
           )
           overloadedMethod :: fullMethod :: Nil
         }
       } else {
+        // Note: it's not possible to define `apply` on the companion object
+        // for case classes, even if we omit the default arguments on the
+        // case class constructor!
+        // (if (forceCompanion) fullMethods else fullButApply).map(_._2)
         fullButApply.map(_._2)
       }
     }
@@ -503,7 +516,7 @@ final class ClassGenerator
     val objectDef = if (forceCompanion || objectMethodDefs.nonEmpty) {
       val mod = ModuleDef(
         NoMods,
-        name,
+        termName(name),
         Template(
           EmptyTree :: Nil, // parents
           emptyValDef,      // self
@@ -523,7 +536,10 @@ final class ClassGenerator
       // for each argument the tuple (NoMods, argName, type or type-and-default)
       val argTuples = argsIn map { arg =>
         val tpe     = Ident(arg.typeString)
-        val tpeRHS  = arg.defaultTree() match {
+        // Note: it's not possible to define `apply` on the companion object
+        // for case classes, even if we omit the default arguments on the
+        // case class constructor!
+        val tpeRHS  = /* if (forceCompanion) tpe else */ arg.defaultTree() match {
           case EmptyTree  => tpe
           case t          => Assign(tpe, t)
         }
@@ -567,7 +583,7 @@ final class ClassGenerator
       val mixin3 = if (sideEffect || indSideEffect) traitSideEffect :: mixin2 else mixin2
 
       impliedRate match {
-        case Some(r)  => TypeDef(NoMods, r.traitTypeString: TypeName, Nil, EmptyTree) :: mixin3
+        case Some(r)  => TypeDef(NoMods, typeName(r.traitTypeString), Nil, EmptyTree) :: mixin3
         case _        => mixin3
       }
     }
@@ -597,10 +613,10 @@ final class ClassGenerator
 
         DefDef(
           NoMods withPosition(Flags.METHOD, NoPosition),
-          outName: TermName,
+          termName(outName),
           Nil,                                                        // tparams
           Nil,                                                        // vparamss
-          TypeDef(NoMods, "GE": TypeName, Nil, EmptyTree),            // tpt
+          TypeDef(NoMods, typeName("GE"), Nil, EmptyTree),            // tpt
           methodBody                                                  // rhs
         )
     } (breakOut)
@@ -654,10 +670,10 @@ final class ClassGenerator
 
       DefDef(
         NoMods withPosition(Flags.PROTECTED, NoPosition) withPosition(Flags.METHOD, NoPosition),
-        strMakeUGens: TermName,
+        termName(strMakeUGens),
         Nil,                                                        // tparams
         Nil,                                                        // vparamss
-        TypeDef(NoMods, expandResultStr: TypeName, Nil, EmptyTree), // tpt
+        TypeDef(NoMods, typeName(expandResultStr), Nil, EmptyTree), // tpt
         methodBody                                                  // rhs
       )
     }
@@ -665,7 +681,7 @@ final class ClassGenerator
     // `protected def makeUGen(_args: Vec[UGenIn]): UGenInLike = ...`
     val makeUGenDef = {
       val methodBody: Tree = {
-        val (preBody, ugenConstrArgs) = {
+        val (preBody, ugenConstrArgs, rateConsArgs) = {
           // args1 are the last two args (isIndividual, hasSideEffect)
           val args1 = {
             // the last argument to UGen.SingleOut and UGen.MultiOut is `hasSideEffect`.
@@ -683,7 +699,7 @@ final class ClassGenerator
             } else args0
           }
 
-          // if the rate is of type `MaybeRate`, it will be resolved in the begining of
+          // if the rate is of type `MaybeRate`, it will be resolved at the beginning of
           // the body and stored in local variable `_rate`. Otherwise we can use
           // `rate` straight away.
           val strResolvedRateArg = if (maybeRateRef.nonEmpty) "_rate" else strRateArg
@@ -726,12 +742,65 @@ final class ClassGenerator
             Apply(Apply(Select(identVector, strFill), numOutsTree :: Nil), identResolvedRate :: Nil) :: Nil
           }
 
+          // rate constraints resolution
+          // XXX TODO: if multiple arguments have the same constraints,
+          // we could optimize and have one common `if ... else` expression.
+          // (e.g. see `DecodeB2`)
+          val (rateConsTrees, rateConsArgs0, _) = ((List.empty[Tree], identUArgs, 0) /: argsOut.zipWithIndex) {
+            case (res @ (_consTrees, _consArgs, _consCount), (arg, argIdx)) =>
+              // the rate to which the ugen input is forced
+              def implCons(cons: RateConstraint, sameRate: Ident = identResolvedRate)
+                          (rhs: Tree => Tree = identity): (List[Tree], Ident, Int) = {
+                val tgt = cons match {
+                  case RateConstraint.SameAsUGen  => sameRate
+                  case RateConstraint.Fixed(r)    => Ident(r.name)
+                }
+                val newCount  = _consCount + 1
+                val newArgs   = identUArgs.name.toString + newCount
+                val isTrig    = arg.tpe match {
+                  case ArgumentType.GE(Sig.Trigger, _) => true
+                  case _ => false
+                }
+                val isMulti   = inputMap(arg.name).variadic
+                if (isTrig && isMulti)
+                  sys.error(s"The combination of variadic trigger input and rate constraints is not yet supported (${spec.name})")
+
+                // val <newArgs> = matchRate(<oldArgs>, argIdx, tgt)
+                val matchMethod = if (isTrig) identMatchRateT else if (isMulti) identMatchRateFrom else identMatchRate
+                val df = ValDef(
+                  NoMods,
+                  termName(newArgs),
+                  EmptyTree,
+                  rhs(Apply(matchMethod, _consArgs :: Literal(gl.Constant(argIdx)) :: tgt :: Nil))
+                )
+                val newTrees = _consTrees ++ List(df)
+                (newTrees, Ident(newArgs), newCount)
+              }
+
+              arg.rates.get(UndefinedRate).fold {
+                (res /: List(audio, control)) { (res1, rateKey) =>
+                  arg.rates.get(rateKey).fold(res1) { cons =>
+                    // ---- constraint only if host runs at audio-rate ----
+                    val identRateKey = Ident(rateKey.name)
+                    implCons(cons, identRateKey) { matchRateCall =>
+                      // if (identResolvedRate == tgt) matchRate(...) else oldArgs
+                      val cond = Apply(Select(identResolvedRate, "=="), identRateKey :: Nil)
+                      If(cond, matchRateCall, _consArgs)
+                    }
+                  }
+                }
+              } { cons =>
+                // ---- constraint for any host rate ----
+                implCons(cons)()
+              }
+          }
+
           // might support Mul besides other args in the future
           val inArg = if (expandBin.isDefined) {
             require(argsOut.size == 1, s"At present, Mul input must be only input, in $name")
             Select(identVector, strEmpty) // `inputs = Vector.empty`
           } else {
-            identUArgs  // `inputs = _args`
+            rateConsArgs0  // `inputs = _args`
           }
 
           // args3 = (outputRates, inputs, isIndividual, [hasSideEffect])
@@ -740,25 +809,27 @@ final class ClassGenerator
           val args4 = identName :: identResolvedRate :: args3
 
           // when using a MaybeRate, the preBody is the code that resolves that rate
-          val _preBody = if (maybeRateRef.isEmpty) None else {
+          val _preBody = if (maybeRateRef.isEmpty) rateConsTrees else {
             // XXX TODO: deal with multiple refs!
-            maybeRateRef.headOption.map { ua =>
+            maybeRateRef.headOption.fold(rateConsTrees) { ua =>
               val aPos = argsOut.indexOf(ua)
               require(argsOut.take(aPos).forall(a => a.typeIsGE && !inputMap(a.name).variadic), "Cannot resolve MaybeRate ref after multi args")
               // `val _rate = rate |? _args(<pos>).rate`
-              ValDef(
+              val rateResolution = ValDef(
                 NoMods,
-                strResolvedRateArg,
+                termName(strResolvedRateArg),
                 EmptyTree,
-                Apply(Select(identRateArg, strMaybeResolve), Select(Apply(identUArgs, Literal(gl.Constant(aPos)) :: Nil), strRateMethod) :: Nil)
+                Apply(Select(identRateArg, strMaybeResolve),
+                  Select(Apply(identUArgs, Literal(gl.Constant(aPos)) :: Nil), strRateMethod) :: Nil)
               )
+              rateResolution :: rateConsTrees
             }
           }
 
-          (_preBody, args4 :: Nil) // only single argument list
+          (_preBody, args4 :: Nil, rateConsArgs0) // only single argument list
         }
 
-        val ugenTpe     = TypeDef(NoMods, s"UGen.${outputsPrefix}Out", Nil, EmptyTree)
+        val ugenTpe     = TypeDef(NoMods, typeName(s"UGen.${outputsPrefix}Out"), Nil, EmptyTree)
         // val ugenConstr = New(ugenTpe, ugenConstrArgs)
         val ugenConstr  = Apply(ugenTpe, ugenConstrArgs.head)
 
@@ -768,31 +839,31 @@ final class ClassGenerator
           case Some(mul) =>
             val aPos      = argsOut.indexOf(mul)
             val mulMake1  = Select(Select(identBinaryOp, strTimes), strMake1)
-            Apply(mulMake1, ugenConstr :: Apply(identUArgs, Literal(gl.Constant(aPos)) :: Nil) :: Nil)
+            Apply(mulMake1, ugenConstr :: Apply(rateConsArgs, Literal(gl.Constant(aPos)) :: Nil) :: Nil)
 
           case _ => ugenConstr
         }
 
         // the complete body is the concatenation of the preBody (if it exists) and the ugen instantiation
         preBody match {
-          case Some(tree) => Block(tree, resApp)
-          case None => resApp
+          case Nil    => resApp
+          case trees  => Block(trees ++ List(resApp): _*)
         }
       }
 
       val methodArgs = List(List(ValDef(
         Modifiers(Flags.PARAM),
-        strUArgs,
-        TypeDef(NoMods, strVec: TypeName, TypeDef(NoMods, strUGenIn: TypeName, Nil, EmptyTree) :: Nil, EmptyTree),
+        termName(strUArgs),
+        TypeDef(NoMods, typeName(strVec), TypeDef(NoMods, typeName(strUGenIn), Nil, EmptyTree) :: Nil, EmptyTree),
         EmptyTree
       )))
 
       DefDef(
         NoMods withPosition(Flags.PROTECTED, NoPosition) withPosition(Flags.METHOD, NoPosition),
-        strMakeUGen: TermName,
+        termName(strMakeUGen),
         Nil,                                                        // tparams
         methodArgs,                                                 // vparamss
-        TypeDef(NoMods, expandResultStr: TypeName, Nil, EmptyTree), // tpt
+        TypeDef(NoMods, typeName(expandResultStr), Nil, EmptyTree), // tpt
         methodBody                                                  // rhs
       )
     }
@@ -805,7 +876,7 @@ final class ClassGenerator
     // e.g. `UGenSource.ZeroOut` or `UGenSource.SingleOut`, ...
     val outputsTypeString = s"UGenSource.${outputsPrefix}Out"
     // super class and traits
-    val caseClassParents  = TypeDef(NoMods, outputsTypeString, Nil, EmptyTree) :: caseClassMixins
+    val caseClassParents  = TypeDef(NoMods, typeName(outputsTypeString), Nil, EmptyTree) :: caseClassMixins
 
     // if there is a companion object or the UGen is individual or it has arguments, a case class
     // is constructed (the usual case)....
@@ -825,7 +896,7 @@ final class ClassGenerator
     } else {
       ModuleDef(
         NoMods withPosition(Flags.CASE, NoPosition),
-        name,
+        termName(name),
         Template(
           caseClassParents, // parents
           emptyValDef,      // self

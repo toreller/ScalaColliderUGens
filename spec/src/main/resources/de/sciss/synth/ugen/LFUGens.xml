@@ -1,4 +1,4 @@
-<ugens revision="8">
+<ugens revision="9">
     <!-- all documented -->
     <ugen name="Vibrato">
         <rate name="control"/>
@@ -456,7 +456,7 @@
     </ugen>
     <ugen name="T2K">
         <rate name="control" implied="true"/>
-        <arg name="in" rate="audio">
+        <arg name="in" rate="audio" type="trig">
             <doc>
                 audio-rate trigger input
             </doc>
@@ -480,7 +480,7 @@
     </ugen>
     <ugen name="T2A">
         <rate name="audio" implied="true"/>
-        <arg name="in">
+        <arg name="in" type="trig">
             <doc>
                 control-rate trigger input
             </doc>

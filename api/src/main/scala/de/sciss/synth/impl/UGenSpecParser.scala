@@ -431,8 +431,9 @@ private[synth] object UGenSpecParser {
     var argRatesMap = Map.empty[String, Map[Rate, (Option[String], Option[RateConstraint])]] withDefaultValue Map.empty
 
     def getRateConstraint(map: Map[String, String]): Option[RateConstraint] = map.get("rate").map {
-      case "ugen"   => RateConstraint.SameAsUGen
-      case "audio"  => RateConstraint.Fixed(audio)
+      case "ugen"     => RateConstraint.SameAsUGen
+      case "audio"    => RateConstraint.Fixed(audio)
+      case "control"  => RateConstraint.Fixed(control)
     }
 
     def getRate(map: Map[String, String]): Rate = {
@@ -484,10 +485,10 @@ private[synth] object UGenSpecParser {
 
       val rMethod = (rAttr.get("method"), rAttr.get("method-alias")) match {
         case (None, None)     => RateMethod.Default
-        case (Some(""), None) =>
-          if (aNodes.nonEmpty || indIndiv)
-            sys.error(s"Cannot produce singleton for ugen $uName that has arguments or is individual")
-          RateMethod.None
+        //        case (Some(""), None) =>
+        //          if (aNodes.nonEmpty || indIndiv)
+        //            sys.error(s"Cannot produce singleton for ugen $uName that has arguments or is individual")
+        //          RateMethod.None
         case (Some(m), None)  => RateMethod.Custom(m)
         case (None, Some(m))  => RateMethod.Alias(m)
         case other            =>
@@ -558,9 +559,7 @@ private[synth] object UGenSpecParser {
 
       // constraints and rate specific defaults
 
-      getRateConstraint(aAttrs).foreach { cons =>
-        aRates += UndefinedRate -> RateConstraint.SameAsUGen
-      }
+      getRateConstraint(aAttrs).foreach(aRates += UndefinedRate -> _)
 
       argRatesMap(aName).foreach { case (r, (raDef, raCons)) =>
         raCons.foreach { cons =>

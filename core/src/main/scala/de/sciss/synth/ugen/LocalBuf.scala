@@ -21,6 +21,12 @@ import collection.immutable.{IndexedSeq => Vec}
 /** A UGen that allocates a buffer local to the synth.
   * This is convenient for example when using an `FFT` chain.
   *
+  * @see [[de.sciss.synth.ugen.FFT]]
+  */
+object LocalBuf
+/** A UGen that allocates a buffer local to the synth.
+  * This is convenient for example when using an `FFT` chain.
+  *
   * @param numFrames    number of sample frames for the buffer
   * @param numChannels  number of channels for the buffer
   *

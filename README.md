@@ -113,7 +113,7 @@ The second attribute, `method`, builds up `implied` and requires that `implied` 
 |--------------|---------------------------------|----------|
 |`default`     |Default expression for the argument. This can be either a number literal or a special string such `"nyquist"` or `"doNothing"` (see below) |`440`, `1.0`, `inf` |
 |`type`        |Argument type when it is not `ge` (generic graph element). (See below) |`PanAz`, `Poll` |
-|`rate`|Constrains the supported rate for this argument. The only value presently recognized is `"ugen"` which means the argument is required to run at the _same rate as the UGen_. Please see also the section below about rate specific argument settings. | `DiskOut` (`in`) |
+|`rate`|Constrains the supported rate for this argument. The only values presently recognized are `"ugen"` which means the argument is required to run at the _same rate as the UGen_, or a rate name such as `"audio"` which enforces that particular rate. Please see also the section below about rate specific argument settings. | `DiskOut` (`in`) |
 
 The following table lists the allowed `type` values, and corresponding ways of defining default values. If the default value is unambiguous, the type is automatically inferred, e.g. using `default="high"` implies a `type="trig"`. If the type and default value are incompatible, the parser will throw an exception.
 

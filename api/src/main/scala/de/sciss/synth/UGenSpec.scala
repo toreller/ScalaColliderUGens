@@ -316,8 +316,8 @@ object UGenSpec {
       * standard UGens.
       */
     case class Alias (name: String) extends RateMethod
-    /** OBSOLETE: This value is not used any more. */
-    case object None extends RateMethod
+    //    /** OBSOLETE: This value is not used any more. */
+    //    case object None extends RateMethod
   }
   /** The shape of a UGen's constructor method relating to a particular calculation rate.
     * For example, it may be one of the standard namings like `ar` for audio-rate
