@@ -1,6 +1,6 @@
 name := "ScalaColliderUGens"
 
-version            in ThisBuild := "1.12.0"
+version            in ThisBuild := "1.12.1-SNAPSHOT"
 
 organization       in ThisBuild := "de.sciss"
 
@@ -11,8 +11,6 @@ homepage           in ThisBuild := Some(url("https://github.com/Sciss/" + name.v
 scalaVersion       in ThisBuild := "2.11.4"
 
 crossScalaVersions in ThisBuild := Seq("2.11.4", "2.10.4")
-
-// retrieveManaged    in ThisBuild := true
 
 scalacOptions      in ThisBuild ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture")
 

@@ -1,4 +1,4 @@
-<ugens revision="5">
+<ugens revision="8">
     <!-- all documented -->
     <ugen name="WhiteNoise" random="true">
         <rate name="control"/>
@@ -472,7 +472,10 @@
     </ugen>
     <ugen name="TRand" random="true">
         <rate name="control"/>
-        <rate name="audio"/>
+        <rate name="audio">
+            <arg name="lo" rate="control"/>
+            <arg name="hi" rate="control"/>
+        </rate>
         <arg name="lo" default="0.0">
             <doc>
                 lower limit of the output range
@@ -492,6 +495,9 @@
             <text>
                 A UGen that generates a new random decimal value each time it is triggered,
                 using a uniform distribution from `lo` to `hi`.
+
+                '''Note''': Audio-rate inputs for `lo` and `hi` are currently broken in SuperCollider,
+                and will therefore be converted to control-rate inputs.
             </text>
             <example name="random sine frequencies, triggered by mouse button">
                 val tr = MouseButton.kr(lag = 0)
@@ -506,7 +512,10 @@
     </ugen>
     <ugen name="TExpRand" random="true">
         <rate name="control"/>
-        <rate name="audio"/>
+        <rate name="audio">
+            <arg name="lo" rate="control"/>
+            <arg name="hi" rate="control"/>
+        </rate>
         <arg name="lo" default="0.01">
             <doc>
                 lower limit of the output range
@@ -527,6 +536,9 @@
                 A UGen that generates a new random decimal value each time it is triggered,
                 using an exponential distribution from `lo` to `hi`.
                 Values `lo` and `hi` must both have the same sign and be non-zero.
+
+                '''Note''': Audio-rate inputs for `lo` and `hi` are currently broken in SuperCollider,
+                and will therefore be converted to control-rate inputs.
             </text>
             <example name="random sine frequencies, triggered by mouse button">
                 val tr = MouseButton.kr(lag = 0)
@@ -540,7 +552,10 @@
     </ugen>
     <ugen name="TIRand" random="true">
         <rate name="control"/>
-        <rate name="audio"/>
+        <rate name="audio">
+            <arg name="lo" rate="control"/>
+            <arg name="hi" rate="control"/>
+        </rate>
         <arg name="lo" default="0">
             <doc>
                 lower limit of the output range
@@ -560,6 +575,9 @@
             <text>
                 A UGen that outputs integer random numbers when triggered. The values have
                 a uniform distribution from `lo` to `hi` (inclusive).
+
+                '''Note''': Audio-rate inputs for `lo` and `hi` are currently broken in SuperCollider,
+                and will therefore be converted to control-rate inputs.
             </text>
             <example name="random sine frequencies, triggered by mouse button">
                 val tr = MouseButton.kr(lag = 0)
