@@ -4,7 +4,7 @@
 
 Specification and base API of [ScalaCollider](https://github.com/Sciss/ScalaCollider) UGens, as well as a core library of generated UGen classes.
 
-This project is (C)opyright 2008-2014 by Hanns Holger Rutz. All rights reserved. All sub projects released under the GNU GPL v2+, except for the specification which is released under a BSD-style license. All code comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
+This project is (C)opyright 2008-2015 by Hanns Holger Rutz. All rights reserved. All sub projects released under the GNU GPL v2+, except for the specification which is released under a BSD-style license. All code comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
 
 Big thanks to Mirko Stocker for the [Scala-Refactoring Library](http://scala-refactoring.org/) which provides the AST-to-source code converter.
 
@@ -141,6 +141,7 @@ The following three argument attributes have boolean values, and are `"false"` b
 |--------------|---------------------------------|----------|
 |`ugen-in` |Forces an `Int` type argument to be used as actual UGen input and not just auxiliary type. | `MFCC` |
 |`variadic`|Indicates an argument which expands over multiple UGen inputs. | `RecordBuf` (`in`), `Dseq` (`seq`) |
+|`prepend-size`|Must be combined with `variadic`: the variadic arg's size is prepended as additional UGen input. | `PackFFT` |
 
 Arguments should be chosen careful not to conflict with methods available on `GEOps`. This is the reason, why various arguments which are named `rate` in SCLang have been renamed for example to `speed`, `freq` etc. It is recommended to take a look at the naming of the arguments in the default plugins (rather than relying on the naming in SCLang which is often unreflected and irregular) and try to reuse them whenever possible, and to be as consistent as possible with abbreviations. Care is also needed with the default values. There are some default values in SCLang which are insensible, while other useful defaults are missing. The aim is not to provide default values for every possible argument, but to require to fill in arguments for which defaults do not make sense.
 

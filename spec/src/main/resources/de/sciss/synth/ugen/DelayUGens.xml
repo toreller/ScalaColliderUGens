@@ -1,4 +1,4 @@
-<ugens revision="6">
+<ugens revision="8">
     <!-- all documented -->
     <ugen name="ControlRate">
         <rate name="scalar" implied="true"/>    <!-- method="" -->
@@ -1714,21 +1714,19 @@
     <!-- <ugen name="MaxLocalBufs"/> -->
     <!-- <ugen name="LocalBuf"/> -->
 
-    <!-- XXX TODO:
     <ugen name="SetBuf" writes-buf="true">
-        NOTE: the multi arg is preceded by its size
         <rate name="scalar" implied="true"/>
-        <arg name="buf">
+        <arg name="buf" pos="0">
             <doc>
                 the buffer to write the values into
             </doc>
         </arg>
-        <arg name="offset" default="0" pos="1">
+        <arg name="offset" default="0" pos="2">
             <doc>
                 frame offset into the buffer
             </doc>
         </arg>
-        <arg name="values" variadic="true" pos="0">
+        <arg name="values" variadic="true" prepend-size="true" pos="1">
             <doc>
                 values to write into the buffer
             </doc>
@@ -1741,7 +1739,6 @@
             <see>ugen.ClearBuf</see>
         </doc>
     </ugen>
-    -->
 
     <ugen name="ClearBuf" writes-buf="true">
         <rate name="scalar" implied="true"/>

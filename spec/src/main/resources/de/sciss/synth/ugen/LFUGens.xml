@@ -912,7 +912,7 @@
             <see>ugen.Clip</see>
         </doc>
     </ugen>
-    <ugen name="LinExp"> <!-- TODO: first arg rate has to be rate ? -->
+    <ugen name="LinExp"> <!-- XXX TODO: first arg rate has to be rate ? -->
         <rate name="scalar"/>
         <rate name="control"/>
         <rate name="audio"/>

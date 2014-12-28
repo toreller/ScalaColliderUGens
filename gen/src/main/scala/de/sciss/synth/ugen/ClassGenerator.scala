@@ -2,7 +2,7 @@
  *  ClassGenerator.scala
  *  (ScalaColliderUGens)
  *
- *  Copyright (c) 2008-2014 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2015 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU General Public License v2+
  *
@@ -355,9 +355,10 @@ final class ClassGenerator
   // val traitWritesBus    = TypeDef(Modifiers(Flags.TRAIT), "WritesBus":     TypeName, Nil, EmptyTree)
 
   private val strApply            = "apply"
-  private val identApply          = Ident(strApply)
+  // private val identApply          = Ident(strApply)
   private val strVec              = "Vec"
   private val identVector         = Ident("Vector")
+  private val identConstant       = Ident("Constant")
   private val identChannelProxy   = Ident("ChannelProxy")
   private val strMakeUGens        = "makeUGens"
   private val strMakeUGen         = "makeUGen"
@@ -381,6 +382,7 @@ final class ClassGenerator
   private val identMatchRateFrom  = Ident("matchRateFrom")
   private val strEmpty            = "empty"
   private val strPlusPlus         = "++"
+  private val strPlusColon        = "+:"
   private val strMinus            = "-"
   private val strSize             = "size"
   private val strFill             = "fill"
@@ -630,7 +632,22 @@ final class ClassGenerator
             case GE(Sig.String,_) => Apply(identStringArg, id :: Nil)
             case GE(_,_) =>
               val sel = Select(id, strExpand)
-              if (inputMap(a.name).variadic) Select(sel, strOutputs) else sel
+              inputMap(a.name).tpe match {
+                case Input.Single => sel
+                case Input.Variadic(prepSz) =>
+                  val sel1 = Select(sel, strOutputs)
+                  if (prepSz) {
+                    Block(
+                      ValDef(
+                        NoMods,
+                        termName("_exp"),
+                        EmptyTree,
+                        sel1
+                      ),
+                      Apply(Select(Ident("_exp"), strPlusColon), Apply(identConstant, Select(Ident("_exp"), strSize) :: Nil) :: Nil)
+                    )
+                  } else sel1
+              }
 
             case ArgumentType.Int => id
           }

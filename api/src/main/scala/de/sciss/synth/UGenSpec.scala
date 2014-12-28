@@ -2,7 +2,7 @@
  *  UGenSpec.scala
  *  (ScalaColliderUGens)
  *
- *  Copyright (c) 2008-2014 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2015 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU General Public License v2+
  *
@@ -286,15 +286,22 @@ object UGenSpec {
     */
   sealed trait ArgumentValue
 
+  object Input {
+    sealed trait Type { def variadic: Boolean }
+    case object Single extends Type { def variadic = false }
+    case class Variadic(prependSize: Boolean) extends Type { def variadic = true }
+  }
   /** A UGen (server-side) input corresponds with a particular argument in the client-side interface.
     *
-    * @param arg      the name of the argument (in the spec's `args` sequence) corresponding to the UGen input.
-    * @param variadic if `true`, the signal is treated as a multi-channel input with variable number of channels.
-    *                 only the last input of a UGen can be variadic. An example is the second input of
-    *                 the `Out` UGen.
+    * @param arg    the name of the argument (in the spec's `args` sequence) corresponding to the UGen input.
+    * @param tpe    if variadic, the signal is treated as a multi-channel input with variable number of channels.
+    *               only the last input of a UGen can be variadic. An example is the second input of
+    *               the `Out` UGen.
     */
-  final case class Input(arg: String, variadic: Boolean) {
-    override def toString = if (variadic) arg + "..." else arg
+  final case class Input(arg: String, tpe: Input.Type) {
+    override def toString = if (tpe.variadic) arg + "..." else arg
+
+    def variadic: Boolean = tpe.variadic
   }
 
   // ---- Supported rates ----

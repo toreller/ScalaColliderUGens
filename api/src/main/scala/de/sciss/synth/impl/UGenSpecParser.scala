@@ -2,7 +2,7 @@
  *  UGenSpecParser.scala
  *  (ScalaColliderUGens)
  *
- *  Copyright (c) 2008-2014 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2015 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU General Public License v2+
  *
@@ -43,7 +43,7 @@ private[synth] object UGenSpecParser {
 
   private val argAttrKeys = Set(
     "name", // required
-    "type", "init", "default", "rate", "ugen-in", "pos", "variadic"
+    "type", "init", "default", "rate", "ugen-in", "pos", "variadic", "prepend-size"
   )
 
   private val outputAttrKeys = Set(
@@ -547,8 +547,10 @@ private[synth] object UGenSpecParser {
       }
 
       if (isInput) {
-        val variadic = aAttrs.boolean("variadic")                                     // handles "variadic"
-        val in = Input(aName, variadic = variadic)
+        val variadic  = aAttrs.boolean("variadic")                                     // handles "variadic"
+        val preSz     = aAttrs.boolean("prepend-size")
+        val tpe = if (variadic) Input.Variadic(prependSize = preSz) else Input.Single
+        val in  = Input(aName, tpe = tpe)
         inputMap += aName -> in
         inputs :+= in
       }

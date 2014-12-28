@@ -160,7 +160,7 @@
             <see>ugen.ListTrig2</see>
         </doc>
     </ugen>
-    <!-- TODO: GaussClass -->
+    <!-- XXX TODO: GaussClass -->
     <ugen name="BufMax" reads-buf="true">
         <rate name="scalar"/>
         <rate name="control"/>
