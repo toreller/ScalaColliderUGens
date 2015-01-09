@@ -298,8 +298,32 @@
     <ugen name="Shaper" reads-buf="true">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="buf" type="buf"/>
-        <arg name="in"/>
+        <arg name="buf" type="buf">
+            <doc>
+                buffer filled in wavetable format containing the transfer function.
+            </doc>
+        </arg>
+        <arg name="in">
+            <doc>
+                signal to be fed into the wave shaper
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A waveshaping UGen. Waveshaping is a the process of translating an input signal by
+                indexing a table (buffer).
+
+                '''Advanced notes:''' wavetable format:
+                {{{
+                Signal: [a0, a1, a2...]
+                Wavetable: [2*a0-a1, a1-a0, 2*a1-a2, a2-a1, 2*a2-a3, a3-a2...]
+                }}}
+                This strange format is not a standard linear interpolation (integer + frac), but for (integer part -1)
+                and (1+frac)) due to some efficient maths for integer to float conversion in the underlying C code.
+            </text>
+            <see>ugen.Index</see>
+            <see>ugen.WrapIndex</see>
+        </doc>
     </ugen>
     <!-- this should exist according to plugin sources...
     <ugen name="SigOsc"/>

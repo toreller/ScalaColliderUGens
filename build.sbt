@@ -8,9 +8,9 @@ description        in ThisBuild := "UGens for ScalaCollider"
 
 homepage           in ThisBuild := Some(url("https://github.com/Sciss/" + name.value))
 
-scalaVersion       in ThisBuild := "2.11.4"
+scalaVersion       in ThisBuild := "2.11.5"
 
-crossScalaVersions in ThisBuild := Seq("2.11.4", "2.10.4")
+crossScalaVersions in ThisBuild := Seq("2.11.5", "2.10.4")
 
 scalacOptions      in ThisBuild ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture")
 
