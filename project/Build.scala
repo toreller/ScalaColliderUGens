@@ -8,11 +8,11 @@ object Build extends sbt.Build {
   def baseNameL = baseName.toLowerCase
 
   def numbersVersion      = "0.1.1"
-  def scalaTestVersion    = "2.2.2"
-  def scoptVersion        = "3.2.0"
+  def scalaTestVersion    = "2.2.3"
+  def scoptVersion        = "3.3.0"
   def refactoringVersion  = "0.1.0"
   def fileUtilVersion     = "1.1.1"
-  def scalaXMLVersion     = "1.0.2"
+  def scalaXMLVersion     = "1.0.3"
 
   lazy val root: Project = Project(
     id        = baseNameL,
