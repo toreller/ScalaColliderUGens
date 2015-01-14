@@ -1,4 +1,4 @@
-<ugens revision="5">
+<ugens revision="6">
     <!-- all documented, except: APF -->
     <ugen name="Ramp">
         <rate name="control"/>
@@ -370,7 +370,7 @@
     <ugen name="Delay1">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in">
+        <arg name="in" rate="ugen">
             <doc>
                 input to be delayed
             </doc>
@@ -395,7 +395,7 @@
     <ugen name="Delay2">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in">
+        <arg name="in" rate="ugen">
             <doc>
                 input to be delayed
             </doc>
