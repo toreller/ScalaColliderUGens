@@ -1,4 +1,4 @@
-<ugens revision="4">
+<ugens revision="5">
     <!-- all documented, except: APF -->
     <ugen name="Ramp">
         <rate name="control"/>
@@ -1365,7 +1365,7 @@
     <ugen name="Amplitude">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in">
+        <arg name="in" rate="ugen">
             <doc>
                 input signal to be analyzed
             </doc>

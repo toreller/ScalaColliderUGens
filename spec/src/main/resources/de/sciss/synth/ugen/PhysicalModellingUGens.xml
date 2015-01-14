@@ -1,15 +1,15 @@
-<ugens revision="1">
+<ugens revision="2">
     <ugen name="Spring">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in"/>
+        <arg name="in" rate="ugen"/>
         <arg name="spring" default="1.0"/>
         <arg name="damp" default="0.0"/>
     </ugen>
     <ugen name="Ball">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in"/>
+        <arg name="in" rate="ugen"/>
         <arg name="g" default="1.0"/>
         <arg name="damp" default="0.0"/>
         <arg name="friction" default="0.01"/>
@@ -17,7 +17,7 @@
     <ugen name="TBall">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in"/>
+        <arg name="in" rate="ugen"/>
         <arg name="g" default="10.0"/>
         <arg name="damp" default="0.0"/>
         <arg name="friction" default="0.01"/>
