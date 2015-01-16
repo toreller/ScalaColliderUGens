@@ -34,7 +34,7 @@ private[synth] object UGenSpecParser {
     "name", // required
     "reads-bus",  "reads-buf",  "reads-fft", "random", "indiv",
     "writes-bus", "writes-buf", "writes-fft", "side-effect",
-    "done-flag"
+    "done-flag" /* , "provided" */
   )
 
   private val nodeChildKeys = Set(

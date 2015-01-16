@@ -24,8 +24,8 @@ object UGenSpec {
   final val standardPlugins = List(
     "ChaosUGens", "DelayUGens", "DemandUGens", "DiskIOUGens", "DynNoiseUGens", "FFT2_UGens", "FFT_UGens",
     "FilterUGens", "GendynUGens", "GrainUGens", "IOUGens", "KeyboardUGens", "LFUGens", "MachineListening",
-    "MouseUGens", "NoiseUGens", "OSCUGens", "PanUGens", "PhysicalModellingUGens", "ReverbUGens", "TestUGens",
-    "TriggerUGens", "UnpackFFTUGens"
+    "MouseUGens", /* "MulAddUGens", */ "NoiseUGens", "OSCUGens", "PanUGens", "PhysicalModellingUGens", "ReverbUGens",
+    "TestUGens", "TriggerUGens", "UnpackFFTUGens"
   )
 
   /** List of third-party UGens as per https://github.com/supercollider/sc3-plugins,
