@@ -1,4 +1,4 @@
-<ugens revision="8">
+<ugens revision="9">
     <!-- all documented -->
     <ugen name="WhiteNoise" random="true">
         <rate name="control"/>
@@ -255,7 +255,7 @@
     <ugen name="Hasher">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in">
+        <arg name="in" rate="ugen">
             <doc>
                 input to calculate the hash function for
             </doc>
@@ -281,7 +281,7 @@
     <ugen name="MantissaMask">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in">
+        <arg name="in" rate="ugen">
             <doc>
                 input signal to quantize
             </doc>
@@ -700,7 +700,7 @@
                 the probability between zero (no trigger passed) and 1 (all triggers passed)
             </doc>
         </arg>
-        <arg name="in" type="trig" pos="0">
+        <arg name="in" type="trig" pos="0" rate="ugen">
             <doc>
                 the input triggers to filter
             </doc>

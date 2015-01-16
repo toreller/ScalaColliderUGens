@@ -1,4 +1,4 @@
-<ugens revision="6">
+<ugens revision="8">
     <!-- all documented -->
     <ugen name="Trig1">
         <rate name="audio"/>
@@ -163,7 +163,7 @@
     <ugen name="ToggleFF">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="trig" type="trig">
+        <arg name="trig" type="trig" rate="ugen">
             <doc>
                 a signal to trigger the flip-flop. a trigger occurs when the signal
                 changes from non-positive to positive.
@@ -188,7 +188,7 @@
     <ugen name="SetResetFF">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="trig" type="trig">
+        <arg name="trig" type="trig" rate="ugen">
             <doc>
                 trigger that sets output to 1. A trigger happens when the signal changes from non-positive
                 to positive.
@@ -243,7 +243,7 @@
     <ugen name="Gate">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in">
+        <arg name="in" rate="ugen">
             <doc>
                 the input signal to gate
             </doc>
@@ -293,7 +293,7 @@
     <ugen name="PulseDivider">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="trig" type="trig">
+        <arg name="trig" type="trig" rate="ugen">
             <doc>
                 a trigger occurs when the signal changes from non-positive to positive.
             </doc>
@@ -430,7 +430,7 @@
     <ugen name="TDelay">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="trig" type="trig">
+        <arg name="trig" type="trig" rate="ugen">
             <doc>
                 The input trigger. A trigger is recognized when the signal passes from
                 non-positive to positive. Note that, no matter what the amplitude of
@@ -716,14 +716,14 @@
     <ugen name="PeakFollower">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="in">
+        <arg name="in" rate="ugen">
             <doc>
-
+                input signal to trace
             </doc>
         </arg>
         <arg name="decay" default="0.999">
             <doc>
-
+                feedback coefficient controlling the release rate
             </doc>
         </arg>
         <doc>
@@ -788,7 +788,7 @@
     <ugen name="LeastChange">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="a">
+        <arg name="a" rate="ugen">
             <doc>
                 first input signal to select from
             </doc>
