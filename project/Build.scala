@@ -2,6 +2,7 @@ import sbt._
 import Keys._
 import sbt.File
 import sbtbuildinfo.Plugin._
+import org.scalajs.sbtplugin.ScalaJSPlugin
 
 object Build extends sbt.Build {
   def baseName  = "ScalaColliderUGens"
@@ -13,6 +14,8 @@ object Build extends sbt.Build {
   def refactoringVersion  = "0.1.0"
   def fileUtilVersion     = "1.1.1"
   def scalaXMLVersion     = "1.0.3"
+
+  lazy val scalajsSettings = Nil
 
   lazy val root: Project = Project(
     id        = baseNameL,
@@ -44,11 +47,12 @@ object Build extends sbt.Build {
     )
   )
 
-  lazy val api = Project(
-    id        = s"$baseNameL-api",
-    base      = file("api"),
-    //    dependencies = Seq(xml),
-    settings  = Project.defaultSettings ++ buildInfoSettings ++ Seq(
+  def api = `scalacolliderugens-api`
+
+  lazy val `scalacolliderugens-api` = project.in(file("api"))
+    .settings(buildInfoSettings:_*)
+    .settings(scalajsSettings:_*)
+    .settings(Seq(
       description := "Basic UGens API for ScalaCollider",
       licenseURL("GPL v2+", "api"),
       libraryDependencies += "de.sciss" %% "numbers" % numbersVersion,
@@ -68,8 +72,8 @@ object Build extends sbt.Build {
         }
       ),
       buildInfoPackage := "de.sciss.synth.ugen"
-    )
-  )
+    ):_*)
+    .enablePlugins(ScalaJSPlugin)
 
   lazy val gen = Project(
     id            = s"$baseNameL-gen",
@@ -89,11 +93,12 @@ object Build extends sbt.Build {
     )
   )
 
-  lazy val core = Project(
-    id            = s"$baseNameL-core",
-    base          = file("core"),
-    dependencies  = Seq(api),
-    settings      = Project.defaultSettings ++ Seq(
+  def core = `scalacolliderugens-core`
+
+  lazy val `scalacolliderugens-core` = project.in(file("core"))
+    .dependsOn(api)
+    .settings(scalajsSettings:_*)
+    .settings(Seq(
       description := "UGen classes for ScalaCollider",
       licenseURL("GPL v2+", "core"),
       sourceGenerators in Compile <+= (ugenGenerator in Compile),
@@ -104,8 +109,8 @@ object Build extends sbt.Build {
          streams) map {
           (spec, src, cp, st) => runUGenGenerator("--standard", spec, src, cp.files, st.log)
         }
-    )
-  )
+    ):_*)
+    .enablePlugins(ScalaJSPlugin)
 
   lazy val plugins = Project(
     id            = s"$baseNameL-plugins",
