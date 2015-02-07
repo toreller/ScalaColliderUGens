@@ -1,8 +1,6 @@
-// enablePlugins(ScalaJSPlugin)
-
 name := "ScalaColliderUGens"
 
-version            in ThisBuild := "1.13.1"
+version            in ThisBuild := "1.14.0-SNAPSHOT"
 
 organization       in ThisBuild := "de.sciss"
 

@@ -14,7 +14,7 @@
 package de.sciss.synth
 
 import collection.immutable.{IndexedSeq => Vec}
-import java.io.DataOutputStream
+import java.io.OutputStream
 
 object UGenGraph {
   trait BuilderFactory {
@@ -88,45 +88,59 @@ object UGenGraph {
 final case class UGenGraph(constants: Vec[Float], controlValues: Vec[Float],
                            controlNames: Vec[(String, Int)], ugens: Vec[UGenGraph.RichUGen]) {
   //   override lazy val hashCode = ... TODO: figure out how case class calculates it...
-  private[synth] def write(dos: DataOutputStream): Unit = {
+  private[synth] def write(dos: OutputStream): Unit = {
     // ---- constants ----
-    dos.writeShort(constants.size)
-    constants.foreach(dos.writeFloat)
+    writeShort(dos, constants.size)
+    constants.foreach(writeFloat(dos, _))
 
     // ---- controls ----
-    dos.writeShort(controlValues.size)
-    controlValues.foreach(dos.writeFloat)
+    writeShort(dos, controlValues.size)
+    controlValues.foreach(writeFloat(dos, _))
 
-    dos.writeShort(controlNames.size)
+    writeShort(dos, controlNames.size)
     var count = 0
     controlNames.foreach { name =>
       writePascalString(dos, name._1)
-      dos.writeShort(name._2)
+      writeShort(dos, name._2)
       count += 1
     }
 
-    dos.writeShort(ugens.size)
+    writeShort(dos, ugens.size)
     ugens.foreach { ru =>
       val ugen = ru.ugen
       writePascalString(dos, ugen.name)
 
-      dos.writeByte(ugen.rate.id)
-      dos.writeShort(ugen.numInputs)
-      dos.writeShort(ugen.numOutputs)
-      dos.writeShort(ugen.specialIndex)
+      dos.write(ugen.rate.id)
+      writeShort(dos, ugen.numInputs)
+      writeShort(dos, ugen.numOutputs)
+      writeShort(dos, ugen.specialIndex)
 
       ru.inputSpecs.foreach { spec =>
-        dos.writeShort(spec._1)
-        dos.writeShort(spec._2)
+        writeShort(dos, spec._1)
+        writeShort(dos, spec._2)
       }
-      ugen.outputRates.foreach(r => dos.writeByte(r.id))
+      ugen.outputRates.foreach(r => dos.write(r.id))
     }
 
-    dos.writeShort(0) // variants not supported
+    writeShort(dos, 0) // variants not supported
   }
 
-  @inline private def writePascalString(dos: DataOutputStream, str: String): Unit = {
-    dos.writeByte(str.length)
-    dos.write(str.getBytes)
+  @inline private def writeInt(os: OutputStream, v: Int): Unit = {
+    os.write((v >>> 24) & 0xFF)
+    os.write((v >>> 16) & 0xFF)
+    os.write((v >>>  8) & 0xFF)
+    os.write((v >>>  0) & 0xFF)
+  }
+
+  @inline private def writeFloat(os: OutputStream, v: Float): Unit = writeInt(os, java.lang.Float.floatToIntBits(v))
+
+  @inline private def writeShort(os: OutputStream, v: Int): Unit = {
+    os.write((v >>> 8) & 0xFF)
+    os.write((v >>> 0) & 0xFF)
+  }
+
+  @inline private def writePascalString(os: OutputStream, str: String): Unit = {
+    os.write(str.length)
+    os.write(str.getBytes)
   }
 }
