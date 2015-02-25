@@ -1,5 +1,9 @@
 # ScalaColliderUGens
 
+[![Flattr this](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=sciss&url=https%3A%2F%2Fgithub.com%2FSciss%2FScalaColliderUGens&title=ScalaCollider-UGens%20Library&language=Scala&tags=github&category=software)
+[![Build Status](https://travis-ci.org/Sciss/ScalaColliderUGens.svg?branch=master)](https://travis-ci.org/Sciss/ScalaColliderUGens)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalacolliderugens-core_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalacolliderugens-core_2.11)
+
 ## statement
 
 Specification and base API of [ScalaCollider](https://github.com/Sciss/ScalaCollider) UGens, as well as a core library of generated UGen classes.

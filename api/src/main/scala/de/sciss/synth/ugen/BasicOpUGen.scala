@@ -826,6 +826,8 @@ object Sum3 {
     } else if (in2i == C0) {
       Plus.make1(in0i, in1i)
     } else {
+      // XXX TODO
+      // "Sum3 in the server does not implement demand rate."
       UGen.SingleOut("Sum3", in0i.rate, args)
     }
   }
@@ -854,6 +856,7 @@ object Sum4 {
     } else if (in3i == C0) {
       Sum3.make1(Vec(in0i, in1i, in2i))
     } else {
+      // XXX TODO is demand rate supported?
       UGen.SingleOut("Sum4", in0i.rate, args)
     }
   }
