@@ -47,6 +47,7 @@ object UGenSpec {
 
   private def mkUGens(names: List[String]): Map[String, UGenSpec] = names.flatMap { name =>
     val is = ugen.Control.getClass.getResourceAsStream(s"$name.xml")
+    if (is == null) throw new Exception(s"UGenSpec.mkUGens - resource '$name.xml' not found.")
     try {
       val source = xml.Source.fromInputStream(is)
       parseAll(source, docs = true)

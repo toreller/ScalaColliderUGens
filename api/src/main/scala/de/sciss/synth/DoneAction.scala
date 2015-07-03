@@ -15,10 +15,30 @@ package de.sciss.synth
 
 import ugen.Constant
 
+import scala.annotation.switch
+
 object DoneAction {
   import language.implicitConversions
   /** Done actions can be used as UGen inputs, in which case their identifier constant is used. */
   implicit def toGE(action: DoneAction): Constant = new Constant(action.id)
+
+  /** Constructs a done-action from a given identifier. */
+  def apply(id: Int): DoneAction = (id: @switch) match {
+    case pauseSelf        .id => pauseSelf
+    case freeSelf         .id => freeSelf
+    case freeSelfPred     .id => freeSelfPred
+    case freeSelfSucc     .id => freeSelfSucc
+    case freeSelfPredAll  .id => freeSelfPredAll
+    case freeSelfSuccAll  .id => freeSelfSuccAll
+    case freeSelfToHead   .id => freeSelfToHead
+    case freeSelfToTail   .id => freeSelfToTail
+    case freeSelfPausePred.id => freeSelfPausePred
+    case freeSelfPauseSucc.id => freeSelfPauseSucc
+    case freeSelfPredDeep .id => freeSelfPredDeep
+    case freeSelfSuccDeep .id => freeSelfSuccDeep
+    case freeAllInGroup   .id => freeAllInGroup
+    case freeGroup        .id => freeGroup
+  }
 }
 
 /** An enumeration of special codes used by some UGens to issue a related action when they they are "done".

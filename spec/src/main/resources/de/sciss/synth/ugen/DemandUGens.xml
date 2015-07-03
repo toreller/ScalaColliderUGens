@@ -35,6 +35,9 @@
 
                 '''Warning''': Demand currently seems to have problems with infinite sequences. As a workaround
                 use a very large length instead. E.g. instead of `Dbrown(0, 1, inf)` use `Dbrown(0, 1, 0xFFFFFFFF)`!
+
+                '''Warning''': Demand seems to have a problem with initial triggers. For example
+                `Demand.kr(Impulse.kr(0), 1)` will have a spurious zero value output first.
             </text>
             <see>ugen.Duty</see>
             <see>ugen.TDuty</see>

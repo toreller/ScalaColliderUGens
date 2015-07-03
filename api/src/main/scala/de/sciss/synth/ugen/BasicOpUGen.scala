@@ -385,6 +385,8 @@ object BinaryOpUGen {
     case _        => new Pure  (op, a, b)
   }
 
+  def unapply(b: BinaryOpUGen): Option[(Op, GE, GE)] = Some((b.selector, b.a, b.b))
+
   object Op {
     def apply(id: Int): Op = (id: @switch) match {
       case Plus     .id => Plus
