@@ -24,20 +24,21 @@ object DoneAction {
 
   /** Constructs a done-action from a given identifier. */
   def apply(id: Int): DoneAction = (id: @switch) match {
-    case pauseSelf        .id => pauseSelf
-    case freeSelf         .id => freeSelf
-    case freeSelfPred     .id => freeSelfPred
-    case freeSelfSucc     .id => freeSelfSucc
-    case freeSelfPredAll  .id => freeSelfPredAll
-    case freeSelfSuccAll  .id => freeSelfSuccAll
-    case freeSelfToHead   .id => freeSelfToHead
-    case freeSelfToTail   .id => freeSelfToTail
-    case freeSelfPausePred.id => freeSelfPausePred
-    case freeSelfPauseSucc.id => freeSelfPauseSucc
-    case freeSelfPredDeep .id => freeSelfPredDeep
-    case freeSelfSuccDeep .id => freeSelfSuccDeep
-    case freeAllInGroup   .id => freeAllInGroup
-    case freeGroup        .id => freeGroup
+    case doNothing        .id => doNothing          //  0
+    case pauseSelf        .id => pauseSelf          //  1
+    case freeSelf         .id => freeSelf           //  2
+    case freeSelfPred     .id => freeSelfPred       //  3
+    case freeSelfSucc     .id => freeSelfSucc       //  4
+    case freeSelfPredAll  .id => freeSelfPredAll    //  5
+    case freeSelfSuccAll  .id => freeSelfSuccAll    //  6
+    case freeSelfToHead   .id => freeSelfToHead     //  7
+    case freeSelfToTail   .id => freeSelfToTail     //  8
+    case freeSelfPausePred.id => freeSelfPausePred  //  9
+    case freeSelfPauseSucc.id => freeSelfPauseSucc  // 10
+    case freeSelfPredDeep .id => freeSelfPredDeep   // 11
+    case freeSelfSuccDeep .id => freeSelfSuccDeep   // 12
+    case freeAllInGroup   .id => freeAllInGroup     // 13
+    case freeGroup        .id => freeGroup          // 14
   }
 }
 
