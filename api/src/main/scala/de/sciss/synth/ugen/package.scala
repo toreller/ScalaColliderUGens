@@ -25,7 +25,7 @@ package object ugen {
     Constant(bs.length) +: (bs.map(Constant(_))(breakOut): Vec[UGenIn])
   }
 
-  private[ugen] def nyquist: GE = BinaryOpUGen.Times.make(SampleRate.ir, 0.5f)
+  private[ugen] def nyquist: GE = Nyquist()
 
   // if the input at index `idx` has a different rate than `target`, update the
   // that input by wrapping it inside a conversion UGen

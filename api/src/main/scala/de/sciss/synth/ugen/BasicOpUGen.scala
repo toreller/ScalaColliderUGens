@@ -11,15 +11,15 @@
  *  contact@sciss.de
  */
 
-package de.sciss
-package synth
+package de.sciss.synth
 package ugen
 
-import collection.immutable.{IndexedSeq => Vec}
-import de.sciss.synth.ugen.{Constant => c}
-import annotation.switch
 import de.sciss.numbers.{FloatFunctions => rf, FloatFunctions2 => rf2}
-import Constant.{C0, C1, Cm1}
+import de.sciss.synth.ugen.Constant.{C0, C1, Cm1}
+import de.sciss.synth.ugen.{Constant => c}
+
+import scala.annotation.switch
+import scala.collection.immutable.{IndexedSeq => Vec}
 
 final case class MulAdd(in: GE, mul: GE, add: GE)
   extends UGenSource.SingleOut {
@@ -29,7 +29,7 @@ final case class MulAdd(in: GE, mul: GE, add: GE)
   def rate: MaybeRate = in.rate // XXX TODO - correct?
 
   protected def makeUGen(args: Vec[UGenIn]): UGenInLike = {
-    import BinaryOpUGen.{Plus, Minus, Times}
+    import BinaryOpUGen.{Minus, Plus, Times}
     import UnaryOpUGen.Neg
 
     val in0  = args(0)
@@ -828,12 +828,14 @@ object Sum3 {
     } else if (in2i == C0) {
       Plus.make1(in0i, in1i)
     } else {
-      UGen.SingleOut("Sum3", in0i.rate, args)
+      val rate  = in0i.rate max in1i.rate max in2i.rate
+      val argsM = if (rate == audio) matchRateFrom(args, 0, audio) else args
+      UGen.SingleOut("Sum3", rate, argsM)
     }
   }
 }
 final case class Sum3(in0: GE, in1: GE, in2: GE) extends UGenSource.SingleOut {
-  def rate: MaybeRate = in0.rate // XXX TODO - see makeUGen; MaybeRate.max_?(in0.rate, in1.rate, in2.rate)
+  def rate: MaybeRate = MaybeRate.max_?(in0.rate, in1.rate, in2.rate)
 
   protected def makeUGens: UGenInLike = unwrap(Vec(in0, in1, in2))
 
@@ -856,12 +858,14 @@ object Sum4 {
     } else if (in3i == C0) {
       Sum3.make1(Vec(in0i, in1i, in2i))
     } else {
-      UGen.SingleOut("Sum4", in0i.rate, args)
+      val rate  = in0i.rate max in1i.rate max in2i.rate max in3i.rate
+      val argsM = if (rate == audio) matchRateFrom(args, 0, audio) else args
+      UGen.SingleOut("Sum4", rate, argsM)
     }
   }
 }
 final case class Sum4(in0: GE, in1: GE, in2: GE, in3: GE) extends UGenSource.SingleOut {
-  def rate: MaybeRate = in0.rate // XXX TODO - see makeUGen; MaybeRate.max_?(in0.rate, in1.rate, in2.rate, in3.rate)
+  def rate: MaybeRate = MaybeRate.max_?(in0.rate, in1.rate, in2.rate, in3.rate)
 
   protected def makeUGens: UGenInLike = unwrap(Vec(in0, in1, in2, in3))
 
