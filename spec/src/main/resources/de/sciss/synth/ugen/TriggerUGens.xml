@@ -723,7 +723,8 @@
         </arg>
         <arg name="decay" default="0.999">
             <doc>
-                feedback coefficient controlling the release rate
+                feedback coefficient controlling the release rate. This should
+                be less than one, otherwise the UGen may blow up.
             </doc>
         </arg>
         <doc>

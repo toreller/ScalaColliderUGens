@@ -1,5 +1,5 @@
-<ugens revision="4">
-    <!-- all documented, except: Shaper, SinOscFB, VOsc, VOsc3, Osc, OscN, COsc, Formant, Blip, Saw, Pulse, Klang, Klank -->
+<ugens revision="5">
+    <!-- all documented, except: Shaper, SinOscFB, VOsc, VOsc3, Osc, OscN, COsc, Klang, Klank -->
     <ugen name="DegreeToKey" reads-buf="true">
         <rate name="control"/>
         <rate name="audio"/>
@@ -425,27 +425,116 @@
     </ugen>
     <ugen name="Formant">
         <rate name="audio"/>
-        <rate name="control"/>
-        <arg name="fundFreq" default="440.0"/>
-        <arg name="formFreq" default="1760.0"/>
-        <arg name="bw" default="880.0"/>
+        <arg name="fundFreq" default="440.0">
+            <doc>
+                Fundamental frequency in Hertz.
+                Read at control-rate, so if input is audio-rate, it will be sub-sampled.
+            </doc>
+        </arg>
+        <arg name="formFreq" default="1760.0">
+            <doc>
+                Formant frequency in Hertz. This determines the overtone(s) most
+                prominently perceived.
+                Read at control-rate, so if input is audio-rate, it will be sub-sampled.
+            </doc>
+        </arg>
+        <arg name="bw" default="880.0">
+            <doc>
+                Pulse width frequency in Hertz. Controls the bandwidth of the formant.
+                Must be greater than or equal to `fundFreq`.
+                Read at control-rate, so if input is audio-rate, it will be sub-sampled.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen that generates a set of harmonics around a formant frequency
+                at a given fundamental frequency.
+            </text>
+            <example name="modulate fundamental frequency">
+                Formant.ar(XLine.kr(400, 1000, 8), 2000, 800) * 0.2
+            </example>
+            <example name="modulate formant frequency">
+                Formant.ar(200, XLine.kr(400, 4000, 8), 200) * 0.2
+            </example>
+            <example name="modulate the bandwidth">
+                Formant.ar(400, 2000, XLine.kr(800, 8000, 8)) * 0.2
+            </example>
+        </doc>
     </ugen>
     <ugen name="Blip">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="freq" default="440.0"/>
-        <arg name="numHarm" default="200"/>
+        <arg name="freq" default="440.0">
+            Fundamental frequency in Hertz
+        </arg>
+        <arg name="numHarm" default="200">
+            <doc>
+                Number of harmonics. This will be automatically limited to avoid aliasing.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                Band Limited ImPulse generator UGen. All harmonics have equal amplitude.
+                This is the equivalent of 'buzz' in Music-N languages.
+                It is capable of cross-fading during a control period block if the number of
+                harmonics changes, avoiding audible pops.
+            </text>
+            <example name="modulate fundamental frequency">
+                Blip.ar(XLine.kr(20000, 200, 6), 100) * 0.2
+            </example>
+            <example name="modulate number of harmonics">
+                Blip.ar(200, Line.kr(1, 100, 20)) * 0.2
+            </example>
+            <see>ugen.Impulse</see>
+        </doc>
     </ugen>
     <ugen name="Saw">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="freq" default="440.0"/>
+        <arg name="freq" default="440.0">
+            Fundamental frequency in Hertz
+        </arg>
+        <doc>
+            <text>
+                A band-limited sawtooth wave generator UGen.
+            </text>
+            <example name="modulate frequency">
+                Saw.ar(XLine.kr(40, 4000, 6)) * 0.2
+            </example>
+            <example name="two saws with different frequencies through resonant filter">
+                RLPF.ar(Saw.ar(Seq(100, 250)) * 0.2, XLine.kr(8000, 400, 6), 0.05)
+            </example>
+            <see>ugen.LFSaw</see>
+        </doc>
     </ugen>
     <ugen name="Pulse">
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="freq" default="440.0"/>
-        <arg name="width" default="0.5"/>
+        <arg name="freq" default="440.0">
+            <doc>
+                Fundamental frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="width" default="0.5">
+            <doc>
+                Pulse width ratio from zero to one. `0.5` makes a square wave.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A band-limited pulse wave generator UGen, capable of pulse width modulation.
+            </text>
+            <example name="modulate frequency">
+                Pulse.ar(XLine.kr(40, 4000, 6)) * 0.2
+            </example>
+            <example name="modulate pulse width">
+                Pulse.ar(200, Line.kr(0.01, 0.99, 8)) * 0.2
+            </example>
+            <example name="two pulses with different frequencies through resonant filter">
+                RLPF.ar(Pulse.ar(Seq(100, 250)) * 0.2, XLine.kr(8000, 400, 6), 0.05)
+            </example>
+            <see>ugen.LFPulse</see>
+        </doc>
     </ugen>
 
     <ugen name="Klang">
