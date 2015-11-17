@@ -13,9 +13,9 @@
 
 package de.sciss.synth
 
+import scala.collection.breakOut
+import scala.collection.immutable.{IndexedSeq => Vec}
 import scala.{Seq => SSeq}
-import collection.breakOut
-import collection.immutable.{IndexedSeq => Vec}
 
 /** The UGen graph is constructed from interconnecting graph elements (GE).
   * Graph elements can be decomposed into a sequence of UGenIn objects.
@@ -24,8 +24,9 @@ import collection.immutable.{IndexedSeq => Vec}
   * multichannel expansion (UGenInSeq).
   */
 object GE {
-  import language.implicitConversions
   import ugen.Constant
+
+  import language.implicitConversions
 
   implicit def const(i: Int   ): Constant = new Constant(i)
   implicit def const(f: Float ): Constant = new Constant(f)
@@ -53,6 +54,8 @@ object GE {
   }
 
   def fromUGenIns(xs: SSeq[UGenIn]): GE = ugen.UGenInSeq(xs.toIndexedSeq)
+
+//  def fromString(s: String): GE = ugen.stringArg(s)
 
   /** Simply a trait composed of `Lazy.Expander[UGenInLike]` and `GE`. */
   trait Lazy extends Lazy.Expander[UGenInLike] with GE

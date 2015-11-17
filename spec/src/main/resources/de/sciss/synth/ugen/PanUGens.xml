@@ -1,4 +1,4 @@
-<ugens revision="4">
+<ugens revision="6">
     <!-- all documented -->
     <ugen name="Pan2">
         <rate name="control"/>
@@ -515,7 +515,7 @@
                 the input signal
             </doc>
         </arg>
-        <arg name="pos" default="0.0">
+        <arg name="pos" rate="control" default="0.0">
             <doc>
                 the pan position. Channels are evenly spaced over a cyclic period of 2.0.
                 the output channel position is `pos / 2 * numChannels + orient`. Thus, assuming an `orient`
@@ -525,6 +525,8 @@
                 a `pos` of `3*2.0/3=2.0` completes the circle and wraps again to the first channel.
                 Using a bipolar pan position, such as a sawtooth that ranges from -1 to +1, all channels will be
                 cyclically panned through.
+
+                Must be control rate.
             </doc>
         </arg>
         <arg name="level" default="1.0">

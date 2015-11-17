@@ -443,6 +443,8 @@
                 the length of the sliding window over the input signal.
                 these are the number of audio sample-frames for audio-rate calculation,
                 or the number of blocks for control-rate calculation summed up.
+
+                ''Warning'': The UGen crashes when length is zero.
             </doc>
         </arg>
         <doc>

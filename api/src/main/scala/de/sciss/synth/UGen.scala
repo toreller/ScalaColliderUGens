@@ -15,36 +15,43 @@ package de.sciss.synth
 
 import de.sciss.synth.ugen.impl.{MultiOutImpl, SingleOutImpl, ZeroOutImpl}
 
-import collection.immutable.{IndexedSeq => Vec}
-import annotation.switch
-import runtime.ScalaRunTime
-import language.implicitConversions
+import scala.annotation.switch
+import scala.collection.immutable.{IndexedSeq => Vec}
+import scala.language.implicitConversions
+import scala.runtime.ScalaRunTime
 
-sealed trait UGen extends Product {
+/** The raw UGen information as it is found in a final `UGenGraph`. */
+trait RawUGen {
+  def name        : String
+
+  def rate        : Rate
+
+  def numInputs   : Int
+
+  def numOutputs  : Int
+
+  def outputRates : Vec[Rate]
+
+  def specialIndex: Int
+}
+
+/** A UGen during graph building process is a more
+  * rich thing than `RawUGen`: it implements equality
+  * based on `isIndividual` status and may be omitted
+  * from the final graph based on `hasSideEffect` status.
+  */
+sealed trait UGen extends RawUGen with Product {
   // initialize this first, so that debug printing in `addUGen` can use the hash code
   override val hashCode: Int = if (isIndividual) super.hashCode() else ScalaRunTime._hashCode(this)
-
-  //  // ---- constructor ----
-  //  UGenGraph.builder.addUGen(this)
-
-  def rate: Rate
-
-  def numOutputs: Int
-
-  def outputRates: Vec[Rate]
-
-  def name: String
-
-  def inputs: Vec[UGenIn]
-  def numInputs = inputs.size
-
-  def source = this
-  def specialIndex = 0
 
   override def toString: String = {
     val ins = inputs.mkString("(", ", ", ")")
     s"$name.${rate.methodName}$ins"
   }
+
+  def inputs      : Vec[UGenIn]
+
+  def numInputs: Int = inputs.size
 
   // the full UGen spec:
   // name, rate, specialIndex, inputs, outputRates
@@ -56,7 +63,6 @@ sealed trait UGen extends Product {
     case 1 => rate
     case 2 => specialIndex
     case 3 => inputs
-    //      case 3 => inputs.map( _.ref )
     case 4 => outputRates
     case _ => throw new java.lang.IndexOutOfBoundsException(n.toString)
   }
@@ -77,8 +83,9 @@ sealed trait UGen extends Product {
 object UGen {
   object SingleOut {
     def apply(name: String, rate: Rate, inputs: Vec[UGenIn], isIndividual: Boolean = false,
-              hasSideEffect: Boolean = false): SingleOut = {
-      val res = new SingleOutImpl(name, rate, inputs, isIndividual = isIndividual, hasSideEffect = hasSideEffect)
+              hasSideEffect: Boolean = false, specialIndex: Int = 0): SingleOut = {
+      val res = new SingleOutImpl(name, rate, inputs, isIndividual = isIndividual, hasSideEffect = hasSideEffect,
+                                  specialIndex = specialIndex)
       UGenGraph.builder.addUGen(res)
       res
     }
@@ -90,11 +97,13 @@ object UGen {
     final def numOutputs = 1
     final def outputRates: Vec[Rate] = rate.toIndexedSeq
     final def outputIndex = 0
+    final def source: UGen = this
   }
 
   object ZeroOut {
-    def apply(name: String, rate: Rate, inputs: Vec[UGenIn], isIndividual: Boolean = false): ZeroOut = {
-      val res = new ZeroOutImpl(name, rate, inputs, isIndividual = isIndividual)
+    def apply(name: String, rate: Rate, inputs: Vec[UGenIn], isIndividual: Boolean = false,
+              specialIndex: Int = 0): ZeroOut = {
+      val res = new ZeroOutImpl(name, rate, inputs, isIndividual = isIndividual, specialIndex = specialIndex)
       UGenGraph.builder.addUGen(res)
       res
     }
@@ -107,9 +116,9 @@ object UGen {
 
   object MultiOut {
     def apply(name: String, rate: Rate, outputRates: Vec[Rate], inputs: Vec[UGenIn],
-              isIndividual: Boolean = false, hasSideEffect: Boolean = false): MultiOut = {
+              isIndividual: Boolean = false, hasSideEffect: Boolean = false, specialIndex: Int = 0): MultiOut = {
       val res = new MultiOutImpl(name, rate, outputRates, inputs, isIndividual = isIndividual,
-        hasSideEffect = hasSideEffect)
+        hasSideEffect = hasSideEffect, specialIndex = specialIndex)
       UGenGraph.builder.addUGen(res)
       res
     }
@@ -162,17 +171,17 @@ sealed trait UGenInLike extends GE {
 sealed trait UGenIn extends UGenInLike {
   def rate: Rate
 
-  private[synth] def outputs: Vec[UGenIn] = Vec(this)
+  private[synth] def outputs: Vec[UGenIn] = Vector(this)
   private[synth] final def unwrap(i: Int): UGenInLike = this
 
   // don't bother about the index
-  private[synth] final def flatOutputs: Vec[UGenIn] = Vec(this)
+  private[synth] final def flatOutputs: Vec[UGenIn] = Vector(this)
   private[synth] final def unbubble   : UGenInLike  = this
 }
 
 package ugen {
   object UGenInGroup {
-    private final val emptyVal = new Apply(Vec.empty)
+    private final val emptyVal = new Apply(Vector.empty)
     def empty: UGenInGroup = emptyVal
     def apply(xs: Vec[UGenInLike]): UGenInGroup = new Apply(xs)
 
@@ -183,7 +192,7 @@ package ugen {
       private[synth] def unwrap(i: Int): UGenInLike = outputs(i % outputs.size)
       private[synth] def unbubble: UGenInLike = this
 
-      override def toString = "UGenInGroup" + outputs.mkString("(", ",", ")")
+      override def toString = outputs.mkString("UGenInGroup(", ",", ")")
 
       // ---- GE ----
       def rate: MaybeRate = MaybeRate.reduce(outputs.map(_.rate): _*)
@@ -225,7 +234,7 @@ package ugen {
     extends UGenIn {
 
     def rate = source.rate
-    override def toString = source.toString + ".\\(" + outputIndex + ")"
+    override def toString = s"$source.\\($outputIndex)"
   }
 
   /** A UGenOutProxy refers to a particular output of a multi-channel UGen.
@@ -236,7 +245,7 @@ package ugen {
     extends UGenIn with UGenProxy {
 
     override def toString =
-      if (source.numOutputs == 1) source.toString else source.toString + ".\\(" + outputIndex + ")"
+      if (source.numOutputs == 1) source.toString else s"$source.\\($outputIndex)"
 
     def rate: Rate = source.outputRates(outputIndex)
   }

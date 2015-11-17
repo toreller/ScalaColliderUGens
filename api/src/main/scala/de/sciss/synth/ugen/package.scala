@@ -20,7 +20,7 @@ import scala.annotation.tailrec
 package object ugen {
   import language.implicitConversions
 
-  private[ugen] def stringArg(s: String): Vec[UGenIn] = {
+  private[synth] def stringArg(s: String): Vec[UGenIn] = {
     val bs = s.getBytes
     Constant(bs.length) +: (bs.map(Constant(_))(breakOut): Vec[UGenIn])
   }

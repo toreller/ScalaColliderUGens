@@ -1,4 +1,4 @@
-<ugens revision="5">
+<ugens revision="6">
     <!-- all documented, except: Shaper, SinOscFB, VOsc, VOsc3, Osc, OscN, COsc, Klang, Klank -->
     <ugen name="DegreeToKey" reads-buf="true">
         <rate name="control"/>
@@ -465,7 +465,9 @@
         <rate name="control"/>
         <rate name="audio"/>
         <arg name="freq" default="440.0">
-            Fundamental frequency in Hertz
+            <doc>
+                Fundamental frequency in Hertz
+            </doc>
         </arg>
         <arg name="numHarm" default="200">
             <doc>
@@ -492,7 +494,9 @@
         <rate name="control"/>
         <rate name="audio"/>
         <arg name="freq" default="440.0">
-            Fundamental frequency in Hertz
+            <doc>
+                Fundamental frequency in Hertz
+            </doc>
         </arg>
         <doc>
             <text>

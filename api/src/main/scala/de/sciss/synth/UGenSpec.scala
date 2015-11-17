@@ -250,6 +250,8 @@ object UGenSpec {
     /** Value is given as an `Int` constant. */
     final case class Int(value: scala.Int) extends ArgumentValue {
       override def toString = value.toString
+
+      def toGE: ugen.Constant = ugen.Constant(value)
     }
     /** Value is given as a `Float` constant. */
     final case class Float(value: scala.Float) extends ArgumentValue {
@@ -257,35 +259,49 @@ object UGenSpec {
         val s = value.toString
         if (s.contains('.')) s else s + ".0"
       }
+
+      def toGE: ugen.Constant = ugen.Constant(value)
     }
     /** Value is given as a `Boolean` constant. Currently the class synthesizer
       * does not support this, and automatically uses `0` and `1`.
       */
     final case class Boolean(value: scala.Boolean) extends ArgumentValue {
       override def toString = value.toString
+
+      def toGE: ugen.Constant = ugen.Constant(if (value) 1f else 0f)
     }
     /** Value is a `String` literal. */
     final case class String(value: java.lang.String) extends ArgumentValue {
       override def toString = "\"" + value + "\""
+
+      def toGE: GE = ugen.stringArg(value)
     }
     /** Value is `Float.PositiveInfinity` (but more prettily written). */
     case object Inf extends ArgumentValue {
       override def toString = productPrefix.toLowerCase
+
+      def toGE: ugen.Constant = ugen.Constant(scala.Float.PositiveInfinity)
     }
     /** Values is a `DoneAction`, such as `doNothing` or `freeSelf`. */
     final case class DoneAction(peer: synth.DoneAction) extends ArgumentValue {
       override def toString = peer.toString
+
+      def toGE: ugen.Constant = synth.DoneAction.toGE(peer)
     }
     /** Value indicates Nyquist frequency. This is mapped to a method expanding to `SampleRate.ir / 2`. */
     case object Nyquist extends ArgumentValue {
       override def toString = productPrefix.toLowerCase
+
+      def toGE: GE = ugen.Nyquist()
     }
   }
   /** Type of default value for a UGen constructor argument. This allows for the inclusion
     * of special values such as `Nyquist` or done actions that are more specific than
     * for example `Constant`.
     */
-  sealed trait ArgumentValue
+  sealed trait ArgumentValue {
+    def toGE: GE
+  }
 
   object Input {
     sealed trait Type { def variadic: Boolean }
@@ -352,12 +368,26 @@ object UGenSpec {
           case _                  => s"$base (method = $method)"
         }
       }
+
+      def methodName(r: Rate): String = {
+        require(r == rate)
+        method match {
+          case RateMethod.Default       => r.methodName
+          case RateMethod.Custom(name)  => name
+          case RateMethod.Alias(name)   => name
+        }
+      }
     }
     /** An explicit set of supported rates. */
     final case class Set(set: immutable.Set[Rate]) extends Rates {
       override def toString = set.mkString("[", ", ", "]")
       /** Explicitly specified rates always use the `Default` type of method naming. */
       def method = RateMethod.Default
+
+      def methodName(r: Rate): String = {
+        require(set.contains(r))
+        r.methodName
+      }
     }
   }
   /** The supported calculation rates of a UGen can be either implied or a specified set of rates. */
@@ -365,6 +395,8 @@ object UGenSpec {
     def method: RateMethod
     /** The set of supported rates, whether implied or explicit. */
     def set: Set[Rate]
+
+    def methodName(r: Rate): String
   }
 
   // ---- Outputs ----

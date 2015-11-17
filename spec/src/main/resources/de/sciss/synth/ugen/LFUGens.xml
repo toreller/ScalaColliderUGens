@@ -1,8 +1,10 @@
-<ugens revision="9">
+<ugens revision="11">
     <!-- all documented -->
     <ugen name="Vibrato">
         <rate name="control"/>
-        <rate name="audio"/>
+        <rate name="audio">
+            <arg name="freq" rate="ugen"/>
+        </rate>
         <arg name="freq" default="440.0">
             <doc>
                 fundamental frequency in Hertz. If the Vibrato UGen is running at audio rate, this must
@@ -718,6 +720,19 @@
                 range value `lo` and an upper range value `hi`.
 
                 Mathematically, this is equivalent to `in.max(lo).min(hi)`.
+
+                Be aware that there seems to be an initialization bug.
+                The following crashes, indicating that `Clip.ar` outputs a zero initially:
+
+                {{
+                play {
+                    val bar = Integrator.ar(DC.ar(0), coeff = 0.999)
+                    val foo = Clip.ar(bar, lo = 1.0, hi = 44100.0) // .max(1.0)
+                    val sum = RunningSum.ar(DC.ar(0), length = foo)
+                    sum.poll(1, "sum")
+                    ()
+                }
+                }}
             </text>
             <example name="clip sine wave to modulate timbre">
                 val hi = SinOsc.ar(0.1).linexp(-1, 1, 0.01, 1.0)

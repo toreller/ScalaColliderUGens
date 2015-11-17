@@ -69,7 +69,8 @@ private[synth] final case class MaxLocalBufs() extends UGenSource.SingleOut with
   }
 
   protected def makeUGen(_args: Vec[UGenIn]): UGenInLike = {
-    val res = new impl.SingleOutImpl(name, rate, _args, isIndividual = false, hasSideEffect = true)
+    // instead of UGen.SingleOut we do this because we want to _prepend_ not _append_
+    val res = new impl.SingleOutImpl(name, rate, _args, isIndividual = false, hasSideEffect = true, specialIndex = 0)
     UGenGraph.builder.prependUGen(res)
     res
   }

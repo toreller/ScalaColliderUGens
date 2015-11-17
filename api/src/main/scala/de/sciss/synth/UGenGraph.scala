@@ -13,10 +13,140 @@
 
 package de.sciss.synth
 
-import collection.immutable.{IndexedSeq => Vec}
-import java.io.DataOutputStream
+import java.io.{DataInputStream, DataOutputStream}
+
+import de.sciss.synth.ugen.impl.RawUGenImpl
+
+import scala.collection.breakOut
+import scala.collection.immutable.{IndexedSeq => Vec, Seq => ISeq}
 
 object UGenGraph {
+  private final val v1Rd  = { dis: DataInputStream => dis.readShort().toInt }
+  private final val v2Rd  = { dis: DataInputStream => dis.readInt  ()       }
+  private final val v1Wr  = { (dos: DataOutputStream, value: Int) =>
+    if (value < -32768 || value > 32767)
+      throw new IndexOutOfBoundsException("SynthDef too large to be written in format 1")
+    dos.writeShort(value)
+  }
+  private final val v2Wr  = { (dos: DataOutputStream, value: Int) => dos.writeInt  (value) }
+
+  private[this] final class WireInfo(var index: Int = -1, var numConsumers: Int = 0)
+
+  /** Calculates the number of wire-buffers needed on the server
+    * to represent a given ugen-graph.
+    *
+    * @param in the graph to inspect
+    * @return the number of wire buffers required to load the graph in the server
+    */
+  def calcWireBuffers(in: UGenGraph): Int = {
+    val outputMap: Array[Array[WireInfo]] = in.ugens.map { indexed =>
+      indexed.ugen.outputRates.map {
+        case `audio`  => new WireInfo()
+        case _        => null
+      } (breakOut) : Array[WireInfo]
+    } (breakOut)
+
+    in.ugens.foreach { indexed =>
+      indexed.inputSpecs.foreach {
+        case (ugenIdx, outIdx) if ugenIdx >= 0 =>
+          val wireInfo = outputMap(ugenIdx)(outIdx)
+          if (wireInfo != null) wireInfo.numConsumers += 1
+        case _ =>
+      }
+    }
+
+    val bufColor = new impl.WireBufAllocator()
+
+    (in.ugens.iterator zip outputMap.iterator).foreach { case (indexed, outputs) =>
+      // we never release any input buffers of demand-rate ugens
+      if (indexed.ugen.rate != demand) {
+        // release inputs
+        indexed.inputSpecs.reverseIterator.foreach {
+          case (ugenIdx, outIdx) if ugenIdx >= 0 =>
+            val wireInfo = outputMap(ugenIdx)(outIdx)
+            if (wireInfo != null) {
+              bufColor.release(wireInfo.index)
+            }
+          case _ =>
+        }
+      }
+      // alloc outputs
+      outputs.foreach {
+        case null     =>
+        case wireInfo => wireInfo.index = bufColor.alloc(wireInfo.numConsumers)
+      }
+    }
+    bufColor.size()
+  }
+
+  private[synth] def read(dis: DataInputStream, version: Int): UGenGraph = {
+    val readNum = if (version == 1) v1Rd else if (version == 2) v2Rd
+                  else throw new IllegalArgumentException(s"SynthDef format version $version not supported")
+
+    // ---- constants ----
+    val numConstants  = readNum(dis)
+    val constants     = Vector.fill(numConstants)(dis.readFloat())
+
+    // ---- controls ----
+    val numCtlValues  = readNum(dis)
+    val controlValues = Vector.fill(numCtlValues)(dis.readFloat())
+
+    val numCtlNames   = readNum(dis)
+    val controlNames  = Vector.fill(numCtlNames) {
+      val name  = readPascalString(dis)
+      val index = readNum(dis)
+      (name, index)
+    }
+
+    val numUGens      = readNum(dis)
+    val ugens         = new Array[IndexedUGen](numUGens)
+
+    var idx = 0
+    while (idx < numUGens) {
+      val name          = readPascalString(dis)
+      val rateId        = dis.readUnsignedByte()
+      val rate          = Rate(rateId)
+      val numInputs     = readNum(dis)
+      val numOutputs    = readNum(dis)
+      val specialIndex  = dis.readUnsignedShort()
+
+      val inputSpecs    = Vector.fill(numInputs) {
+        val _1 = readNum(dis)
+        val _2 = readNum(dis)
+        (_1, _2)
+      }
+
+      val outputRates   = Vector.fill(numOutputs) {
+        val rateId = dis.readUnsignedByte()
+        Rate(rateId)
+      }
+
+      val ugen = new RawUGenImpl(name = name, rate = rate, numInputs = numInputs, outputRates = outputRates,
+                                 specialIndex = specialIndex)
+
+      ugens(idx) = new IndexedUGen(ugen, inputSpecs)
+      idx += 1
+    }
+
+    val numVariants = dis.readUnsignedShort()
+    // variants are not supported, we just skip over them
+    if (numVariants > 0) for (_ <- 0 until numVariants) {
+      readPascalString(dis) // the name of the variant
+      for (_ <- 0 until numCtlValues) {
+        dis.readFloat() // variant initial parameter values
+      }
+    }
+
+    UGenGraph(constants, controlValues, controlNames, ugens.toVector)
+  }
+
+  @inline private[this] def readPascalString(dis: DataInputStream): String = {
+    val len   = dis.readUnsignedByte()
+    val arr   = new Array[Byte](len)
+    dis.read(arr)
+    new String(arr)
+  }
+
   trait BuilderFactory {
     def build(graph: SynthGraph): UGenGraph
   }
@@ -56,7 +186,14 @@ object UGenGraph {
 
   // ---- rich ugen ----
 
-  final case class RichUGen(ugen: UGen, inputSpecs: Traversable[(Int, Int)])
+  /** A UGen representation indexed inside the UGen graph.
+    *
+    * @param ugen         the ugen
+    * @param inputSpecs   the ugen's inputs indexed as pairs (ugen-index, output-index)
+    */
+  final class IndexedUGen(val ugen: RawUGen, val inputSpecs: ISeq[(Int, Int)]) {
+    override def toString = s"IndexedUGen($ugen, ${inputSpecs.mkString("[", " ", "]")})"
+  }
 
   // ---- graph builder ----
 
@@ -86,46 +223,48 @@ object UGenGraph {
 }
 
 final case class UGenGraph(constants: Vec[Float], controlValues: Vec[Float],
-                           controlNames: Vec[(String, Int)], ugens: Vec[UGenGraph.RichUGen]) {
+                           controlNames: Vec[(String, Int)], ugens: Vec[UGenGraph.IndexedUGen]) {
   //   override lazy val hashCode = ... TODO: figure out how case class calculates it...
-  private[synth] def write(dos: DataOutputStream): Unit = {
+  private[synth] def write(dos: DataOutputStream, version: Int): Unit = {
+    val writeNum = if (version == 1) UGenGraph.v1Wr else if (version == 2) UGenGraph.v2Wr
+                   else throw new IllegalArgumentException(s"SynthDef format version $version not supported")
+
     // ---- constants ----
-    dos.writeShort(constants.size)
+    writeNum(dos, constants.size)
     constants.foreach(dos.writeFloat)
 
     // ---- controls ----
-    dos.writeShort(controlValues.size)
+    writeNum(dos, controlValues.size)
     controlValues.foreach(dos.writeFloat)
 
-    dos.writeShort(controlNames.size)
-    var count = 0
+    writeNum(dos, controlNames.size)
     controlNames.foreach { name =>
       writePascalString(dos, name._1)
-      dos.writeShort(name._2)
-      count += 1
+      writeNum(dos, name._2)
     }
 
-    dos.writeShort(ugens.size)
+    writeNum(dos, ugens.size)
     ugens.foreach { ru =>
       val ugen = ru.ugen
       writePascalString(dos, ugen.name)
 
-      dos.writeByte(ugen.rate.id)
-      dos.writeShort(ugen.numInputs)
-      dos.writeShort(ugen.numOutputs)
+      dos.writeByte (ugen.rate.id)
+      writeNum(dos, ugen.numInputs)
+      writeNum(dos, ugen.numOutputs)
       dos.writeShort(ugen.specialIndex)
 
       ru.inputSpecs.foreach { spec =>
-        dos.writeShort(spec._1)
-        dos.writeShort(spec._2)
+        writeNum(dos, spec._1) // index of unit generator or -1 for a constant
+        writeNum(dos, spec._2) // index of constant or index of output
       }
+
       ugen.outputRates.foreach(r => dos.writeByte(r.id))
     }
 
     dos.writeShort(0) // variants not supported
   }
 
-  @inline private def writePascalString(dos: DataOutputStream, str: String): Unit = {
+  @inline private[this] def writePascalString(dos: DataOutputStream, str: String): Unit = {
     dos.writeByte(str.length)
     dos.write(str.getBytes)
   }

@@ -334,27 +334,9 @@ object UnaryOpUGen {
   }
 
   // Note: only deterministic selectors are implemented!!
-  private object UGenImpl {
-    def apply(selector: Op, a: UGenIn): UGenImpl = {
-      val res = new UGenImpl(selector, a)
-      UGenGraph.builder.addUGen(res)
-      res
-    }
-  }
-  private final class UGenImpl private(selector: Op, a: UGenIn)
-    extends UGen.SingleOut {
-
-    override def specialIndex = selector.id
-
-    def rate: Rate = a.rate
-
-    def isIndividual : Boolean = false
-    def hasSideEffect: Boolean = false
-
-    def name: String = "UnaryOpUGen"
-
-    def inputs: Vec[UGenIn] = Vector(a)
-  }
+  private def UGenImpl(selector: Op, a: UGenIn): UGen.SingleOut =
+      UGen.SingleOut("UnaryOpUGen", a.rate, Vector(a), isIndividual = false, hasSideEffect = false,
+        specialIndex = selector.id)
 }
 
 final case class UnaryOpUGen(selector: UnaryOpUGen.Op, a: GE)
@@ -763,26 +745,9 @@ object BinaryOpUGen {
   }
 
   // Note: only deterministic selectors are implemented!!
-  private object UGenImpl {
-    def apply(selector: Op, a: UGenIn, b: UGenIn, hasSideEffect: Boolean): UGenImpl = {
-      val res = new UGenImpl(selector, a, b, hasSideEffect = hasSideEffect)
-      UGenGraph.builder.addUGen(res)
-      res
-    }
-  }
-  private final class UGenImpl private(selector: Op, a: UGenIn, b: UGenIn, override val hasSideEffect: Boolean)
-    extends UGen.SingleOut {
-
-    override def specialIndex = selector.id
-
-    def rate: Rate = a.rate max b.rate
-
-    def isIndividual: Boolean = false
-
-    def name: String = "BinaryOpUGen"
-
-    def inputs: Vec[UGenIn] = Vector(a, b)
-  }
+  private[this] def UGenImpl(selector: Op, a: UGenIn, b: UGenIn, hasSideEffect: Boolean): UGen.SingleOut =
+      UGen.SingleOut("BinaryOpUGen", a.rate max b.rate, Vector(a, b), isIndividual = false,
+        hasSideEffect = hasSideEffect, specialIndex = selector.id)
 }
 
 // XXX TODO - this could become private once the op's make method return type is changed to GE
