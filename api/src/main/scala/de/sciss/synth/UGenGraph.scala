@@ -79,7 +79,7 @@ object UGenGraph {
     bufColor.size()
   }
 
-  private[synth] def read(dis: DataInputStream, version: Int): UGenGraph = {
+  def read(dis: DataInputStream, version: Int): UGenGraph = {
     val readNum = if (version == 1) v1Rd else if (version == 2) v2Rd
                   else throw new IllegalArgumentException(s"SynthDef format version $version not supported")
 
@@ -225,7 +225,8 @@ object UGenGraph {
 final case class UGenGraph(constants: Vec[Float], controlValues: Vec[Float],
                            controlNames: Vec[(String, Int)], ugens: Vec[UGenGraph.IndexedUGen]) {
   //   override lazy val hashCode = ... TODO: figure out how case class calculates it...
-  private[synth] def write(dos: DataOutputStream, version: Int): Unit = {
+
+  def write(dos: DataOutputStream, version: Int): Unit = {
     val writeNum = if (version == 1) UGenGraph.v1Wr else if (version == 2) UGenGraph.v2Wr
                    else throw new IllegalArgumentException(s"SynthDef format version $version not supported")
 
