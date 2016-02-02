@@ -1,5 +1,7 @@
 # ScalaColliderUGens
 
+[![Flattr this](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=sciss&url=https%3A%2F%2Fgithub.com%2FSciss%2FScalaColliderUGens&title=ScalaColliderUGens&language=Scala&tags=github&category=software)
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Sciss/ScalaCollider?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/Sciss/ScalaColliderUGens.svg?branch=master)](https://travis-ci.org/Sciss/ScalaColliderUGens)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalacolliderugens-core_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/de.sciss/scalacolliderugens-core_2.11)
 
@@ -7,7 +9,7 @@
 
 Specification and base API of [ScalaCollider](https://github.com/Sciss/ScalaCollider) UGens, as well as a core library of generated UGen classes.
 
-This project is (C)opyright 2008-2015 by Hanns Holger Rutz. All rights reserved. All sub projects released under the GNU GPL v2+, except for the specification which is released under a BSD-style license. All code comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
+This project is (C)opyright 2008&ndash;2016 by Hanns Holger Rutz. All rights reserved. All sub projects released under the GNU GPL v2+, except for the specification which is released under a BSD-style license. All code comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
 
 Big thanks to Mirko Stocker for the [Scala-Refactoring Library](http://scala-refactoring.org/) which provides the AST-to-source code converter.
 
@@ -34,6 +36,10 @@ The `spec` contains the XML meta data, `api` contains basic types without specif
 ## building
 
 The project builds with sbt 0.13 against Scala 2.11, 2.10. To compile, run `sbt compile`.
+
+## contributing
+
+Please see the file [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ### generating additional UGen class files
 
