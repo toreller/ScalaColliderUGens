@@ -2,7 +2,7 @@
  *  UGenSpec.scala
  *  (ScalaColliderUGens)
  *
- *  Copyright (c) 2008-2015 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2008-2016 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU General Public License v2+
  *
@@ -32,7 +32,7 @@ object UGenSpec {
     * This is currently incomplete.
     */
   final val thirdPartyPlugins = List(
-    "MCLDBufferUGens", "TJUGens"
+    "MCLDBufferUGens", "TJUGens", "VBAPUGens"
   )
 
   /** Lazily computes the specs of the UGens bundled with the standard SuperCollider distribution.

@@ -4,19 +4,19 @@ lazy val baseNameL = baseName.toLowerCase
 name := baseName
 
 lazy val commonSettings = Seq(
-  version            := "1.14.0",
+  version            := "1.14.1",
   organization       := "de.sciss",
   description        := "UGens for ScalaCollider",
   homepage           := Some(url(s"https://github.com/Sciss/$baseName")),
-  scalaVersion       := "2.11.7",
-  crossScalaVersions := Seq("2.11.7", "2.10.5"),
+  scalaVersion       := "2.11.8",
+  crossScalaVersions := Seq("2.11.8", "2.10.6"),
   scalacOptions      ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture"),
   initialCommands in console := """import de.sciss.synth._"""
 ) ++ publishSettings
 
 lazy val numbersVersion      = "0.1.1"
-lazy val scalaTestVersion    = "2.2.5"
-lazy val scoptVersion        = "3.3.0"
+lazy val scalaTestVersion    = "2.2.6"
+lazy val scoptVersion        = "3.3.0" // 3.4.0 for next major version
 lazy val refactoringVersion  = "0.1.0"
 lazy val fileUtilVersion     = "1.1.1"
 lazy val scalaXMLVersion     = "1.0.5"

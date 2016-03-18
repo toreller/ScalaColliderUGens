@@ -1,0 +1,116 @@
+<ugens revision="4">
+    <!-- all documented, except example for CircleRamp -->
+    <ugen name="VBAP">
+        <output variadic="numChannels"/>
+        <rate name="audio"/>
+        <rate name="control"/>
+        <arg name="numChannels" type="int">
+            <doc>
+                the number of output channels
+            </doc>
+        </arg>
+        <arg name="in" rate="ugen">
+            <doc>
+                the signal to be panned
+            </doc>
+        </arg>
+        <arg name="buf">
+            <doc>
+                id of a buffer containing data calculated by `VBAPSetup`.
+                Its number of channels must correspond to `numChannels`
+            </doc>
+        </arg>
+        <arg name="azimuth" default="0">
+            <doc>
+                +/- 180° from the median plane (i.e. straight ahead)
+            </doc>
+        </arg>
+        <arg name="elevation" default="1">
+            <doc>
+                +/- 90° from the azimuth plane
+            </doc>
+        </arg>
+        <arg name="spread" default="0">
+            <doc>
+                A value from 0-100. When 0, if the signal is panned exactly to a speaker location
+                the signal is only on that speaker.
+                At values higher than 0, the signal will always be on more than one speaker.
+                This can smooth the panning effect by making localisation blur more constant.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A UGen for Vector Base Amplitude Panning (VBAP).
+                This allows for equal power panning of a source over an arbitrary array of equidistant speakers.
+                Normally this would be a ring, a dome, or partial dome.
+
+                VBAP was created by Ville Pulkki. For more information on VBAP see
+                http://www.acoustics.hut.fi/research/cat/vbap/
+                This version of VBAP for SC was ported from the ver. 0.99 PD code by Scott Wilson.
+            </text>
+            <example name="two-dimensional" type="full">
+                val a = VBAPSetup(2, Seq(0, 45, 90, 135, 180, -135, -90, -45)) // 8 channel ring
+
+                val b = Buffer.alloc(s, a.bufferData.size)
+                b.setn(a.bufferData)
+
+                val x = play {
+                  val azi = "azi".kr(0)
+                  val ele = "ele".kr(0)
+                  val spr = "spr".kr(0)
+                  VBAP.ar(8, PinkNoise.ar(0.2), b.id, azi, ele, spr)
+                }
+
+                // test them out
+                x.set("azi" -> a.directions(1).azi)
+                x.set("azi" -> a.directions(2).azi)
+                x.set("azi" -> a.directions(3).azi)
+                // ...
+                x.set("azi" -> a.directions(7).azi)
+                x.set("azi" -> a.directions(0).azi)
+
+                // try the spread
+                x.set("spr" ->  20)
+                x.set("spr" -> 100) // all speakers
+
+                x.free(); b.free();
+            </example>
+            <see>ugen.CircleRamp</see>
+        </doc>
+    </ugen>
+
+    <ugen name="CircleRamp">
+        <rate name="audio"/>
+        <rate name="control"/>
+        <arg name="in" rate="ugen">
+            <doc>
+                The signal to be smoothed.
+            </doc>
+        </arg>
+        <arg name="dur" default="0.1">
+            <doc>
+                Ramp duration in seconds
+            </doc>
+        </arg>
+        <arg name="lo" default="-180">
+            <doc>
+                The lower wrap value
+            </doc>
+        </arg>
+        <arg name="hi" default="180">
+            <doc>
+                The upper wrap value
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                This is a UGen like `Ramp`, but it always takes the shortest way around a defined
+                circle, wrapping values where appropriate. This can be useful when smoothing panning
+                signals for speaker rings, for instance in Vector Base Amplitude Panning.
+            </text>
+            <see>ugen.VBAP</see>
+            <see>ugen.Ramp</see>
+            <see>ugen.Lag</see>
+        </doc>
+    </ugen>
+</ugens>
