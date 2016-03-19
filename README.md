@@ -48,7 +48,8 @@ The UGen descriptions reside in XML files. The `spec` sub project contains files
 To synthesize the source code for a given UGen description XML file, run as follows:
 
     $ sbt
-    $ project scalacolliderugens-gen
+    ...
+    > project scalacolliderugens-gen
     > run -d path/to/scala/source/output path/to/descriptions.xml
 
 The generated source files then need to be compiled against `scalacolliderugens-core`.
