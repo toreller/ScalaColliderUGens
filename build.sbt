@@ -4,7 +4,7 @@ lazy val baseNameL = baseName.toLowerCase
 name := baseName
 
 lazy val commonSettings = Seq(
-  version            := "1.14.1",
+  version            := "1.15.0",
   organization       := "de.sciss",
   description        := "UGens for ScalaCollider",
   homepage           := Some(url(s"https://github.com/Sciss/$baseName")),
@@ -34,6 +34,8 @@ lazy val ugenGenerator = TaskKey[Seq[File]]("ugen-generate", "Generate UGen clas
 def licenseURL(licName: String, sub: String) =
   licenses := Seq(licName -> url(s"https://raw.github.com/Sciss/$baseName/master/$sub/LICENSE"))
 
+lazy val lgpl = Seq("LGPL v2.1+" -> url("http://www.gnu.org/licenses/lgpl-2.1.txt"))
+
 lazy val spec = Project(id = s"$baseNameL-spec", base = file("spec")).
   settings(commonSettings).
   settings(
@@ -50,7 +52,7 @@ lazy val api = Project(id = s"$baseNameL-api", base = file("api")).
   settings(commonSettings).
   settings(
     description := "Basic UGens API for ScalaCollider",
-    licenseURL("GPL v2+", "api"),
+    licenses := lgpl,
     libraryDependencies += "de.sciss" %% "numbers" % numbersVersion,
     libraryDependencies ++= {
       val sv = scalaVersion.value
@@ -74,7 +76,7 @@ lazy val gen = Project(id = s"$baseNameL-gen", base = file("gen")).
   settings(commonSettings).
   settings(
     description := "Source code generator for ScalaCollider UGens",
-    licenseURL("GPL v2+", "gen"),
+    licenses := lgpl,
     libraryDependencies ++= Seq(
       "com.github.scopt" %% "scopt"            % scoptVersion,
       "de.sciss"         %% "scalarefactoring" % refactoringVersion,
@@ -90,7 +92,7 @@ lazy val core = Project(id = s"$baseNameL-core", base = file("core")).
   settings(commonSettings).
   settings(
     description := "UGen classes for ScalaCollider",
-    licenseURL("GPL v2+", "core"),
+    licenses := lgpl,
     sourceGenerators in Compile <+= ugenGenerator in Compile,
     ugenGenerator in Compile := {
       val spc   = (resourceDirectory   in Compile in spec).value
@@ -111,7 +113,7 @@ lazy val plugins = Project(id = s"$baseNameL-plugins", base = file("plugins")).
   settings(commonSettings).
   settings(
     description := "Additional third-party UGens for ScalaCollider",
-    licenseURL("GPL v2+", "core"),
+    licenses := lgpl,
     sourceGenerators in Compile <+= ugenGenerator in Compile,
     ugenGenerator in Compile := {
       val spc   = (resourceDirectory   in Compile in spec).value
