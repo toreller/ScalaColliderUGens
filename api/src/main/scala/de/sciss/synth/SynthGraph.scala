@@ -13,8 +13,10 @@
 
 package de.sciss.synth
 
-import collection.immutable.{IndexedSeq => Vec}
-import ugen.ControlProxyLike
+import de.sciss.synth.impl.SynthGraphBuilderImpl
+import de.sciss.synth.ugen.ControlProxyLike
+
+import scala.collection.immutable.{IndexedSeq => Vec}
 
 object SynthGraph {
   trait Builder {
@@ -33,14 +35,34 @@ object SynthGraph {
   def builder: Builder = builders.get
 
   def apply(thunk: => Any): SynthGraph = {
-    val b   = new BuilderImpl
-    val old = builders.get()
-    builders.set(b)
-    try {
+    val b = new SynthGraphBuilderImpl
+    use(b) {
       thunk
       b.build
+    }
+  }
+
+  /** Installs a custom synth graph builder on the current thread,
+    * during the invocation of a closure. This method is typically
+    * called from other libraries which wish to provide a graph
+    * builder other than the default.
+    *
+    * When the method returns, the previous graph builder has automatically
+    * been restored. During the execution of the `body`, calling
+    * `SynthGraph.builder` will return the given `builder` argument.
+    *
+    * @param builder    the builder to install on the current thread
+    * @param body       the body which is executed with the builder found through `SynthGraph.builder`
+    * @tparam A         the result type of the body
+    * @return           the result of executing the body
+    */
+  def use[A](builder: Builder)(body: => A): A = {
+    val old = builders.get()
+    builders.set(builder)
+    try {
+      body
     } finally {
-      builders.set(old) // BuilderDummy
+      builders.set(old)
     }
   }
 
@@ -84,19 +106,6 @@ object SynthGraph {
     def addLazy(g: Lazy): Unit = warn(g.toString)
 
     def addControlProxy(proxy: ControlProxyLike): Unit = warn(proxy.toString)
-  }
-
-  private final class BuilderImpl extends Builder {
-    private val lazies          = Vec.newBuilder[Lazy]
-    private val controlProxies  = Set.newBuilder[ControlProxyLike]
-
-    override def toString = "SynthGraph.Builder@" + hashCode.toHexString
-
-    def build = SynthGraph(lazies.result(), controlProxies.result())
-
-    def addLazy(g: Lazy): Unit = lazies += g
-
-    def addControlProxy(proxy: ControlProxyLike): Unit = controlProxies += proxy
   }
 }
 
