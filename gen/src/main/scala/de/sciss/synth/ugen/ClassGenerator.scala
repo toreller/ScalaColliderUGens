@@ -294,7 +294,15 @@ final class ClassGenerator
     case Some(doc) =>
       spec.args.flatMap { a =>
         val aDoc = doc.args.get(a.name)
-        aDoc.map(d => a.name -> d.mkString(" "))
+        val init = a.tpe match {
+          case ArgumentType.GE(_, true) => true
+          case _ => false
+        }
+        val x   = if (init) aDoc.orElse(Some(Nil)) else aDoc
+        val end = if (init) " ''(init-time only)''" else ""
+        x.map { d =>
+          a.name -> d.mkString("", " ", end)
+        }
       } (breakOut)
 
     case _ => Nil

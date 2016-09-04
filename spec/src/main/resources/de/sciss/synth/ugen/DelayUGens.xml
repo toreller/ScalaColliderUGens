@@ -472,9 +472,9 @@
                 1 to enable looping, 0 to disable looping. this can be modulated.
             </doc>
         </arg>
-        <arg name="interp" default="2">
+        <arg name="interp" default="2" init="true">
             <doc>
-                1 for no interpolation, 2 for linear, and 4 for cubic interpolation
+                1 for no interpolation, 2 for linear, and 4 for cubic interpolation.
             </doc>
         </arg>
         <doc>

@@ -69,7 +69,7 @@ private[synth] object UGenSpecParser {
   }
 
   private object IsFloat {
-    private val re = """\-?\d+.\d+""".r.pattern
+    private val re = """\-?\d+\.\d+""".r.pattern
     def unapply(s: String): Option[Float] = {
       if (re.matcher(s).matches()) Some(s.toFloat) else None
     }
@@ -140,8 +140,8 @@ private[synth] object UGenSpecParser {
 
     val aTypeExp0 = aAttrs.get("type").map {
       case "ge"       => GE(Sig.Generic)
-      case "ge-int"     => GE(Sig.Int)
-      case "ge-string"  => GE(Sig.String)
+      case "ge-int"   => GE(Sig.Int)
+      case "ge-string"=> GE(Sig.String)
       case "bus"      => GE(Sig.Bus)
       case "buf"      => GE(Sig.Buffer)
       case "fft"      => GE(Sig.FFT)
@@ -150,7 +150,7 @@ private[synth] object UGenSpecParser {
       case "gate"     => GE(Sig.Gate)
       case "mul"      => GE(Sig.Mul)
       case "action"   => GE(Sig.DoneAction)
-      case "done-flag" => GE(Sig.DoneFlag)
+      case "done-flag"=> GE(Sig.DoneFlag)
       case "int"      => ArgumentType.Int
       case other      => sys.error(s"Unsupported type for ugen $uName, argument $aName: $other")
     }
@@ -216,7 +216,8 @@ private[synth] object UGenSpecParser {
         aTypeExp.foreach {
           case GE(Sig.Int,_) =>
           case ArgumentType.Int =>
-          case other => incompatibleTypeDefault(uName, aName, other, default)
+          case other =>
+            incompatibleTypeDefault(uName, aName, other, default)
         }
         orGeneric -> ArgumentValue.Int(i)
 
@@ -638,7 +639,7 @@ private[synth] object UGenSpecParser {
       val oName   = oAttrs.get("name")
       val oShape0 = oAttrs.get("type").map {
         case "ge"       => Sig.Generic
-        case "ge-int"     => Sig.Int
+        case "ge-int"   => Sig.Int
         case "bus"      => Sig.Bus
         case "buf"      => Sig.Buffer
         case "fft"      => Sig.FFT

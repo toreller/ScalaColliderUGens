@@ -4,7 +4,7 @@ lazy val baseNameL = baseName.toLowerCase
 name := baseName
 
 lazy val commonSettings = Seq(
-  version            := "1.15.1",
+  version            := "1.15.2",
   organization       := "de.sciss",
   description        := "UGens for ScalaCollider",
   homepage           := Some(url(s"https://github.com/Sciss/$baseName")),
@@ -14,7 +14,7 @@ lazy val commonSettings = Seq(
   initialCommands in console := """import de.sciss.synth._"""
 ) ++ publishSettings
 
-lazy val numbersVersion      = "0.1.1"
+lazy val numbersVersion      = "0.1.3"
 lazy val scalaTestVersion    = "3.0.0"
 lazy val scoptVersion        = "3.3.0" // 3.5.0 for next major version
 lazy val refactoringVersion  = "0.1.0"

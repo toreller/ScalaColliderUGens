@@ -390,10 +390,11 @@
                 to `hi` if it were to fall below `lo`.
             </doc>
         </arg>
-        <arg name="hi" default="inf" type="ge-int">
+        <arg name="hi" default="2147483583">
             <doc>
                 The maximum value output. For an incremental `step` value, the counter jumps
-                to `lo` if it were to rise beyond `hi`.
+                to `lo` if it were to rise beyond `hi`. Note that values greater than
+                `0x7FFFFFBF` (the default) cause numeric overflow and the UGen to malfunction.
             </doc>
         </arg>
         <arg name="step" default="1">
