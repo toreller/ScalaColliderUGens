@@ -126,7 +126,8 @@ object UnaryOpUGen {
     override def productElement(n: Int): Any = if (n == 0) id else throw new IndexOutOfBoundsException(n.toString)
 
     def name: String = plainName.capitalize
-
+    def prefix: Boolean = false
+    
     private def plainName: String = {
       val cn = getClass.getName
       val sz = cn.length
@@ -137,11 +138,15 @@ object UnaryOpUGen {
 
   case object Neg extends Op {
     final val id = 0
+    override val name = "-"
+    override def prefix = true
     def make1(a: Float) = -a
   }
 
   case object Not extends Op {
     final val id = 1
+    override val name = "!"
+    override def prefix = true
     def make1(a: Float): Float = rf2.not(a)
   }
 
@@ -351,7 +356,10 @@ final case class UnaryOpUGen(selector: UnaryOpUGen.Op, a: GE)
     selector.make1(a)
   }
 
-  override def toString = s"$a.${selector.name}"
+  override def toString = if (selector.prefix)
+    s"(${selector.name}$a)"
+  else
+    s"$a.${selector.name}"
 }
 
 /** Binary operations are generally constructed by calling one of the methods of `GEOps`.
@@ -424,6 +432,8 @@ object BinaryOpUGen {
     op =>
 
     def id: Int
+    
+    def infix: Boolean = false
 
     //      def make( rate: R, a: GE[ UGenIn[ R ]]) = UnaryOp[ R ]( rate, this, a )
     def make(a: GE, b: GE): GE = (a, b) match {
@@ -456,6 +466,7 @@ object BinaryOpUGen {
   case object Plus extends Op {
     final val id = 0
     override val name = "+"
+    override def infix = true
 
     def make1(a: Float, b: Float): Float = rf.+(a, b)
 
@@ -469,6 +480,7 @@ object BinaryOpUGen {
   case object Minus extends Op {
     final val id = 1
     override val name = "-"
+    override def infix = true
 
     def make1(a: Float, b: Float): Float = rf.-(a, b)
 
@@ -482,6 +494,7 @@ object BinaryOpUGen {
   case object Times extends Op {
     final val id = 2
     override val name = "*"
+    override def infix = true
 
     def make1(a: Float, b: Float): Float = rf.*(a, b)
 
@@ -500,6 +513,7 @@ object BinaryOpUGen {
   case object Div extends Op {
     final val id = 4
     override val name = "/"
+    override def infix = true
 
     def make1(a: Float, b: Float): Float = rf./(a, b)
 
@@ -518,49 +532,49 @@ object BinaryOpUGen {
   case object Mod extends Op {
     final val id = 5
     override val name = "%"
-
+    override def infix = true
     def make1(a: Float, b: Float): Float = rf.%(a, b)
   }
 
   case object Eq extends Op {
     final val id = 6
     override val name = "sig_=="
-
+    override def infix = true
     def make1(a: Float, b: Float) = if( a == b ) 1 else 0
   }
 
   case object Neq extends Op {
     final val id = 7
     override val name = "sig_!="
-
+    override def infix = true
     def make1(a: Float, b: Float) = if( a != b ) 1 else 0
   }
 
   case object Lt extends Op {
     final val id = 8
     override val name = "<"
-
+    override def infix = true
     def make1(a: Float, b: Float) = if (a < b) 1f else 0f // NOT rf.< !
   }
 
   case object Gt extends Op {
     final val id = 9
     override val name = ">"
-
+    override def infix = true
     def make1(a: Float, b: Float) = if (a > b) 1f else 0f // NOT rf.> !
   }
 
   case object Leq extends Op {
     final val id = 10
     override val name = "<="
-
+    override def infix = true
     def make1(a: Float, b: Float) = if (a <= b) 1f else 0f // NOT rf.<= !
   }
 
   case object Geq extends Op {
     final val id = 11
     override val name = ">="
-
+    override def infix = true
     def make1(a: Float, b: Float) = if (a >= b) 1f else 0f // NOT rf.>= !
   }
 
@@ -576,34 +590,32 @@ object BinaryOpUGen {
 
   case object BitAnd extends Op {
     final val id = 14
+    override def infix = true
     override val name = "&"
-
     def make1(a: Float, b: Float): Float = rf.&(a, b)
   }
 
   case object BitOr extends Op {
     final val id = 15
+    override def infix = true
     override val name = "|"
-
     def make1(a: Float, b: Float): Float = rf.|(a, b)
   }
 
   case object BitXor extends Op {
     final val id = 16
+    override def infix = true
     override val name = "^"
-
     def make1(a: Float, b: Float): Float = rf.^(a, b)
   }
 
   case object Lcm extends Op {
     final val id = 17
-
     def make1(a: Float, b: Float): Float = lf.lcm(a.toLong, b.toLong).toFloat
   }
 
   case object Gcd extends Op {
     final val id = 18
-
     def make1(a: Float, b: Float): Float = lf.gcd(a.toLong, b.toLong).toFloat
   }
 
@@ -650,11 +662,15 @@ object BinaryOpUGen {
 
   case object LeftShift extends Op {
     final val id = 26
+    override def infix = true
+    override val name = "<<"
     def make1(a: Float, b: Float): Float = (a.toLong << b.toInt).toFloat
   }
 
   case object RightShift extends Op {
     final val id = 27
+    override def infix = true
+    override val name = ">>"
     def make1(a: Float, b: Float): Float = (a.toLong >> b.toInt).toFloat
   }
   // case object UnsgnRghtShft  extends Op( 28 )
@@ -795,7 +811,7 @@ sealed trait BinaryOpUGen extends UGenSource.SingleOut {
     selector.make1(a0, a1)
   }
 
-  override def toString = if ((selector.id <= 11) || ((selector.id >= 14) && (selector.id <= 16)))
+  override def toString = if (selector.infix)
     s"($a ${selector.name} $b)"
   else
     s"$a.${selector.name}($b)"
