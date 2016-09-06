@@ -222,6 +222,17 @@
                 val ff    = SetResetFF.kr(set, reset)
                 SinOsc.ar(ff.madd(400, 800)) * 0.1
             </example>
+            <example name="limit trigger rate">
+                // with a combination of TDelay and SetResetFF
+                // we can build a filter that lets triggers
+                // pass at a maximum rate.
+                val dur   = 1.0  // minimum spacing between triggers
+                val in    = Dust.ar(10)  // high frequency trigger
+                val lim   = SetResetFF.ar(in, TDelay.ar(in, dur))
+                val time  = Timer.ar(lim)
+                time.poll(lim, "bang")
+                ()
+            </example>
             <see>ugen.ToggleFF</see>
         </doc>
     </ugen>
