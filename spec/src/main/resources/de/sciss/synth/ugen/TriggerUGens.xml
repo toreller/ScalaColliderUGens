@@ -21,6 +21,10 @@
                 When a trigger occurs at the input, a value of 1 is output for the specified duration,
                 otherwise zero is output. When a new trigger occurs while this ugens outputs 1, the
                 hold-time is reset to the duration.
+
+                ''Warning:'' The hold-time is subject to floating point rounding noise. It has been
+                experimentally found that in order to obtain a duration of `n` sample frames, passing
+                a value of `(n + 0.6) * SampleDur.ir` produces the correct hold-time.
             </text>
             <example name="hold dust spikes">
                 Trig1.ar(Dust.ar(1), 0.2) * SinOsc.ar(800) * 0.2
@@ -49,6 +53,10 @@
                 When a trigger occurs at the input, the input value is sampled and output for the specified duration,
                 otherwise zero is output. When a new trigger occurs while this ugens outputs 1, the
                 hold-time is reset to the duration.
+
+                ''Warning:'' The hold-time is subject to floating point rounding noise. It has been
+                experimentally found that in order to obtain a duration of `n` sample frames, passing
+                a value of `(n + 0.6) * SampleDur.ir` produces the correct hold-time.
             </text>
             <example name="hold dust spikes">
                 Trig.ar(Dust.ar(1), 0.2) * SinOsc.ar(800) * 0.2
