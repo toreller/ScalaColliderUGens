@@ -381,6 +381,10 @@
 
                 For audio-rate signals the delay is 1 audio frame, and for control-rate signals
                 the delay is 1 control period.
+
+                ''Note:'' The first value output is not zero but the
+                same as the first input value! In this respect the UGen behaves different than
+                `DelayN`.
             </text>
             <example name="analog to HPZ1">
                 val z = PinkNoise.ar
@@ -406,6 +410,10 @@
 
                 For audio-rate signals the delay is 2 audio frames, and for control-rate signals
                 the delay is 2 control periods.
+
+                ''Warning:'' the The first value output is zero, while both the second and the
+                third value output equal the first input value! In this respect the UGen behaves
+                different than `DelayN`.
             </text>
             <example name="high-frequency comb filter">
                 val z = PinkNoise.ar

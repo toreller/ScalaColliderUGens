@@ -1218,7 +1218,8 @@
         </arg>
         <doc>
             <text>
-                Simple delay line with no interpolation.
+                Simple delay line with no interpolation. The initial buffer contents
+                is zero.
             </text>
             <example name="Delayed random pulses">
                 // Dust randomly triggers Decay to create an exponential
