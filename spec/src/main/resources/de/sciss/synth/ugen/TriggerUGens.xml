@@ -22,9 +22,9 @@
                 otherwise zero is output. When a new trigger occurs while this ugens outputs 1, the
                 hold-time is reset to the duration.
 
-                ''Warning:'' The hold-time is subject to floating point rounding noise. It has been
-                experimentally found that in order to obtain a duration of `n` sample frames, passing
-                a value of `(n + 0.6) * SampleDur.ir` produces the correct hold-time.
+                ''Warning:'' The hold-time is subject to a bug that depends on the input signal.
+                For example with `Trig1.ar(Impulse.ar(0), 4 * SampleDur.ir)` one actually gets a high
+                signal for five sample frames instead of four.
             </text>
             <example name="hold dust spikes">
                 Trig1.ar(Dust.ar(1), 0.2) * SinOsc.ar(800) * 0.2
@@ -54,9 +54,9 @@
                 otherwise zero is output. When a new trigger occurs while this ugens outputs 1, the
                 hold-time is reset to the duration.
 
-                ''Warning:'' The hold-time is subject to floating point rounding noise. It has been
-                experimentally found that in order to obtain a duration of `n` sample frames, passing
-                a value of `(n + 0.6) * SampleDur.ir` produces the correct hold-time.
+                ''Warning:'' The hold-time is subject to a bug that depends on the input signal.
+                For example with `Trig1.ar(Impulse.ar(0), 4 * SampleDur.ir)` one actually gets a high
+                signal for five sample frames instead of four.
             </text>
             <example name="hold dust spikes">
                 Trig.ar(Dust.ar(1), 0.2) * SinOsc.ar(800) * 0.2
@@ -243,6 +243,8 @@
             <text>
                 A sample-and-hold UGen. When triggered, a new value is taken from the input and
                 hold until the next trigger occurs.
+
+                Before the first trigger is registered, this UGen outputs zero.
             </text>
             <see>ugen.Gate</see>
             <see>ugen.Demand</see>
@@ -267,6 +269,8 @@
                 A gate or hold UGen.
                 It allows the input signal value to pass when the `gate` argument is positive,
                 otherwise it holds last value.
+
+                Before the first high gate value is registered, this UGen outputs zero.
             </text>
             <see>ugen.Latch</see>
         </doc>

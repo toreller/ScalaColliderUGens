@@ -530,6 +530,9 @@
                 {{{
                 out(i) = 0.5 * (in(i) - in(i-1))
                 }}}
+
+                ``Note:`` the filter's memory is initialized with the first input sample,
+                so for `HPZ1.ar(DC.ar(x))` the output will be zero, even at the beginning.
             </text>
             <example name="engage with mouse button">
                 val sig = PinkNoise.ar
