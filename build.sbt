@@ -4,22 +4,32 @@ lazy val baseNameL = baseName.toLowerCase
 name := baseName
 
 lazy val commonSettings = Seq(
-  version            := "1.15.3-SNAPSHOT",
+  version            := "1.15.3",
   organization       := "de.sciss",
   description        := "UGens for ScalaCollider",
   homepage           := Some(url(s"https://github.com/Sciss/$baseName")),
   scalaVersion       := "2.11.8",
-  crossScalaVersions := Seq("2.11.8", "2.10.6"),
+  crossScalaVersions := Seq(/* "2.12.0-RC1", */ "2.11.8", "2.10.6"),  // 2.12.0-RC1 seems to be broken in the typer w/ scala-refactoring
   scalacOptions      ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture"),
   initialCommands in console := """import de.sciss.synth._"""
 ) ++ publishSettings
 
+// --- main dependencies ---
+
 lazy val numbersVersion      = "0.1.3"
-lazy val scalaTestVersion    = "3.0.0"
-lazy val scoptVersion        = "3.3.0" // 3.5.0 for next major version
-lazy val refactoringVersion  = "0.1.0"
-lazy val fileUtilVersion     = "1.1.1"
 lazy val scalaXMLVersion     = "1.0.5"
+
+// --- test-only dependencies ---
+
+lazy val scalaTestVersion    = "3.0.0"
+
+// --- gen project (not published, thus not subject to major version concerns) ---
+
+lazy val fileUtilVersion     = "1.1.2"
+lazy val scoptVersion        = "3.5.0"
+lazy val refactoringVersion  = "0.8.0"  // 0.10.0 doesn't seem to be working without frickin Eclipse
+
+// ---
 
 lazy val root = Project(id = baseNameL, base = file(".")).
   aggregate(spec, api, gen, core, plugins).
@@ -56,7 +66,7 @@ lazy val api = Project(id = s"$baseNameL-api", base = file("api")).
     libraryDependencies += "de.sciss" %% "numbers" % numbersVersion,
     libraryDependencies ++= {
       val sv = scalaVersion.value
-      if (sv startsWith "2.11") {
+      if (!(sv startsWith "2.10")) {
         ("org.scala-lang.modules" %% "scala-xml" % scalaXMLVersion) :: Nil
       } else Nil
     },
@@ -77,14 +87,24 @@ lazy val gen = Project(id = s"$baseNameL-gen", base = file("gen")).
   settings(
     description := "Source code generator for ScalaCollider UGens",
     licenses := lgpl,
-    libraryDependencies ++= Seq(
-      "com.github.scopt" %% "scopt"            % scoptVersion,
-      "de.sciss"         %% "scalarefactoring" % refactoringVersion,
-      "de.sciss"         %% "fileutil"         % fileUtilVersion,
-      "org.scalatest"    %% "scalatest"        % scalaTestVersion % "test"
-    ),
+    libraryDependencies ++= {
+      // why did they publish two artifacts for 2.11.7 and 2.11.8 ?!
+      // val refact = scalaBinaryVersion.value match {
+      //   case "2.11" => "2.11.8"
+      //   case other => other
+      // }
+      Seq(
+      "com.github.scopt"      %% "scopt"                         % scoptVersion,
+      // "de.sciss"              %% "scalarefactoring"              % refactoringVersion,
+      "org.scala-refactoring" %% "org.scala-refactoring.library" % refactoringVersion,
+      "de.sciss"              %% "fileutil"                      % fileUtilVersion,
+      "org.scalatest"         %% "scalatest"                     % scalaTestVersion % "test"
+      )
+    },
     publishLocal := {},
-    publish := {}
+    publish := {},
+    publishArtifact := false,   // cf. http://stackoverflow.com/questions/8786708/
+    publishTo := Some(Resolver.file("Unused transient repository", file("target/unusedrepo")))
   )
 
 lazy val core = Project(id = s"$baseNameL-core", base = file("core")).
