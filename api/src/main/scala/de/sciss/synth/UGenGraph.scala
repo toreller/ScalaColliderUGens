@@ -268,8 +268,8 @@ final case class UGenGraph(constants: Vec[Float], controlValues: Vec[Float],
 
   private[this] val charset = Charset.forName("UTF-8")
 
-  @inline private[this] def writePascalString(dos: DataOutputStream, str: String): Unit = {
-    val bytes = str.getBytes(charset) // XXX TODO -- cf. https://github.com/Sciss/ScalaColliderUGens/issues/31
+  private[synth] def writePascalString(dos: DataOutputStream, str: String): Unit = {
+    val bytes = str.getBytes(charset)
     val len = bytes.length
     if (len > 255) throw new IllegalArgumentException(s"String '$str' is too long (> 255 bytes)")
     dos.writeByte(len)
