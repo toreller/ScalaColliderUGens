@@ -89,21 +89,23 @@ final class ClassGenerator
       // create class trees
       val classes: List[Tree] = specs.flatMap(performSpec)(breakOut)
 
-      // figure out whether `inf` is used as default value
-      val importFloat = specs.exists(_.args.exists(_.defaults.exists {
-        case (_, ArgumentValue.Inf) => true
-        case _ => false
-      }))
+//      // figure out whether `inf` is used as default value
+//      val importFloat = specs.exists(_.args.exists(_.defaults.exists {
+//        case (_, ArgumentValue.Inf) => true
+//        case _ => false
+//      }))
+//
+//      // ...if so, include the alias import for `inf`
+//      val imports0 = if(importFloat)
+//       Import(identFloat, ImportSelector(termName(strPositiveInfinity), -1, termName(strInf), -1 ) :: Nil ) :: Nil
+//      else
+//        Nil
+//
+//      // the imports always include the `Vec` alias, and optionally the `inf` alias.
+//      val imports = Import(Select(Ident("collection" ),"immutable"),
+//        ImportSelector(termName("IndexedSeq"), -1, typeName(strVec), -1) :: Nil) :: Nil /* imports0 */
 
-      // ...if so, include the alias import for `inf`
-      val imports0 = if(importFloat)
-       Import(identFloat, ImportSelector(termName(strPositiveInfinity), -1, termName(strInf), -1 ) :: Nil ) :: Nil
-      else
-        Nil
-
-      // the imports always include the `Vec` alias, and optionally the `inf` alias.
-      val imports = Import(Select(Ident("collection" ),"immutable"),
-        ImportSelector(termName("IndexedSeq"), -1, typeName(strVec), -1) :: Nil) :: imports0
+      val imports = Import(Ident("UGenSource"), ImportSelector.wild :: Nil) :: Nil /* imports0 */
 
       // the package definition defines the `synth` and `ugen` packages, adds the imports and then the classes
       val pkg     = PackageDef(Select(Select(Ident("de"), "sciss"), "synth"),
@@ -313,16 +315,17 @@ final class ClassGenerator
   }
 
   private implicit final class RichArgumentValue(val peer: ArgumentValue) /* extends AnyVal */ {
-    import ArgumentValue._
+    import ArgumentValue.{Nyquist => Ny, _}
 
     def toTree: Tree = peer match {
       case Int(i)         => Literal(gl.Constant(i))
       case Float(f)       => Literal(gl.Constant(f))
       case Boolean(b)     => Literal(gl.Constant(if (b) 1 else 0)) // currently no type class for GE | Switch
       case String(s)      => Literal(gl.Constant(s))               // currently no type class for GE | String
-      case Inf            => Ident(strInf)
-      case DoneAction(a)  => Ident(a.name)
-      case Nyquist        => Ident(strNyquist)
+      case other          => Ident(other.toString)
+//      case Inf            => Ident(strInf)
+//      case DoneAction(a)  => Ident(a.name)
+//      case Ny             => Ident(strNyquist)
     }
   }
 
@@ -398,8 +401,8 @@ final class ClassGenerator
   private val identBinaryOp       = Ident("BinaryOpUGen")
   private val strMake1            = "make1"
   private val strTimes            = "Times"
-  private val identFloat          = Ident("Float")
-  private val strPositiveInfinity = "PositiveInfinity"
+//  private val identFloat          = Ident("Float")
+//  private val strPositiveInfinity = "PositiveInfinity"
   private val strInf              = "inf"
   private val strNyquist          = "nyquist"
 

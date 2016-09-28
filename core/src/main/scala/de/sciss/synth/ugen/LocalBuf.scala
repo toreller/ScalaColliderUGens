@@ -14,7 +14,7 @@
 package de.sciss.synth
 package ugen
 
-import collection.immutable.{IndexedSeq => Vec}
+import UGenSource._
 
 // XXX TODO - SetBuf, ClearBuf
 

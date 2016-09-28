@@ -19,7 +19,7 @@ import de.sciss.synth.ugen.Constant.{C0, C1, Cm1}
 import de.sciss.synth.ugen.{Constant => c}
 
 import scala.annotation.switch
-import scala.collection.immutable.{IndexedSeq => Vec}
+import UGenSource._
 
 final case class MulAdd(in: GE, mul: GE, add: GE)
   extends UGenSource.SingleOut {

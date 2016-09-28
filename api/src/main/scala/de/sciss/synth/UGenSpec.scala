@@ -274,7 +274,7 @@ object UGenSpec {
     final case class String(value: java.lang.String) extends ArgumentValue {
       override def toString = "\"" + value + "\""
 
-      def toGE: GE = ugen.stringArg(value)
+      def toGE: GE = UGenSource.stringArg(value)
     }
     /** Value is `Float.PositiveInfinity` (but more prettily written). */
     case object Inf extends ArgumentValue {
@@ -290,7 +290,7 @@ object UGenSpec {
     }
     /** Value indicates Nyquist frequency. This is mapped to a method expanding to `SampleRate.ir / 2`. */
     case object Nyquist extends ArgumentValue {
-      override def toString = productPrefix.toLowerCase
+      override def toString = s"$productPrefix()"
 
       def toGE: GE = ugen.Nyquist()
     }
