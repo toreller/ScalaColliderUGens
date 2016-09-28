@@ -1,4 +1,4 @@
-<ugens revision="2">
+<ugens revision="3">
     <!-- all documented -->
     <ugen name="OffsetOut" writes-bus="true">
         <no-outputs/>
@@ -59,13 +59,13 @@
         </doc>
     </ugen>
     <ugen name="LocalIn">
-        <output variadic="numChannels"/>
+        <output variadic="init"/>
         <rate name="control"/>
         <rate name="audio"/>
-        <arg name="numChannels" type="int" default="1">
+        <arg name="init" variadic="true" default="0">
             <doc>
-                number of channels to be read from synth-local bus. This should match with
-                the number of channels actually written via `LocalOut`.
+                the initial state of the UGen. The number of channels of this signal
+                should match with the number of channels written via `LocalOut`.
             </doc>
         </arg>
         <doc>
@@ -77,10 +77,15 @@
                 In a synth, there can be only each one control-rate and audio-rate `LocalIn`/`LocalOut` pair.
                 The signal written to a `LocalOut` will not be read by the `LocalIn` until the next
                 control block cycle, introducing a delay of `ControlDur`.
+
+                '''Warning''': The argument has been changed `numChannels: Int` in version 1.15.3 to `init: GE`
+                in version 1.16.0. The previous version was incompatible with SuperCollider 3.6.x.
+                A previous usage such as `LocalIn.ar(2)` to create two channels must now be expressed
+                as `LocalIn.ar(Seq(0, 0))`!
             </text>
             <example name="ping-pong delay with feedback">
                 val src = Decay.ar(Impulse.ar(0.3), 0.1) * WhiteNoise.ar(0.2)
-                val in  = LocalIn.ar(2) + Seq[GE](src, 0) // read feedback, add source to left chan
+                val in  = LocalIn.ar(Seq(0, 0)) + Seq[GE](src, 0) // read feedback, add source to left chan
                 val dly = DelayN.ar(in, 0.2, 0.2)         // delay sound
                 val att = dly * 0.8                       // apply decay factor
 
@@ -101,7 +106,7 @@
                   AllpassN.ar(z, 0.03, Seq.fill(2)(Rand(0.005,0.02)), 1)
                 }
 
-                val in  = LocalIn.ar(2) * 0.98
+                val in  = LocalIn.ar(Seq(0, 0)) * 0.98
                 val flt = OnePole.ar(in, 0.5)
 
                 val pan = Rotate2.ar(flt \ 0, flt \ 1, 0.23)
@@ -115,7 +120,7 @@
                 sig
             </example>
             <example name="resonator">
-                val imp  = Impulse.ar(1)
+                val imp  = Impulse.ar
                 val in   = LocalIn.ar
                 val feed = imp + in * 0.995
                 // must subtract block-size for correct tuning
@@ -248,7 +253,7 @@
         <arg name="bus" type="bus">
             <doc>
                 bus index to write to. For an audio-rate UGen, this is an audio-bus, for a control-rate UGen,
-                this is a control-bus.
+                this is a control-bus. '''Note''' that the bus index can only be modulated at control-rate.
             </doc>
         </arg>
         <arg name="in" variadic="true">
@@ -325,7 +330,7 @@
             </text>
             <example name="ping-pong delay with feedback">
                 val src = Decay.ar(Impulse.ar(0.3), 0.1) * WhiteNoise.ar(0.2)
-                val in  = LocalIn.ar(2) + Seq[GE](src, 0) // read feedback, add source to left chan
+                val in  = LocalIn.ar(Seq(0, 0)) + Seq[GE](src, 0) // read feedback, add source to left chan
                 val dly = DelayN.ar(in, 0.2, 0.2)         // delay sound
                 val att = dly * 0.8                       // apply decay factor
 

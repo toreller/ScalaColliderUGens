@@ -4,7 +4,7 @@ lazy val baseNameL = baseName.toLowerCase
 name := baseName
 
 lazy val commonSettings = Seq(
-  version            := "1.15.3",
+  version            := "1.16.0-SNAPSHOT",
   organization       := "de.sciss",
   description        := "UGens for ScalaCollider",
   homepage           := Some(url(s"https://github.com/Sciss/$baseName")),

@@ -1,4 +1,4 @@
-<ugens revision="8">
+<ugens revision="9">
     <!-- all documented -->
     <ugen name="ControlRate">
         <rate name="scalar" implied="true"/>    <!-- method="" -->
@@ -171,6 +171,18 @@
             <see>ugen.NumControlBuses</see>
             <see>ugen.NumInputBuses</see>
             <see>ugen.NumOutputBuses</see>
+            <see>ugen.NumRunningSynths</see>
+        </doc>
+    </ugen>
+    <ugen name="NodeID">
+        <rate name="scalar" implied="true"/>
+        <doc>
+            <text>Identifier of the node which contains the UGen.</text>
+            <example name="print the UGen value">
+                NodeID.ir.poll(0)
+            </example>
+            <see>ugen.Free</see>
+            <see>ugen.Poll</see>
             <see>ugen.NumRunningSynths</see>
         </doc>
     </ugen>

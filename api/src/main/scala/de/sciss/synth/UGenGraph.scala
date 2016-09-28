@@ -14,6 +14,7 @@
 package de.sciss.synth
 
 import java.io.{DataInputStream, DataOutputStream}
+import java.nio.charset.Charset
 
 import de.sciss.synth.ugen.impl.RawUGenImpl
 
@@ -265,8 +266,11 @@ final case class UGenGraph(constants: Vec[Float], controlValues: Vec[Float],
     dos.writeShort(0) // variants not supported
   }
 
+  private[this] val charset = Charset.forName("UTF-8")
+
   @inline private[this] def writePascalString(dos: DataOutputStream, str: String): Unit = {
-    dos.writeByte(str.length)
-    dos.write(str.getBytes)
+    val bytes = str.getBytes(charset) // XXX TODO -- cf. https://github.com/Sciss/ScalaColliderUGens/issues/31
+    dos.writeByte(bytes.length)
+    dos.write(bytes)
   }
 }
