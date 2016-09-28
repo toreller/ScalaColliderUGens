@@ -35,9 +35,9 @@ object LocalBuf
 final case class LocalBuf(numFrames: GE, numChannels: GE = 1)
   extends UGenSource.SingleOut with ScalarRated with IsIndividual {
 
-  protected def makeUGens: UGenInLike = unwrap(Vector(numChannels.expand, numFrames.expand))
+  protected def makeUGens: UGenInLike = unwrap(this, Vector(numChannels.expand, numFrames.expand))
 
-  protected def makeUGen(_args: Vec[UGenIn]): UGenInLike = {
+  private[synth] def makeUGen(_args: Vec[UGenIn]): UGenInLike = {
     // by 'visiting' we make sure exactly one instance of `MaxLocalBufs` exists per builder.
     // This is because we use the `MaxLocalBufs` companion object as key. ''Note'' that we
     // do not expand `MaxLocalBufs` at this moment. That is crucial, because we must be
@@ -68,7 +68,7 @@ private[synth] final case class MaxLocalBufs() extends UGenSource.SingleOut with
     res
   }
 
-  protected def makeUGen(_args: Vec[UGenIn]): UGenInLike = {
+  private[synth] def makeUGen(_args: Vec[UGenIn]): UGenInLike = {
     // instead of UGen.SingleOut we do this because we want to _prepend_ not _append_
     val res = new impl.SingleOutImpl(name, rate, _args, isIndividual = false, hasSideEffect = true, specialIndex = 0)
     UGenGraph.builder.prependUGen(res)
@@ -83,6 +83,6 @@ private[synth] final case class MaxLocalBufs() extends UGenSource.SingleOut with
     */
   protected def makeUGens: UGenInLike = {
     expanded = true
-    unwrap(Vector(Constant(count)))
+    unwrap(this, Vector(Constant(count)))
   }
 }

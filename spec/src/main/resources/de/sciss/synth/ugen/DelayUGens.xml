@@ -1,4 +1,4 @@
-<ugens revision="9">
+<ugens revision="10">
     <!-- all documented -->
     <ugen name="ControlRate">
         <rate name="scalar" implied="true"/>    <!-- method="" -->

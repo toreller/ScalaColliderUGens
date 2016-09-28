@@ -27,6 +27,48 @@ package object ugen {
 
   private[ugen] def nyquist: GE = Nyquist()
 
+  private[synth] def unwrap(source: UGenSource.SomeOut, args: Vec[UGenInLike]): UGenInLike = {
+    var uIns    = Vector.empty: Vec[UGenIn]
+    var uInsOk  = true
+    var exp     = 0
+    args.foreach(_.unbubble match {
+      case u: UGenIn => if (uInsOk) uIns :+= u
+      case g: ugen.UGenInGroup =>
+        exp     = math.max(exp, g.numOutputs)
+        uInsOk  = false // don't bother adding further UGenIns to uIns
+    })
+    if (uInsOk) {
+      // aka uIns.size == args.size
+      source.makeUGen(uIns)
+    } else {
+      // rewrap(args, exp)
+      ugen.UGenInGroup(Vector.tabulate(exp)(i => unwrap(source, args.map(_.unwrap(i)))))
+    }
+  }
+
+  private[synth] def unwrap(source: UGenSource.ZeroOut, args: Vec[UGenInLike]): Unit = {
+    var uIns    = Vector.empty: Vec[UGenIn]
+    var uInsOk  = true
+    var exp     = 0
+    args.foreach(_.unbubble match {
+      case u: UGenIn => if (uInsOk) uIns :+= u
+      case g: ugen.UGenInGroup =>
+        exp     = math.max(exp, g.numOutputs)
+        uInsOk  = false // don't bother adding further UGenIns to uIns
+    })
+    if (uInsOk) {
+      // aka uIns.size == args.size
+      source.makeUGen(uIns)
+    } else {
+      // rewrap(args, exp)
+      var i = 0
+      while (i < exp) {
+        unwrap(source, args.map(_.unwrap(i)))
+        i += 1
+      }
+    }
+  }
+
   // if the input at index `idx` has a different rate than `target`, update the
   // that input by wrapping it inside a conversion UGen
   private[ugen] def matchRate(ins: Vec[UGenIn], idx: Int, target: Rate): Vec[UGenIn] = {

@@ -375,6 +375,7 @@ final class ClassGenerator
   private val strUArgs            = "_args"
   private val identUArgs          = Ident(strUArgs)
   private val identUnwrap         = Ident("unwrap")
+  private val identThis           = Ident("this")
   private val identMaybeRate      = Ident("MaybeRate")
   private val identRate           = Ident("Rate")
   private val strMaybeResolve     = "getOrElse" // "?|"
@@ -689,7 +690,7 @@ final class ClassGenerator
           case None =>
             Apply(identMakeUGen, Select(identVector, strEmpty) :: Nil) // shortcut, works because we do not use type apply
           case Some(l) =>
-            Apply(identUnwrap, argsApp2.init.foldRight(l)((a, t) => Apply(Select(a, strPlusPlus), t :: Nil)) :: Nil)
+            Apply(identUnwrap, identThis :: argsApp2.init.foldRight(l)((a, t) => Apply(Select(a, strPlusPlus), t :: Nil)) :: Nil)
         }
       }
 
@@ -883,9 +884,15 @@ final class ClassGenerator
         EmptyTree
       )))
 
+      //        Modifiers(Flags.PRIVATE | Flags.METHOD, typeName("synth")).setPositions(
+      //          Map(Flags.PRIVATE.toLong -> NoPosition, Flags.METHOD.toLong -> NoPosition)),
+      //        Modifiers(NoFlags, typeName("synth")).withPosition(Flags.PRIVATE, NoPosition).withPosition(Flags.METHOD, NoPosition), // 'private[synth]'
+      //        Modifiers(Flags.PRIVATE | Flags.METHOD, typeName("synth")), // 'private[synth]'
+      // .withPosition(Flags.PRIVATE, NoPosition).withPosition(Flags.METHOD, NoPosition), // 'private[synth]'
+
       DefDef(
-        NoMods withPosition(Flags.PROTECTED, NoPosition) withPosition(Flags.METHOD, NoPosition),
-        termName(strMakeUGen),
+        NoMods,
+        termName(s"private[synth] def $strMakeUGen"), // can't get the [synth] otherwise
         Nil,                                                        // tparams
         methodArgs,                                                 // vparamss
         TypeDef(NoMods, typeName(expandResultStr), Nil, EmptyTree), // tpt

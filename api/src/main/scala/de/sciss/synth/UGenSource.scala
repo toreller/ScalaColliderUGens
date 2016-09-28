@@ -16,47 +16,15 @@ package de.sciss.synth
 import collection.immutable.{IndexedSeq => Vec}
 
 object UGenSource {
-  trait ZeroOut extends UGenSource[Unit] {
-    final protected def rewrap(args: Vec[UGenInLike], exp: Int): Unit = {
-      var i = 0
-      while (i < exp) {
-        unwrap(args.map(_.unwrap(i)))
-        i += 1
-      }
-    }
-  }
-
+  trait ZeroOut   extends UGenSource[Unit]
   trait SingleOut extends SomeOut
   trait MultiOut  extends SomeOut
 
-  protected sealed trait SomeOut extends UGenSource[UGenInLike] with GE.Lazy {
-    final protected def rewrap(args: Vec[UGenInLike], exp: Int): UGenInLike =
-      ugen.UGenInGroup(Vec.tabulate(exp)(i => unwrap(args.map(_.unwrap(i)))))
-  }
+  sealed trait SomeOut extends UGenSource[UGenInLike] with GE.Lazy
 }
 
-sealed trait UGenSource[U] extends Lazy.Expander[U] /* with Product */ {
-  protected def makeUGen(args: Vec[UGenIn]): U
+sealed trait UGenSource[U] extends Lazy.Expander[U] {
+  private[synth] def makeUGen(args: Vec[UGenIn]): U
 
   final def name: String = productPrefix
-
-  final protected def unwrap(args: Vec[UGenInLike]): U = {
-    var uIns    = Vec.empty[UGenIn]
-    var uInsOk  = true
-    var exp     = 0
-    args.foreach(_.unbubble match {
-      case u: UGenIn => if (uInsOk) uIns :+= u
-      case g: ugen.UGenInGroup =>
-        exp     = math.max(exp, g.numOutputs)
-        uInsOk  = false // don't bother adding further UGenIns to uIns
-    })
-    if (uInsOk) {
-      // aka uIns.size == args.size
-      makeUGen(uIns)
-    } else {
-      rewrap(args, exp)
-    }
-  }
-
-  protected def rewrap(args: Vec[UGenInLike], exp: Int): U
 }

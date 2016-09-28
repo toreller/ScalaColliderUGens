@@ -24,11 +24,11 @@ import scala.collection.immutable.{IndexedSeq => Vec}
 final case class MulAdd(in: GE, mul: GE, add: GE)
   extends UGenSource.SingleOut {
 
-  protected def makeUGens: UGenInLike = unwrap(Vec(in.expand, mul.expand, add.expand))
+  protected def makeUGens: UGenInLike = unwrap(this, Vector(in.expand, mul.expand, add.expand))
 
   def rate: MaybeRate = in.rate // XXX TODO - correct?
 
-  protected def makeUGen(args: Vec[UGenIn]): UGenInLike = {
+  private[synth] def makeUGen(args: Vec[UGenIn]): UGenInLike = {
     import BinaryOpUGen.{Minus, Plus, Times}
     import UnaryOpUGen.Neg
 
@@ -349,9 +349,9 @@ final case class UnaryOpUGen(selector: UnaryOpUGen.Op, a: GE)
 
   def rate: MaybeRate = a.rate
 
-  protected def makeUGens: UGenInLike = unwrap(Vec(a))
+  protected def makeUGens: UGenInLike = unwrap(this, Vector(a))
 
-  protected def makeUGen(args: Vec[UGenIn]): UGenInLike = {
+  private[synth] def makeUGen(args: Vec[UGenIn]): UGenInLike = {
     val a = args.head
     selector.make1(a)
   }
@@ -803,9 +803,9 @@ sealed trait BinaryOpUGen extends UGenSource.SingleOut {
 
   final def rate: MaybeRate = MaybeRate.max_?( a.rate, b.rate )
 
-  protected final def makeUGens: UGenInLike = unwrap(Vec(a.expand, b.expand))
+  protected final def makeUGens: UGenInLike = unwrap(this, Vector(a.expand, b.expand))
 
-  protected final def makeUGen(args: Vec[UGenIn]): UGenInLike = {
+  private[synth] final def makeUGen(args: Vec[UGenIn]): UGenInLike = {
     val a0 = args(0)
     val a1 = args(1)
     selector.make1(a0, a1)
@@ -839,9 +839,9 @@ object Sum3 {
 final case class Sum3(in0: GE, in1: GE, in2: GE) extends UGenSource.SingleOut {
   def rate: MaybeRate = MaybeRate.max_?(in0.rate, in1.rate, in2.rate)
 
-  protected def makeUGens: UGenInLike = unwrap(Vec(in0, in1, in2))
+  protected def makeUGens: UGenInLike = unwrap(this, Vector(in0, in1, in2))
 
-  protected def makeUGen(args: Vec[UGenIn]): UGenInLike = Sum3.make1(args)
+  private[synth] def makeUGen(args: Vec[UGenIn]): UGenInLike = Sum3.make1(args)
 }
 
 object Sum4 {
@@ -869,7 +869,7 @@ object Sum4 {
 final case class Sum4(in0: GE, in1: GE, in2: GE, in3: GE) extends UGenSource.SingleOut {
   def rate: MaybeRate = MaybeRate.max_?(in0.rate, in1.rate, in2.rate, in3.rate)
 
-  protected def makeUGens: UGenInLike = unwrap(Vec(in0, in1, in2, in3))
+  protected def makeUGens: UGenInLike = unwrap(this, Vector(in0, in1, in2, in3))
 
-  protected def makeUGen(args: Vec[UGenIn]): UGenInLike = Sum4.make1(args)
+  private[synth] def makeUGen(args: Vec[UGenIn]): UGenInLike = Sum4.make1(args)
 }
