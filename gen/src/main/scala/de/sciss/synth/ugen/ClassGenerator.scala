@@ -315,7 +315,7 @@ final class ClassGenerator
   }
 
   private implicit final class RichArgumentValue(val peer: ArgumentValue) /* extends AnyVal */ {
-    import ArgumentValue.{Nyquist => Ny, _}
+    import ArgumentValue._
 
     def toTree: Tree = peer match {
       case Int(i)         => Literal(gl.Constant(i))
