@@ -9,7 +9,7 @@ lazy val commonSettings = Seq(
   description        := "UGens for ScalaCollider",
   homepage           := Some(url(s"https://github.com/Sciss/$baseName")),
   scalaVersion       := "2.11.8",
-  crossScalaVersions := Seq("2.12.0-RC2", "2.11.8", "2.10.6"),
+  crossScalaVersions := Seq(/* "2.12.0-RC2", */ "2.11.8", "2.10.6"),
   scalacOptions      ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture"),
   initialCommands in console := """import de.sciss.synth._"""
 ) ++ publishSettings
@@ -27,7 +27,7 @@ lazy val scalaTestVersion    = "3.0.0"
 
 lazy val fileUtilVersion     = "1.1.2"
 lazy val scoptVersion        = "3.5.0"
-lazy val refactoringVersion  = "0.2.0"
+lazy val refactoringVersion  = "0.8.0"
 
 // ---
 
@@ -95,8 +95,8 @@ lazy val gen = Project(id = s"$baseNameL-gen", base = file("gen")).
       // }
       Seq(
       "com.github.scopt"      %% "scopt"                         % scoptVersion,
-      "de.sciss"              %% "scalarefactoring"              % refactoringVersion,
-      // "org.scala-refactoring" %% "org.scala-refactoring.library" % refactoringVersion,
+      // "de.sciss"              %% "scalarefactoring"              % refactoringVersion,
+      "org.scala-refactoring" %% "org.scala-refactoring.library" % refactoringVersion,
       "de.sciss"              %% "fileutil"                      % fileUtilVersion,
       "org.scalatest"         %% "scalatest"                     % scalaTestVersion % "test"
       )
