@@ -18,6 +18,7 @@ import de.sciss.synth.ugen.Constant
 
 import scala.annotation.tailrec
 import scala.collection.breakOut
+import scala.runtime.ScalaRunTime
 
 object UGenSource {
   trait ZeroOut   extends UGenSource[Unit]
@@ -129,4 +130,6 @@ sealed trait UGenSource[U] extends Lazy.Expander[U] {
   private[synth] def makeUGen(args: Vec[UGenIn]): U
 
   final def name: String = productPrefix
+
+  override lazy val hashCode: Int = ScalaRunTime._hashCode(this)
 }

@@ -1,10 +1,13 @@
-lazy val baseName  = "ScalaColliderUGens"
-lazy val baseNameL = baseName.toLowerCase
+lazy val baseName       = "ScalaColliderUGens"
+lazy val baseNameL      = baseName.toLowerCase
+
+lazy val projectVersion = "1.16.1-SNAPSHOT"
+lazy val mimaVersion    = "1.16.0"
 
 name := baseName
 
 lazy val commonSettings = Seq(
-  version            := "1.16.0",
+  version            := projectVersion,
   organization       := "de.sciss",
   description        := "UGens for ScalaCollider",
   homepage           := Some(url(s"https://github.com/Sciss/$baseName")),
@@ -54,7 +57,8 @@ lazy val spec = Project(id = s"$baseNameL-spec", base = file("spec")).
     crossPaths := false,
     licenseURL("BSD", "spec"),
     publishArtifact in (Compile, packageDoc) := false, // there are no javadocs
-    publishArtifact in (Compile, packageSrc) := false  // there are no sources (only re-sources)
+    publishArtifact in (Compile, packageSrc) := false, // there are no sources (only re-sources)
+    mimaPreviousArtifacts := Set("de.sciss" % s"$baseNameL-spec" % mimaVersion)
   )
 
 lazy val api = Project(id = s"$baseNameL-api", base = file("api")).
@@ -78,7 +82,8 @@ lazy val api = Project(id = s"$baseNameL-api", base = file("api")).
         case (_, Seq((lic, _))) => "license" -> lic
       }
     ),
-    buildInfoPackage := "de.sciss.synth.ugen"
+    buildInfoPackage := "de.sciss.synth.ugen",
+    mimaPreviousArtifacts := Set("de.sciss" %% s"$baseNameL-api" % mimaVersion)
   )
 
 lazy val gen = Project(id = s"$baseNameL-gen", base = file("gen")).
@@ -125,7 +130,8 @@ lazy val core = Project(id = s"$baseNameL-core", base = file("core")).
       val base  = (sourceManaged  in Compile).value
       val files = (managedSources in Compile).value
       files.map { f => (f, f.relativeTo(base).get.getPath) }
-    }
+    },
+    mimaPreviousArtifacts := Set("de.sciss" %% s"$baseNameL-core" % mimaVersion)
   )
 
 lazy val plugins = Project(id = s"$baseNameL-plugins", base = file("plugins")).
@@ -141,7 +147,8 @@ lazy val plugins = Project(id = s"$baseNameL-plugins", base = file("plugins")).
       val cp    = (dependencyClasspath in Runtime in gen ).value
       val st    = streams.value
       runUGenGenerator("--plugins", spc, src, cp.files, st.log)
-    }
+    },
+    mimaPreviousArtifacts := Set("de.sciss" %% s"$baseNameL-plugins" % mimaVersion)
   )
 
 def runUGenGenerator(switch: String, specDir: File, outputDir: File, cp: Seq[File], log: Logger): Seq[File] = {

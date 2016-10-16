@@ -81,7 +81,7 @@ trait GE extends Product {
 }
 
 package ugen {
-  private[synth] final case class GESeq(elems: Vec[GE]) extends GE {
+  final case class GESeq(elems: Vec[GE]) extends GE {
     def numOutputs            = elems.size
     def expand: UGenInLike    = UGenInGroup(elems.map(_.expand))
     def rate                  = MaybeRate.reduce(elems.map(_.rate): _*)
