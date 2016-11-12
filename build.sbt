@@ -13,14 +13,14 @@ lazy val commonSettings = Seq(
   homepage           := Some(url(s"https://github.com/Sciss/$baseName")),
   scalaVersion       := "2.11.8",
   crossScalaVersions := Seq(/* "2.12.0-RC2", */ "2.11.8", "2.10.6"),
-  scalacOptions      ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture"),
+  scalacOptions      ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture", "-Xlint"),
   initialCommands in console := """import de.sciss.synth._"""
 ) ++ publishSettings
 
 // --- main dependencies ---
 
 lazy val numbersVersion      = "0.1.3"
-lazy val scalaXMLVersion     = "1.0.5"
+lazy val scalaXMLVersion     = "1.0.6"
 
 // --- test-only dependencies ---
 

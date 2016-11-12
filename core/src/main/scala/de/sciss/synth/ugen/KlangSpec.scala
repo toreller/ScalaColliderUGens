@@ -14,20 +14,20 @@
 package de.sciss.synth
 package ugen
 
-import collection.immutable.{IndexedSeq => Vec}
+import scala.collection.immutable.{IndexedSeq => Vec}
 
 object KlangSpec {
   def fill(n: Int)(thunk: => (GE, GE, GE)): Seq =
-    new Seq(Vec.fill[(GE, GE, GE)](n)(thunk).map(tup => KlangSpec(tup._1, tup._2, tup._3)))
+    Seq(Vec.fill[(GE, GE, GE)](n)(thunk).map(tup => KlangSpec(tup._1, tup._2, tup._3)))
 
   def tabulate(n: Int)(func: (Int) => (GE, GE, GE)): Seq =
-    new Seq(Vec.tabulate[(GE, GE, GE)](n)(func ).map(tup => KlangSpec(tup._1, tup._2, tup._3)))
+    Seq(Vec.tabulate[(GE, GE, GE)](n)(func).map(tup => KlangSpec(tup._1, tup._2, tup._3)))
 
   final case class Seq(elems: Vec[KlangSpec]) extends GE {
-    override def productPrefix  = "KlangSpec$Seq"
+    override def productPrefix  = s"KlangSpec$$Seq"
     def numOutputs              = elems.size * 3
     def rate                    = MaybeRate.reduce(elems.map(_.rate): _*)
-    override def toString       = productPrefix + elems.mkString("(", ",", ")")
+    override def toString       = elems.mkString(s"$productPrefix(", ",", ")")
 
     def expand: UGenInLike      = UGenInGroup(elems.flatMap(_.expand.outputs))
   }

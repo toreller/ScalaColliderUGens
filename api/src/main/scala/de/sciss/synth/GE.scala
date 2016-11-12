@@ -89,7 +89,7 @@ package ugen {
     override def toString     = elems.mkString("GESeq(", ",", ")")
   }
 
-private[synth] final case class UGenInSeq(elems: Vec[UGenIn]) extends GE {
+  private[synth] final case class UGenInSeq(elems: Vec[UGenIn]) extends GE {
     def numOutputs            = elems.size
     def expand: UGenInLike    = UGenInGroup(elems)
     def rate                  = MaybeRate.reduce(elems.map(_.rate): _*)

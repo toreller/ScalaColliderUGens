@@ -149,6 +149,7 @@ object UGen {
 object UGenInLike {
   implicit def expand(ge: GE): UGenInLike = ge.expand
 }
+/** A super-trait that contains `UGenIn` and `UGenInGroup`. */
 sealed trait UGenInLike extends GE {
   private[synth] def outputs: Vec[UGenInLike]
   private[synth] def unbubble: UGenInLike
@@ -182,9 +183,9 @@ sealed trait UGenIn extends UGenInLike {
 
 package ugen {
   object UGenInGroup {
-    private final val emptyVal = new Apply(Vector.empty)
+    private final val emptyVal = Apply(Vector.empty)
     def empty: UGenInGroup = emptyVal
-    def apply(xs: Vec[UGenInLike]): UGenInGroup = new Apply(xs)
+    def apply(xs: Vec[UGenInLike]): UGenInGroup = Apply(xs)
 
     private final case class Apply(outputs: Vec[UGenInLike]) extends UGenInGroup {
       override def productPrefix = "UGenInGroup"
@@ -199,6 +200,7 @@ package ugen {
       def rate: MaybeRate = MaybeRate.reduce(outputs.map(_.rate): _*)
     }
   }
+  /** A trait that can be either a group of `UGenInLike` or a `UGen.MultiOut` */
   sealed trait UGenInGroup extends UGenInLike {
     private[synth] def outputs: Vec[UGenInLike]
     private[synth] def numOutputs: Int

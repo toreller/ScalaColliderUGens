@@ -120,8 +120,7 @@ object UnaryOpUGen {
 
     def make1(a: Float): Float
 
-    // override def productPrefix = s"UnaryOpUGen$$$plainName"
-    override def productPrefix  = "UnaryOpUGen$Op"
+    override def productPrefix  = s"UnaryOpUGen$$Op"
     override def productArity   = 1
     override def productElement(n: Int): Any = if (n == 0) id else throw new IndexOutOfBoundsException(n.toString)
 
@@ -448,8 +447,7 @@ object BinaryOpUGen {
 
     def make1(a: Float, b: Float): Float
 
-    // override def productPrefix = s"BinaryOpUGen$$$plainName"
-    override def productPrefix = "BinaryOpUGen$Op"
+    override def productPrefix  = s"BinaryOpUGen$$Op"
     override def productArity   = 1
     override def productElement(n: Int): Any = if (n == 0) id else throw new IndexOutOfBoundsException(n.toString)
 

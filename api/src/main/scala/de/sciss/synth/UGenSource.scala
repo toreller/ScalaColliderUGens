@@ -81,6 +81,31 @@ object UGenSource {
     }
   }
 
+  /** Simple forwarder to `in.expand` that can be used to access
+    * the otherwise package-private method.
+    */
+  def expand(in: GE): UGenInLike = in.expand
+
+  /** Simple forwarder to `in.outputs` that can be used to access
+    * the otherwise package-private method.
+    */
+  def outputs(in: UGenInLike): Vec[UGenInLike] = in.outputs
+
+  /** Simple forwarder to `in.flatOutputs` that can be used to access
+    * the otherwise package-private method.
+    */
+  def flatOutputs(in: UGenInLike): Vec[UGenIn] = in.flatOutputs
+
+  /** Simple forwarder to `in.unbubble` that can be used to access
+    * the otherwise package-private method.
+    */
+  def unbubble(in: UGenInLike): UGenInLike = in.unbubble
+
+  /** Simple forwarder to `in.unwrap` that can be used to access
+    * the otherwise package-private method.
+    */
+  def unwrapAt(in: UGenInLike, index: Int): UGenInLike = in.unwrap(index)
+
   // if the input at index `idx` has a different rate than `target`, update the
   // that input by wrapping it inside a conversion UGen
   def matchRate(ins: Vec[UGenIn], idx: Int, target: Rate): Vec[UGenIn] = {

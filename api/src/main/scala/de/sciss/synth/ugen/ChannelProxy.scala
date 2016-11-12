@@ -19,8 +19,24 @@ final case class ChannelProxy(elem: GE, index: Int) extends GE.Lazy {
 
   override def toString = s"$elem.\\($index)"
 
-  def makeUGens: UGenInLike = {
-    val _elem = elem.expand
-    _elem.unwrap(index)
+  protected def makeUGens: UGenInLike = {
+    // val _elem = elem.expand
+    // _elem.unwrap(index)
+
+    val res: UGenInLike = elem match {
+      case in: UGenIn     => in
+      case GESeq    (xs)  => xs(index % xs.length).expand
+      case UGenInSeq(xs)  => xs(index % xs.length)
+      case _ =>
+        val _elem = elem.expand
+        val out   = _elem.outputs
+        val outF  = _elem.flatOutputs
+        if (out.size == outF.size) {
+          outF(index % outF.size)
+        } else {
+          UGenInGroup(Vector.tabulate(outF.size / out.size)(i => outF((index + i * out.size) % outF.size)))
+        }
+    }
+    res
   }
 }

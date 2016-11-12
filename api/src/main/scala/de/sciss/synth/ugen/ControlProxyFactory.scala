@@ -48,17 +48,17 @@ final class ControlProxyFactory(val `this`: String) extends AnyVal { me =>
 trait ControlFactoryLike {
   def build(b: UGenGraph.Builder, proxies: Vec[ControlProxyLike]): Map[ControlProxyLike, (UGen, Int)] = {
     var numChannels = 0
-    val specialIndex = proxies.map(p => {
+    val specialIndex = proxies.map { p =>
       numChannels += p.values.size
       b.addControl(p.values, p.name)
-    }).head
+    } .head
     val ugen = makeUGen(numChannels, specialIndex)
     var offset = 0
-    proxies.map(p => {
-      val res = p -> (ugen, offset)
+    proxies.map { p =>
+      val res = p -> ((ugen, offset))
       offset += p.values.size
       res
-    })(breakOut)
+    } (breakOut)
   }
 
   protected def makeUGen(numChannels: Int, specialIndex: Int): UGen

@@ -466,7 +466,7 @@ private[synth] object UGenSpecParser {
         }
 
         val oldMap  = argRatesMap(raName)
-        val newMap  = oldMap + (r -> (raDef, raCons))
+        val newMap  = oldMap + (r -> ((raDef, raCons)))
         argRatesMap += raName -> newMap
       }
 
