@@ -1,4 +1,4 @@
-<ugens revision="4">
+<ugens revision="5">
     <!-- all documented, except example for CircleRamp -->
     <ugen name="VBAP">
         <output variadic="numChannels"/>
@@ -108,6 +108,7 @@
                 circle, wrapping values where appropriate. This can be useful when smoothing panning
                 signals for speaker rings, for instance in Vector Base Amplitude Panning.
             </text>
+            <!-- TODO: example -->
             <see>ugen.VBAP</see>
             <see>ugen.Ramp</see>
             <see>ugen.Lag</see>

@@ -1,4 +1,4 @@
-<ugens revision="6">
+<ugens revision="7">
     <!-- all documented, except: APF -->
     <ugen name="Ramp">
         <rate name="control"/>
@@ -22,6 +22,7 @@
                 at regular intervals given by the `lagTime` and starting
                 a new line segment after each interval.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Lag</see>
             <see>ugen.Sweep</see>
         </doc>
@@ -46,6 +47,7 @@
                 it is calculated from a 60 dB lag time. This is the time required for the filter to converge to
                 within 0.01 % of a value. This is useful for smoothing out control signals.
             </text>
+            <!-- TODO: example -->
             <see>ugen.OnePole</see>
             <see>ugen.LagUD</see>
             <see>ugen.Lag2</see>
@@ -72,6 +74,7 @@
                 thus resulting in a smoother transition. This saves on CPU as you only have to
                 calculate the decay factor once instead of twice.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Lag</see>
             <see>ugen.Lag2UD</see>
             <see>ugen.Lag3</see>
@@ -97,6 +100,7 @@
                 thus resulting in a smoother transition. This saves on CPU as you only have to
                 calculate the decay factor once instead of three times.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Lag</see>
             <see>ugen.Lag3UD</see>
             <see>ugen.Lag2</see>
@@ -126,6 +130,7 @@
                 This is essentially the same as `Lag` except that you can supply a different 60 dB time
                 for when the signal goes up, from when the signal goes down.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Lag</see>
             <see>ugen.Lag2UD</see>
         </doc>
@@ -155,6 +160,7 @@
                 thus resulting in a smoother transition. This saves on CPU as you only have to
                 calculate the decay factors once instead of twice.
             </text>
+            <!-- TODO: example -->
             <see>ugen.LagUD</see>
             <see>ugen.Lag2</see>
             <see>ugen.Lag3UD</see>
@@ -185,6 +191,7 @@
                 thus resulting in a smoother transition. This saves on CPU as you only have to
                 calculate the decay factors once instead of three times.
             </text>
+            <!-- TODO: example -->
             <see>ugen.LagUD</see>
             <see>ugen.Lag3</see>
             <see>ugen.Lag2UD</see>
@@ -211,6 +218,7 @@
                 out(i) = ((1 - abs(coef)) * in(i)) + (coef * out(i-1))
                 }}}
             </text>
+            <!-- TODO: example -->
             <see>ugen.OneZero</see>
             <see>ugen.TwoPole</see>
             <see>ugen.Lag</see>
@@ -239,6 +247,7 @@
                 out(i) = ((1 - abs(coef)) * in(i)) + (coef * in(i-1))
                 }}}
             </text>
+            <!-- TODO: example -->
             <see>ugen.OnePole</see>
             <see>ugen.TwoZero</see>
             <see>ugen.LPZ1</see>
@@ -332,6 +341,7 @@
                 Note: This should not be confused with `Lag` which does not overshoot due to integration,
                 but asymptotically follows the input signal.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Integrator</see>
             <see>ugen.Decay2</see>
             <see>ugen.Lag</see>
@@ -359,6 +369,7 @@
                 Note: This should not be confused with `LagUD` which does not overshoot due to integration,
                 but asymptotically follows the input signal.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Decay</see>
             <see>ugen.Integrator</see>
             <see>ugen.LagUD</see>
@@ -446,6 +457,7 @@
                 out(i) = in(i) + (coef * out(i-1))
                 }}}
             </text>
+            <!-- TODO: example -->
             <see>ugen.OnePole</see>
             <see>ugen.HPZ1</see>
             <see>ugen.LPZ1</see>
@@ -666,6 +678,7 @@
         <arg name="in" rate="ugen"/>
         <arg name="freq" default="440.0"/>
         <arg name="radius" default="0.8"/>
+        <!-- TODO: doc -->
     </ugen>
     <ugen name="LPF">
         <rate name="control"/>
@@ -919,6 +932,7 @@
                 Slew.kr(in)  // begins at "start" and moves towards "target"
                 }}}
             </text>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <ugen name="Slope">
@@ -938,6 +952,7 @@
                 }}}
                 It thus equal to `HPZ1.ar(_) * 2 * SampleRate.ir`
             </text>
+            <!-- TODO: example -->
         </doc>
     </ugen>
 
@@ -1294,6 +1309,7 @@
                 hard-knee characteristic. All of the thresholds and ratios are given as direct
                 values, not in decibels!
             </text>
+            <!-- TODO: example -->
             <see>ugen.Limiter</see>
             <see>ugen.Normalizer</see>
         </doc>
@@ -1451,6 +1467,7 @@
                 after the first input sample rising above the threshold that the actual monitoring begins and
                 a trigger of `1` or the firing of the done-action may occur.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Amplitude</see>
         </doc>
     </ugen>
@@ -1583,6 +1600,7 @@
                 there has been a change to one of the filter's parameters. This can cause spikes in
                 CPU performance and should be considered when using several of these units.
             </text>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <ugen name="BHiPass">
@@ -1612,6 +1630,7 @@
                 there has been a change to one of the filter's parameters. This can cause spikes in
                 CPU performance and should be considered when using several of these units.
             </text>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <ugen name="BBandPass">
@@ -1641,6 +1660,7 @@
                 there has been a change to one of the filter's parameters. This can cause spikes in
                 CPU performance and should be considered when using several of these units.
             </text>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <ugen name="BBandStop">
@@ -1670,6 +1690,7 @@
                 there has been a change to one of the filter's parameters. This can cause spikes in
                 CPU performance and should be considered when using several of these units.
             </text>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <ugen name="BPeakEQ">
@@ -1704,6 +1725,7 @@
                 there has been a change to one of the filter's parameters. This can cause spikes in
                 CPU performance and should be considered when using several of these units.
             </text>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <ugen name="BAllPass">
@@ -1733,6 +1755,7 @@
                 there has been a change to one of the filter's parameters. This can cause spikes in
                 CPU performance and should be considered when using several of these units.
             </text>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <ugen name="BLowShelf">
@@ -1770,6 +1793,7 @@
                 there has been a change to one of the filter's parameters. This can cause spikes in
                 CPU performance and should be considered when using several of these units.
             </text>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <ugen name="BHiShelf">
@@ -1807,6 +1831,7 @@
                 there has been a change to one of the filter's parameters. This can cause spikes in
                 CPU performance and should be considered when using several of these units.
             </text>
+            <!-- TODO: example -->
         </doc>
     </ugen>
 </ugens>

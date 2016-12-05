@@ -1,4 +1,4 @@
-<ugens revision="3">
+<ugens revision="4">
     <!-- all documented -->
     <ugen name="LFDNoise0" random="true">
         <rate name="control"/>
@@ -21,6 +21,7 @@
                 If very high or very low frequencies are not needed, or fixed frequencies are used,
                 `LFNoise0` is more efficient.
             </text>
+            <!-- TODO: example -->
             <see>ugen.LFNoise0</see>
             <see>ugen.LFDNoise1</see>
             <see>ugen.LFDNoise3</see>
@@ -48,6 +49,7 @@
                 If very high or very low frequencies are not needed, or fixed frequencies are used,
                 `LFNoise1` is more efficient.
             </text>
+            <!-- TODO: example -->
             <see>ugen.LFNoise1</see>
             <see>ugen.LFDNoise0</see>
             <see>ugen.LFDNoise3</see>

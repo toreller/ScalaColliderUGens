@@ -1,4 +1,4 @@
-<ugens revision="1"> <!-- extension from sc3-plugins -->
+<ugens revision="2"> <!-- extension from sc3-plugins -->
     <!-- all documented -->
     <ugen name="DFM1">
         <rate name="audio"/>
@@ -39,6 +39,7 @@
                 It provides low-pass and high-pass modes, and the filter can be overdriven and will
                 self-oscillate at high resonances.
             </text>
+            <!-- TODO: example -->
         </doc>
     </ugen>
 </ugens>

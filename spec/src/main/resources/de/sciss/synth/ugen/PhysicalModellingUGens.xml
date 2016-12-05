@@ -5,6 +5,7 @@
         <arg name="in" rate="ugen"/>
         <arg name="spring" default="1.0"/>
         <arg name="damp" default="0.0"/>
+        <!-- TODO: doc -->
     </ugen>
     <ugen name="Ball">
         <rate name="control"/>
@@ -13,6 +14,7 @@
         <arg name="g" default="1.0"/>
         <arg name="damp" default="0.0"/>
         <arg name="friction" default="0.01"/>
+        <!-- TODO: doc -->
     </ugen>
     <ugen name="TBall">
         <rate name="control"/>
@@ -21,5 +23,6 @@
         <arg name="g" default="10.0"/>
         <arg name="damp" default="0.0"/>
         <arg name="friction" default="0.01"/>
+        <!-- TODO: doc -->
     </ugen>
 </ugens>

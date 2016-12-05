@@ -1,4 +1,4 @@
-<ugens revision="1">
+<ugens revision="2">
     <!-- all documented -->
     <ugen name="BeatTrack" reads-fft="true">
         <rate name="control" implied="true"/>
@@ -36,6 +36,7 @@
 
                 '''Warning''': This UGen only works properly at 44.1 or 48.0 kHz.
             </text>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <ugen name="Loudness" reads-fft="true">
@@ -70,6 +71,7 @@
                 with an FFT size of 1024 and 50% overlap, a new measure is generated every 512 audio frames,
                 or (at control block size 64) every 8 control blocks.
             </text>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <ugen name="KeyTrack" reads-fft="true">
@@ -100,6 +102,7 @@
                 minor scales in all transpositions. It assumes a 440 Hz concert A reference. Output is 0-11  C major to B major,
                 12-23 C minor to B minor.
             </text>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <ugen name="MFCC" reads-fft="true">
@@ -136,6 +139,7 @@
                 with an FFT size of 1024 and 50% overlap, a new measure is generated every 512 audio frames,
                 or (at control block size 64) every 8 control blocks.
             </text>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <ugen name="Onsets" reads-fft="true">
@@ -222,6 +226,7 @@
                 others so maybe try that too. They all have slightly different characteristics, and in tests perform
                 at a similar quality level.
             </text>
+            <!-- TODO: example -->
             <see>ugen.PV_JensenAndersen</see>
             <see>ugen.PV_HainsworthFoote</see>
         </doc>
@@ -298,6 +303,7 @@
                 '''Warning''': it reads from input control bus instead of taking a regular control input signal as its first
                 argument!
             </text>
+            <!-- TODO: example -->
         </doc>
     </ugen>
 
@@ -323,6 +329,7 @@
                 with an FFT size of 1024 and 50% overlap, a new measure is generated every 512 audio frames,
                 or (at control block size 64) every 8 control blocks.
             </text>
+            <!-- TODO: example -->
             <see>ugen.CheckBadValues</see>
         </doc>
     </ugen>
@@ -357,6 +364,7 @@
                 with an FFT size of 1024 and 50% overlap, a new measure is generated every 512 audio frames,
                 or (at control block size 64) every 8 control blocks.
             </text>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <ugen name="SpecCentroid" reads-fft="true">
@@ -381,6 +389,7 @@
                 with an FFT size of 1024 and 50% overlap, a new measure is generated every 512 audio frames,
                 or (at control block size 64) every 8 control blocks.
             </text>
+            <!-- TODO: example -->
             <see>ugen.SpecPcile</see>
         </doc>
     </ugen>

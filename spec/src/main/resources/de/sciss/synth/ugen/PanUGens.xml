@@ -1,4 +1,4 @@
-<ugens revision="6">
+<ugens revision="7">
     <!-- all documented -->
     <ugen name="Pan2">
         <rate name="control"/>
@@ -184,6 +184,7 @@
                 An equal power two channel balancing UGen. It takes a left and right input signal
                 and attenuates them according to the `pos` value, producing again a stereophonic output.
             </text>
+            <!-- TODO: example -->
             <see>ugen.XFade2</see>
             <see>ugen.Pan2</see>
         </doc>
@@ -283,6 +284,7 @@
                 An equal power two channel cross fading UGen. In center position
                 (`pan = 0`), both input signals are attenuated by sqrt(0.5) or approx. -3 dB.
             </text>
+            <!-- TODO: example -->
             <see>ugen.LinXFade2</see>
             <see>ugen.Pan2</see>
             <see>ugen.XOut</see>
@@ -323,6 +325,7 @@
                 An linear two channel cross fading UGen. In center position
                 (`pan = 0`), both input signals are attenuated by 0.5 or approx. -6 dB.
             </text>
+            <!-- TODO: example -->
             <see>ugen.LinXFade2</see>
             <see>ugen.LinPan2</see>
             <see>ugen.XOut</see>
@@ -381,6 +384,7 @@
 
                 Note that unlike `PanB2`, azimuth is in radians.
             </text>
+            <!-- TODO: example -->
             <see>ugen.PanB2</see>
             <see>ugen.DecodeB2</see>
         </doc>
@@ -566,6 +570,7 @@
                 input channel where the pan position
                 is `inChanIdx * 2f / (inChannels - 1) * (outChannels - 1) / outChannels`.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Pan2</see>
             <see>ugen.SplayAz</see>
         </doc>

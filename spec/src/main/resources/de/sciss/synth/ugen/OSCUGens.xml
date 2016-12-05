@@ -1,4 +1,4 @@
-<ugens revision="7">
+<ugens revision="8">
     <!-- all documented, except: Shaper, SinOscFB, VOsc, VOsc3, Osc, OscN, COsc, Klang, Klank -->
     <ugen name="DegreeToKey" reads-buf="true">
         <rate name="control"/>
@@ -69,6 +69,7 @@
                 Note that, although only one signal of the `multi` input is let through at
                 a time, still all ugens are continuously running.
             </text>
+            <!-- TODO: example -->
             <see>ugen.TWindex</see>
         </doc>
     </ugen>
@@ -105,6 +106,7 @@
                 By default the sequence of probabilities should sum to 1.0, however for convenience, this
                 can be achieved by the ugen when the `normalize` flag is set to 1 (less efficient).
             </text>
+            <!-- TODO: example -->
             <see>ugen.Select</see>
         </doc>
     </ugen>
@@ -134,6 +136,7 @@
                 corresponds to frame 0, channel 0, index 1 correspond to frame 0, channel 1, index 2
                 corresponds to frame 1, channel 0, and index 3 corresponds to frame 1, channel 1.
             </text>
+            <!-- TODO: example -->
             <see>ugen.BufRd</see>
             <see>ugen.WrapIndex</see>
             <see>ugen.IndexL</see>
@@ -167,6 +170,7 @@
                 While designed for monophonic buffers, it works with multi-channel buffers by treating them
                 as de-interleaved. See the `Index` UGen for details.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Index</see>
             <see>ugen.IndexInBetween</see>
         </doc>
@@ -201,6 +205,7 @@
                 While designed for monophonic buffers, it works with multi-channel buffers by treating them
                 as de-interleaved. See the `Index` UGen for details.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Index</see>
             <see>ugen.WrapIndex</see>
             <see>ugen.IndexL</see>
@@ -232,6 +237,7 @@
                 While designed for monophonic buffers, it works with multi-channel buffers by treating them
                 as de-interleaved. See the `Index` UGen for details.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Index</see>
             <see>ugen.FoldIndex</see>
             <see>ugen.IndexL</see>
@@ -271,6 +277,7 @@
 
                 `IndexInBetween` is the complement of the `IndexL` UGen.
             </text>
+            <!-- TODO: example -->
             <see>ugen.DetectIndex</see>
             <see>ugen.IndexL</see>
         </doc>
@@ -291,6 +298,7 @@
                 this UGen always searches through the entire buffer until the value is found or the
                 end has been reached (returning -1).
             </text>
+            <!-- TODO: example -->
             <see>ugen.Index</see>
             <see>ugen.IndexInBetween</see>
         </doc>
@@ -321,6 +329,7 @@
                 This strange format is not a standard linear interpolation (integer + frac), but for (integer part -1)
                 and (1+frac)) due to some efficient maths for integer to float conversion in the underlying C code.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Index</see>
             <see>ugen.WrapIndex</see>
         </doc>
@@ -381,15 +390,38 @@
                 '''Note''' that currently (SC 3.7.x), the first frame generated is not zero (i.e. the value of
                 the sine oscillation at time zero) but the value at time `1 / SampleRate.ir`.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Osc</see>
             <see>ugen.FSinOsc</see>
+            <see>ugen.SinOscFB</see>
         </doc>
     </ugen>
     <ugen name="SinOscFB">
         <rate name="audio"/>
         <rate name="control"/>
-        <arg name="freq" default="440.0"/>
-        <arg name="feedback" default="0.0"/>
+        <arg name="freq" default="440.0">
+            <doc>
+                frequency in Hertz
+            </doc>
+        </arg>
+        <arg name="feedback" default="0.0">
+            <doc>
+                the amplitude of phase feedback in radians.
+                a value of zero produces a clean sine wave.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A sine oscillator UGen that has phase modulation feedback. Its output plugs back into the
+                phase input, allowing a modulation between a sine wave and a sawtooth-like wave.
+                "Over-modulation" causes chaotic oscillation. It may be useful to simulate feedback FM synths.
+            </text>
+            <example name="mouse-controlled feedback">
+                SinOscFB.ar(441, MouseX.kr(0, math.Pi)) * 0.1
+            </example>
+            <see>ugen.SinOsc</see>
+            <see>ugen.FSinOsc</see>
+        </doc>
     </ugen>
     <ugen name="VOsc" reads-buf="true">
         <rate name="audio"/>
@@ -397,6 +429,7 @@
         <arg name="bufPos"/> <!-- type="buf" ? -->
         <arg name="freq" default="440.0"/>
         <arg name="phase" default="0.0"/>
+        <!-- TODO: doc -->
     </ugen>
     <ugen name="VOsc3" reads-buf="true">
         <rate name="audio"/>
@@ -405,13 +438,52 @@
         <arg name="freq1" default="110.0"/>
         <arg name="freq2" default="220.0"/>
         <arg name="freq3" default="440.0"/>
+        <!-- TODO: doc -->
     </ugen>
     <ugen name="Osc" reads-buf="true">
         <rate name="audio"/>
         <rate name="control"/>
-        <arg name="buf" type="buf"/>
-        <arg name="freq" default="440.0"/>
-        <arg name="phase" default="0.0"/>
+        <arg name="buf" type="buf">
+            <doc>
+                the buffer with the wavetable in special
+                wavetable format. the size must be a power of two.
+            </doc>
+        </arg>
+        <arg name="freq" default="440.0">
+            <doc>
+                frequency of table scans in Hz, corresponding to
+                the fundamental frequency of the sound.
+            </doc>
+        </arg>
+        <arg name="phase" default="0.0">
+            <doc>
+                phase offset or modulator in radians. The value should be within the range of
+                -8*Pi to +8*Pi.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                An oscillator UGen that linearly interpolates a wavetable. It has
+                frequency and phase modulation inputs. The wave table is provided by a buffer
+                filled with a wavetable format signal. The buffer size must be a power of 2.
+
+                The buffer is typically filled by a `b_gen` OSC message.
+                (e.g. `buf.sine1(...)`, `buf.sine2(...)` etc.)
+            </text>
+            <example name="sine1 example" type="full">
+                val b = Buffer.alloc(s, 512)
+                b.sine1(partials = (1 to 6).map(1.0f / _),
+                  normalize = true, wavetable = true, clear = true)
+
+                play {
+                  Osc.ar(b.id, 200) * 0.3
+                }
+            </example>
+            <see>ugen.OscN</see>
+            <see>ugen.COsc</see>
+            <see>ugen.VOsc</see>
+            <see>ugen.SinOsc</see>
+        </doc>
     </ugen>
     <ugen name="OscN" reads-buf="true">
         <rate name="audio"/>
@@ -419,12 +491,14 @@
         <arg name="buf" type="buf"/>
         <arg name="freq" default="440.0"/>
         <arg name="phase" default="0.0"/>
+        <!-- TODO: doc -->
     </ugen>
     <ugen name="COsc" reads-buf="true">
         <rate name="audio"/>
         <arg name="buf" type="buf"/>
         <arg name="freq" default="440.0"/>
         <arg name="beats" default="0.5"/>
+        <!-- TODO: doc -->
     </ugen>
     <ugen name="Formant">
         <rate name="audio"/>
@@ -549,6 +623,7 @@
         <arg name="freqScale" default="1.0" init="true" pos="1"/>
         <arg name="freqOffset" default="0.0" init="true" pos="2"/>
         <arg name="specs" variadic="true" init="true" pos="0"/>
+        <!-- TODO: doc -->
     </ugen>
     <ugen name="Klank">
         <rate name="audio" implied="true"/>
@@ -557,5 +632,6 @@
         <arg name="freqOffset" default="0.0" init="true" pos="3"/>
         <arg name="decayScale" default="1.0" init="true" pos="4"/>
         <arg name="specs" variadic="true" init="true" pos="0"/>
+        <!-- TODO: doc -->
     </ugen>
 </ugens>

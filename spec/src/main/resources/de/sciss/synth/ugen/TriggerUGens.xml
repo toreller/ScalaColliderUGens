@@ -1,4 +1,4 @@
-<ugens revision="8">
+<ugens revision="9">
     <!-- all documented -->
     <ugen name="Trig1">
         <rate name="audio"/>
@@ -93,6 +93,7 @@
 
                 For sending an array of values, or using an arbitrary reply command, see `SendReply`.
             </text>
+            <!-- TODO: example -->
             <see>ugen.SendReply</see>
         </doc>
     </ugen>
@@ -132,6 +133,7 @@
 
                 For sending a single value, `SendTrig` provides an alternative.
             </text>
+            <!-- TODO: example -->
             <see>ugen.SendTrig</see>
         </doc>
     </ugen>
@@ -164,6 +166,7 @@
             <text>
                 A UGen for printing the current output value of its input to the console.
             </text>
+            <!-- TODO: example -->
             <see>ugen.SendTrig</see>
         </doc>
     </ugen>
@@ -257,6 +260,7 @@
 
                 Before the first trigger is registered, this UGen outputs zero.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Gate</see>
             <see>ugen.Demand</see>
         </doc>
@@ -283,6 +287,7 @@
 
                 Before the first high gate value is registered, this UGen outputs zero.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Latch</see>
         </doc>
     </ugen>
@@ -311,6 +316,7 @@
                 output again to 0.0. The produces a kind of hysteresis behavior, preventing heavy
                 oscillations in a noisy system which might occur with a single-threshold trigger.
             </text>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <ugen name="PulseDivider">
@@ -473,6 +479,7 @@
                 any new trigger arriving in the time between the previous trigger
                 and the passing of the delay time is ignored.
             </text>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <ugen name="ZeroCrossing">
@@ -516,6 +523,7 @@
                 `Impulse.ar(1)` the result (at 44.1 kHz) is 2.26757e-05, followed strangely
                 by 1.00002, and then (as expected) 1.0.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Sweep</see>
         </doc>
     </ugen>
@@ -543,6 +551,7 @@
                 When speed is one, one gets a continually-updating measurement
                 of the time (in seconds) since the last trigger.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Ramp</see>
             <see>ugen.Phasor</see>
             <see>ugen.Line</see>
@@ -889,6 +898,7 @@
                 as an explicit output signal when it is set to track a particular UGen. When the tracked UGen changes
                 to done, the output signal changes from zero to one.
             </text>
+            <!-- TODO: example -->
             <see>ugen.PlayBuf</see>
             <see>ugen.Line</see>
             <see>ugen.EnvGen</see>
@@ -917,6 +927,7 @@
                 UGen will not interfere with that action, unless the gate value is
                 adjusted.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Free</see>
             <see>ugen.PauseSelf</see>
         </doc>
@@ -940,6 +951,7 @@
 
                 This UGen outputs its input signal for convenience.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Free</see>
             <see>ugen.PauseSelf</see>
         </doc>
@@ -963,6 +975,7 @@
 
                 This UGen outputs its input signal for convenience.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Pause</see>
             <see>ugen.FreeSelf</see>
         </doc>
@@ -985,6 +998,7 @@
 
                 This UGen outputs its trig input signal for convenience.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Pause</see>
             <see>ugen.FreeSelf</see>
         </doc>
@@ -1005,6 +1019,7 @@
 
                 This UGen outputs its input signal for convenience.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Free</see>
             <see>ugen.FreeSelf</see>
             <see>ugen.PauseSelfWhenDone</see>
@@ -1027,6 +1042,7 @@
 
                 This UGen outputs its input signal for convenience.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Pause</see>
             <see>ugen.PauseSelf</see>
             <see>ugen.FreeSelfWhenDone</see>

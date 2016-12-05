@@ -1,4 +1,4 @@
-<ugens revision="2">
+<ugens revision="3">
     <!-- all documented -->
     <!-- // side-effect: advancing sf offset -->
     <ugen name="DiskIn" reads-buf="true" side-effect="true">
@@ -29,6 +29,7 @@
                 '''Note''': The buffer size must be a multiple of (2 * the server's block size). See
                 `Buffer#cue` for details.
             </text>
+            <!-- TODO: example -->
             <see>Buffer#cue</see>
             <see>ugen.VDiskIn</see>
             <see>ugen.PlayBuf</see>
@@ -65,6 +66,7 @@
 
                 The signal output by the UGen represents the number of frames written.
             </text>
+            <!-- TODO: example -->
             <see>Buffer#write</see>
             <see>ugen.DiskIn</see>
             <see>ugen.RecordBuf</see>
@@ -119,6 +121,7 @@
 
                 If the speed is too high, the UGen will not execute, posting a warning.
             </text>
+            <!-- TODO: example -->
             <see>Buffer#cue</see>
             <see>ugen.DiskIn</see>
             <see>ugen.DiskOut</see>

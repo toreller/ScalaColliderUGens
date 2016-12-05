@@ -1,4 +1,4 @@
-<ugens revision="11">
+<ugens revision="12">
     <!-- all documented -->
     <ugen name="Vibrato">
         <rate name="control"/>
@@ -452,6 +452,7 @@
                 sampling. The sample is always taken at the beginning of each control-block, while all other
                 samples of the audio-rate input within that block are ignored.
             </text>
+            <!-- TODO: example -->
             <see>ugen.K2A</see>
             <see>ugen.T2K</see>
         </doc>

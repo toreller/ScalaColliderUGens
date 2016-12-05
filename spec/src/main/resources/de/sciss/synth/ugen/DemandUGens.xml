@@ -1,4 +1,4 @@
-<ugens revision="3">
+<ugens revision="4">
     <ugen name="Demand" done-flag="true"> <!-- set done flag, but doesn't have done action -->
         <rate name="control"/>
         <rate name="audio"/>
@@ -39,6 +39,7 @@
                 '''Warning''': Demand seems to have a problem with initial triggers. For example
                 `Demand.kr(Impulse.kr(0), 1)` will have a spurious zero value output first.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Duty</see>
             <see>ugen.TDuty</see>
         </doc>
@@ -76,6 +77,7 @@
                 of duration values. When there is a trigger at the reset input, the `level`
                 and the `dur` input are reset.
             </text>
+            <!-- TODO: example -->
             <see>ugen.TDuty</see>
             <see>ugen.Demand</see>
             <see>DoneAction</see>
@@ -124,6 +126,7 @@
                 of duration values. When there is a trigger at the reset input, the `level` and
                 the `dur` input are reset.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Duty</see>
             <see>ugen.Demand</see>
             <see>DoneAction</see>
@@ -199,6 +202,7 @@
                 For each parameter of the envelope (levels, durations and shapes), values are polled
                 every time a new segment starts.
             </text>
+            <!-- TODO: example -->
             <see>ugen.EnvGen</see>
             <see>ugen.Env</see>
             <see>DoneAction</see>
@@ -228,51 +232,266 @@
 
                 The arguments can be constant or any other ugens.
             </text>
+            <!-- TODO: example -->
             <see>ugen.Dgeom</see>
             <see>ugen.Dseq</see>
         </doc>
     </ugen>
     <ugen name="Dgeom" indiv="true">
         <rate name="demand" implied="true" method="apply"/>
-        <arg name="length" type="ge-int" default="inf" pos="2"/>
-        <arg name="start" default="1.0" pos="0"/>
-        <arg name="grow" default="2.0" pos="1"/>
+        <arg name="length" type="ge-int" default="inf" pos="2">
+            <doc>
+                length of the sequence or `inf`
+            </doc>
+        </arg>
+        <arg name="start" default="1.0" pos="0">
+            <doc>
+                initial value
+            </doc>
+        </arg>
+        <arg name="grow" default="2.0" pos="1">
+            <doc>
+                factor (multiplier) by which values grow
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A demand-rate UGen that produces a geometric series.
+                Each value is calculated as
+
+                {{{
+                x[t] = x[t-1] * grow
+                }}}
+
+                With `x[0]` given as argument `start`.
+            </text>
+            <see>ugen.Dseries</see>
+            <see>ugen.Demand</see>
+            <example name="increasing frequency">
+                val in = Dgeom(1, 1.2, 15)
+                val tr = Impulse.kr(5)
+                val v  = Demand.kr(tr, in)
+                v.poll(tr)
+                val f  = v * 30 + 300
+                SinOsc.ar(f) * 0.1
+            </example>
+        </doc>
     </ugen>
     <ugen name="Dwhite" indiv="true" random="true">
         <rate name="demand" implied="true" method="apply"/>
-        <arg name="length" type="ge-int" default="inf" pos="2"/>
-        <arg name="lo" default="0.0" pos="0"/>
-        <arg name="hi" default="1.0" pos="1"/>
+        <arg name="length" type="ge-int" default="inf" pos="2">
+            <doc>
+                length of the sequence or `inf`
+            </doc>
+        </arg>
+        <arg name="lo" default="0.0" pos="0">
+            <doc>
+                minimum value (inclusive)
+            </doc>
+        </arg>
+        <arg name="hi" default="1.0" pos="1">
+            <doc>
+                maximum value (inclusive)
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A demand-rate UGen that produces random decimal numbers
+                with a constant spectral density, equivalent to
+                `WhiteNoise` for audio- or control-rate.
+            </text>
+            <see>ugen.Diwhite</see>
+            <see>ugen.Dbrown</see>
+            <see>ugen.WhiteNoise</see>
+            <see>ugen.Demand</see>
+            <example name="random frequency">
+                val in = Dwhite(lo = 0, hi = 15)
+                val tr = Impulse.kr(5)
+                val v  = Demand.kr(tr, in)
+                v.poll(tr)
+                val f  = v * 30 + 300
+                SinOsc.ar(f) * 0.1
+            </example>
+        </doc>
     </ugen>
     <ugen name="Diwhite" indiv="true" random="true">
         <rate name="demand" implied="true" method="apply"/>
-        <arg name="length" type="ge-int" default="inf" pos="2"/>
-        <arg name="lo" default="0.0" pos="0"/>
-        <arg name="hi" default="1.0" pos="1"/>
+        <arg name="length" type="ge-int" default="inf" pos="2">
+            <doc>
+                length of the sequence or `inf`
+            </doc>
+        </arg>
+        <arg name="lo" default="0" pos="0">
+            <doc>
+                minimum value (inclusive)
+            </doc>
+        </arg>
+        <arg name="hi" default="1" pos="1">
+            <doc>
+                maximum value (inclusive)
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A demand-rate UGen that produces equally distributed
+                random integer numbers.
+            </text>
+            <see>ugen.Dwhite</see>
+            <see>ugen.Dibrown</see>
+            <see>ugen.IRand</see>
+            <see>ugen.TIRand</see>
+            <see>ugen.Demand</see>
+            <example name="random pitch">
+                val in = Diwhite(lo = 0, hi = 15)
+                val tr = Impulse.kr(5)
+                val v  = Demand.kr(tr, in)
+                v.poll(tr)
+                val f  = (v + 62).midicps
+                SinOsc.ar(f) * 0.1
+            </example>
+        </doc>
     </ugen>
     <ugen name="Dbrown" indiv="true" random="true">
         <rate name="demand" implied="true" method="apply"/>
-        <arg name="length" type="ge-int" default="inf" pos="3"/>
-        <arg name="lo" default="0.0" pos="0"/>
-        <arg name="hi" default="1.0" pos="1"/>
-        <arg name="step" default="0.01" pos="2"/>
+        <arg name="length" type="ge-int" default="inf" pos="3">
+            <doc>
+                length of the sequence or `inf`
+            </doc>
+        </arg>
+        <arg name="lo" default="0.0" pos="0">
+            <doc>
+                minimum value (inclusive)
+            </doc>
+        </arg>
+        <arg name="hi" default="1.0" pos="1">
+            <doc>
+                minimum value (inclusive)
+            </doc>
+        </arg>
+        <arg name="step" default="0.01" pos="2">
+            <doc>
+                the maximum step a value can take
+                from the previous value
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A demand-rate UGen that produces random decimal numbers,
+                analogous to a Brownian motion.
+            </text>
+            <see>ugen.Dwhite</see>
+            <see>ugen.Dibrown</see>
+            <see>ugen.BrownNoise</see>
+            <see>ugen.Demand</see>
+            <example name="random frequency">
+                val in = Dbrown(lo = 0, hi = 15, step = 1)
+                val tr = Impulse.kr(5)
+                val v  = Demand.kr(tr, in)
+                v.poll(tr)
+                val f  = v * 30 + 300
+                SinOsc.ar(f) * 0.1
+            </example>
+        </doc>
     </ugen>
     <ugen name="Dibrown" indiv="true" random="true">
         <rate name="demand" implied="true" method="apply"/>
-        <arg name="length" type="ge-int" default="inf" pos="3"/>
-        <arg name="lo" default="0.0" pos="0"/>
-        <arg name="hi" default="1.0" pos="1"/>
-        <arg name="step" default="0.01" pos="2"/>
+        <arg name="length" type="ge-int" default="inf" pos="3">
+            <doc>
+                length of the sequence or `inf`.
+                This is currently (SuperCollider 3.7.2) broken,
+                and the sequence always has infinite length.
+            </doc>
+        </arg>
+        <arg name="lo" default="0" pos="0">
+            <doc>
+                minimum value (inclusive)
+            </doc>
+        </arg>
+        <arg name="hi" default="1" pos="1">
+            <doc>
+                maximum value (inclusive)
+            </doc>
+        </arg>
+        <arg name="step" default="1" pos="2">
+            <doc>
+                the maximum step a value can take
+                from the previous value
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A demand-rate UGen that produces random integer numbers,
+                analogous to a Brownian motion, or the `drunk` object in Max.
+
+                '''Note''': The `length` parameter seems currently broken.
+            </text>
+            <see>ugen.Diwhite</see>
+            <see>ugen.Dbrown</see>
+            <see>ugen.BrownNoise</see>
+            <see>ugen.Demand</see>
+            <example name="random frequency">
+                val in = Dibrown(lo = 0, hi = 15, step = 2)
+                val tr = Impulse.kr(5)
+                val v  = Demand.kr(tr, in)
+                v.poll(tr)
+                val f  = (v + 62).midicps
+                SinOsc.ar(f) * 0.1
+            </example>
+        </doc>
     </ugen>
     <ugen name="Dseq" indiv="true">
         <rate name="demand" implied="true" method="apply"/>
-        <arg name="repeats" default="1" pos="1"/>
-        <arg name="seq" variadic="true" pos="0"/>
+        <arg name="repeats" default="1" pos="1">
+            The number of repetitions of the entire sequence
+        </arg>
+        <arg name="seq" variadic="true" pos="0">
+            A multi-channel signal providing the values at each
+            step of the sequence. Typically (but not necessarily)
+            a sequence of constant values.
+        </arg>
+        <doc>
+            <text>
+                A demand-rate UGen which reproduces and repeats a sequence of values.
+
+                The arguments can be constant or any other ugens,
+                where demand rate UGens are normally polled, proceeding
+                to the next value when the sub-sequence ends.
+            </text>
+            <example name="sequence of constants">
+                val in = Dseq(Seq(3, 5, 7, 8, 11), inf)
+                val tr = Impulse.kr(5)
+                val v  = Demand.kr(tr, in)
+                v.poll(tr)
+                val f  = (v + 62).midicps
+                SinOsc.ar(f) * 0.1
+            </example>
+            <example name="constants alternating with white noise samples">
+                val in = Dseq(Seq[GE](3, 5, 7, 8, 11, WhiteNoise.kr * 2), inf)
+                val tr = Impulse.kr(5)
+                val v  = Demand.kr(tr, in)
+                v.poll(tr)
+                val f  = (v + 62).midicps
+                SinOsc.ar(f) * 0.1
+            </example>
+            <example name="constants alternating with two brownian values">
+                val br = Dbrown(lo = -3, hi = 3, step = 1, length = 2)
+                val c7 = Dseq(7, repeats = inf)
+                val in = Dseq(Seq[GE](3, 5, 7, 8, 11, br), inf)
+                val tr = Impulse.kr(5)
+                val v  = Demand.kr(tr, in)
+                v.poll(tr)
+                val f  = (v + 62).midicps
+                SinOsc.ar(f) * 0.1
+            </example>
+            <see>ugen.Demand</see>
+            <see>ugen.Dser</see>
+        </doc>
     </ugen>
     <ugen name="Dser" indiv="true">
         <rate name="demand" implied="true" method="apply"/>
         <arg name="repeats" default="1" pos="1"/>
         <arg name="seq" variadic="true" pos="0"/>
+        <!-- TODO: doc -->
     </ugen>
     <ugen name="Dbufrd" indiv="true" reads-buf="true" done-flag="true">
         <rate name="demand" implied="true" method="apply"/>
@@ -295,6 +514,7 @@
             <text>
                 A demand-rate UGen that reads out a buffer. All inputs can be either demand ugen or any other ugen.
             </text>
+            <!-- TODO: example -->
             <see>ugen.BufRd</see>
             <see>ugen.Dbufwr</see>
         </doc>
@@ -305,45 +525,54 @@
         <arg name="index" default="0" pos="2"/>
         <arg name="in" pos="0"/>
         <arg name="loop" default="true" pos="3"/>
+        <!-- TODO: doc -->
     </ugen>
     <ugen name="Drand" indiv="true" random="true">
         <rate name="demand" implied="true" method="apply"/>
         <arg name="repeats" default="1" pos="1"/>
         <arg name="seq" variadic="true" pos="0"/>
+        <!-- TODO: doc -->
     </ugen>
     <ugen name="Dxrand" indiv="true" random="true">
         <rate name="demand" implied="true" method="apply"/>
         <arg name="repeats" default="1" pos="1"/>
         <arg name="seq" variadic="true" pos="0"/>
+        <!-- TODO: doc -->
     </ugen>
     <ugen name="Dshuf" indiv="true" random="true">
         <rate name="demand" implied="true" method="apply"/>
         <arg name="repeats" default="1" pos="1"/>
         <arg name="seq" variadic="true" pos="0"/>
+        <!-- TODO: doc -->
     </ugen>
     <ugen name="Dswitch1" indiv="true">
         <rate name="demand" implied="true" method="apply"/>
         <arg name="index" pos="1"/>
         <arg name="seq" variadic="true" pos="0"/>
+        <!-- TODO: doc -->
     </ugen>
     <ugen name="Dswitch" indiv="true">
         <rate name="demand" implied="true" method="apply"/>
         <arg name="index" pos="1"/>
         <arg name="seq" variadic="true" pos="0"/>
+        <!-- TODO: doc -->
     </ugen>
     <ugen name="Dstutter" indiv="true">
         <rate name="demand" implied="true" method="apply"/>
         <arg name="n" type="ge-int"/>
         <arg name="in"/>
+        <!-- TODO: doc -->
     </ugen>
     <ugen name="Donce" indiv="true">
         <rate name="demand" implied="true" method="apply"/>
         <arg name="in"/>
+        <!-- TODO: doc -->
     </ugen>
     <ugen name="Dreset" indiv="true">
         <rate name="demand" implied="true" method="apply"/>
         <arg name="in"/>
         <arg name="reset" type="trig"/>
+        <!-- TODO: doc -->
     </ugen>
     <ugen name="Dpoll" indiv="true" side-effect="true">
         <rate name="demand" implied="true" method="apply"/>
@@ -372,6 +601,7 @@
             <text>
                 A demand rate UGen printing the current output value of its input to the console when polled.
             </text>
+            <!-- TODO: example -->
             <see>ugen.SendTrig</see>
             <see>ugen.Poll</see>
         </doc>

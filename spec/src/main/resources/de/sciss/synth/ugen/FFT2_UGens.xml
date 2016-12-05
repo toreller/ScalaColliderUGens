@@ -1,4 +1,4 @@
-<ugens revision="2">
+<ugens revision="3">
     <!-- all documented -->
     <ugen name="Convolution" reads-buf="true">
         <rate name="audio"/>
@@ -240,6 +240,7 @@
 
                 '''Warning: This UGen seems currently broken (SC 3.6.3)'''
             </text>
+            <!-- TODO: example -->
             <see>ugen.PartConv</see>
             <see>ugen.Convolution2</see>
             <!-- <see>ugen.StereoConvolution2L</see> -->
@@ -273,6 +274,7 @@
 
                 '''Warning: This UGen seems currently broken (SC 3.6.3)'''
             </text>
+            <!-- TODO: example -->
             <see>ugen.PartConv</see>
             <see>ugen.Convolution2</see>
             <!-- <see>ugen.Convolution3</see> -->

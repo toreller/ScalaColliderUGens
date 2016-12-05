@@ -1,4 +1,4 @@
-<ugens name="GrainUGens" revision="3">
+<ugens name="GrainUGens" revision="4">
     <ugen name="GrainIn" reads-buf="true">  <!-- accepts demand rate -->
         <rate name="audio" implied="true"/>
         <output variadic="numChannels"/>
@@ -9,6 +9,7 @@
         <arg name="pan" default="0.0"/>
         <arg name="envBuf" default="-1"/> <!-- type="buf" ? -->
         <arg name="maxGrains" default="512"/>
+        <!-- TODO: doc -->
     </ugen>
     <ugen name="GrainSin" reads-buf="true">  <!-- accepts demand rate -->
         <rate name="audio" implied="true"/>
@@ -20,6 +21,7 @@
         <arg name="pan" default="0.0"/>
         <arg name="envBuf" default="-1"/> <!-- type="buf" ? -->
         <arg name="maxGrains" default="512"/>
+        <!-- TODO: doc -->
     </ugen>
     <ugen name="GrainFM" reads-buf="true"> <!-- accepts demand rate -->
         <rate name="audio" implied="true"/>
@@ -33,6 +35,7 @@
         <arg name="pan" default="0.0"/>
         <arg name="envBuf" default="-1"/> <!-- type="buf" ? -->
         <arg name="maxGrains" default="512"/>
+        <!-- TODO: doc -->
     </ugen>
     <ugen name="GrainBuf" reads-buf="true">  <!-- accepts demand rate -->
         <rate name="audio" implied="true"/>
@@ -100,6 +103,7 @@
 
                 All arguments except `numChannels` and `maxGrain` are polled at grain creation (trigger) time.
             </text>
+            <!-- TODO: example -->
             <see>ugen.TGrains</see>
             <see>ugen.PlayBuf</see>
             <see>ugen.PanAz</see>
@@ -117,5 +121,6 @@
         <arg name="overlaps" default="8.0"/>
         <arg name="winRand" default="0.0"/>
         <arg name="interp" default="1"/>
+        <!-- TODO: doc -->
     </ugen>
 </ugens>

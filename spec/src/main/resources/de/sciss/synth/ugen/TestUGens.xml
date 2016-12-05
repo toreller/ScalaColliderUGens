@@ -1,4 +1,4 @@
-<ugens revision="1">
+<ugens revision="2">
     <!-- all documented -->
     <ugen name="CheckBadValues" side-effect="true">
         <rate name="scalar"/>
@@ -29,6 +29,7 @@
                 According to the post settings it will print the information to the console along
                 with a given identifier.
             </text>
+            <!-- TODO: example -->
         </doc>
     </ugen>
 </ugens>

@@ -1,4 +1,4 @@
-<ugens revision="1">
+<ugens revision="2">
     <ugen name="Gendy1" random="true">
         <rate name="audio"/>
         <rate name="control"/>
@@ -12,6 +12,7 @@
         <arg name="durScale" default="0.5"/>
         <arg name="initCPs" default="12" init="true"/>
         <arg name="kNum" default="12"/>
+        <!-- TODO: doc -->
     </ugen>
     <ugen name="Gendy2" random="true">
         <rate name="audio"/>
@@ -28,6 +29,7 @@
         <arg name="kNum" default="12"/>
         <arg name="a" default="1.17"/>
         <arg name="c" default="0.31"/>
+        <!-- TODO: doc -->
     </ugen>
     <ugen name="Gendy3" random="true">
         <rate name="audio"/>
@@ -41,5 +43,6 @@
         <arg name="durScale" default="0.5"/>
         <arg name="initCPs" default="12" init="true"/>
         <arg name="kNum" default="12"/>
+        <!-- TODO: doc -->
     </ugen>
 </ugens>

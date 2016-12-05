@@ -1,4 +1,4 @@
-<ugens revision="10">
+<ugens revision="11">
     <!-- all documented -->
     <ugen name="ControlRate">
         <rate name="scalar" implied="true"/>    <!-- method="" -->
@@ -84,7 +84,30 @@
                 scheduled. It can be used to offset envelopes or resample the audio
                 output.
             </text>
-            <!-- TODO: example -->
+            <example name="print offset" type="full">
+                SynthDef.recv("SubsampleOffset") {
+                  SubsampleOffset.ir.poll(0, "offset")
+                }
+
+                // create 2 pulse trains 1 sample apart, move one relatively to the other.
+                // when cursor is at the left, the impulses are adjacent, on the right, they are
+                // exactly 1 sample apart.
+
+                val dt = s.sampleRate.reciprocal // 1 sample delay
+
+                val x1, x2 = Synth(s)
+
+                // needed to use System.currentTimeMillis with osc.Bundle.secs
+                val SECONDS_FROM_1900_TO_1970 = 2208988800L
+
+                // We create two identical synths with a delay of half a sample,
+                // they should thus report offsets 0.5 apart (plus some floating point noise).
+
+                // execute the following three lines together!
+                val t0 = System.currentTimeMillis * 0.001 + SECONDS_FROM_1900_TO_1970
+                s ! osc.Bundle.secs(t0 + 0.2        , x1.newMsg("SubsampleOffset"))
+                s ! osc.Bundle.secs(t0 + 0.2 + dt/2 , x2.newMsg("SubsampleOffset"))
+            </example>
             <see>ugen.ControlRate</see>
             <see>ugen.SampleDur</see>
             <see>ugen.OffsetOut</see>
@@ -207,14 +230,14 @@
             <text>
                 Returns the buffer's current sample rate.
             </text>
-            <!-- TODO: example -->
+            <see>ugen.SampleRate</see>
+            <see>ugen.BufRateScale</see>
+            <example name="rate of local buffer">
+                val buf = LocalBuf(1024)
+                BufSampleRate.ir(buf).poll(0) // matches server sample rate
+            </example>
         </doc>
         <rate name="control"/>
-        <doc>
-            <text>
-                Returns the buffer's current sample rate.
-            </text>
-        </doc>
         <arg name="buf" type="buf">
             <doc>
                 Buffer id.
@@ -232,7 +255,13 @@
                 buffer sample rate / server sample rate
                 }}}
             </text>
-            <!-- TODO: example -->
+            <see>ugen.BufSampleRate</see>
+            <see>ugen.SampleRate</see>
+            <see>ugen.PlayBuf</see>
+            <example name="rate scale of local buffer">
+                val buf = LocalBuf(1024)
+                BufRateScale.ir(buf).poll(0) // reports 1.0 because buffer rate matches server rate
+            </example>
         </doc>
         <arg name="buf" type="buf">
             <doc>
@@ -252,7 +281,13 @@
                 samples = frames * numChannels
                 }}}
             </text>
-            <!-- TODO: example -->
+            <see>ugen.BufFrames</see>
+            <see>ugen.BufChannels</see>
+            <see>ugen.BufDur</see>
+            <example name="samples of local buffer">
+                val buf = LocalBuf(1024, 2)
+                BufSamples.ir(buf).poll(0) // 2 * 1024 = 2048
+            </example>
         </doc>
         <arg name="buf" type="buf">
             <doc>
@@ -267,7 +302,13 @@
             <text>
                 Returns the number of allocated frames of the buffer at the provided index.
             </text>
-            <!-- TODO: example -->
+            <see>ugen.BufSamples</see>
+            <see>ugen.BufChannels</see>
+            <see>ugen.BufDur</see>
+            <example name="frames of local buffer">
+                val buf = LocalBuf(1024, 2)
+                BufFrames.ir(buf).poll(0) // reports 1024
+            </example>
         </doc>
         <arg name="buf" type="buf">
             <doc>
@@ -282,7 +323,12 @@
             <text>
                 Returns the current number of channels of the buffer at the provided index.
             </text>
-            <!-- TODO: example -->
+            <see>ugen.BufFrames</see>
+            <see>ugen.BufSamples</see>
+            <example name="channels of local buffer">
+                val buf = LocalBuf(1024, 2)
+                BufChannels.ir(buf).poll(0) // reports 2
+            </example>
         </doc>
         <arg name="buf" type="buf">
             <doc>
@@ -297,7 +343,13 @@
             <text>
                 Returns the current duration of the buffer at the provided index.
             </text>
-            <!-- TODO: example -->
+            <see>ugen.BufFrames</see>
+            <see>ugen.BufRateScale</see>
+            <see>ugen.SampleDur</see>
+            <example name="duration of local buffer">
+                val buf = LocalBuf(SampleRate.ir * 1.5, 2)
+                BufDur.ir(buf).poll(0) // reports 1.5
+            </example>
         </doc>
         <arg name="buf" type="buf">
             <doc>
@@ -1339,6 +1391,7 @@
             </text>
             <see>ugen.CombL</see>
             <see>ugen.CombC</see>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <ugen name="CombL">
@@ -1373,6 +1426,7 @@
             </text>
             <see>ugen.CombN</see>
             <see>ugen.CombC</see>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <ugen name="CombC">
@@ -1407,6 +1461,7 @@
             </text>
             <see>ugen.CombN</see>
             <see>ugen.CombL</see>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <ugen name="AllpassN">
@@ -1441,6 +1496,7 @@
             </text>
             <see>ugen.AllpassL</see>
             <see>ugen.AllpassC</see>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <ugen name="AllpassL">
@@ -1475,6 +1531,7 @@
             </text>
             <see>ugen.AllpassN</see>
             <see>ugen.AllpassC</see>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <ugen name="AllpassC">
@@ -1509,6 +1566,7 @@
             </text>
             <see>ugen.AllpassN</see>
             <see>ugen.AllpassL</see>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <ugen name="PitchShift">
@@ -1545,6 +1603,7 @@
                 A time domain granular pitch shifter. Grains have a triangular amplitude
                 envelope and an overlap of 4:1.
             </text>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <!-- this should exist according to plugin sources...
@@ -1613,6 +1672,7 @@
                 a regular buffer.
             </text>
             <see>ugen.GrainBuf</see>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <ugen name="ScopeOut" writes-buf="true">
@@ -1668,6 +1728,7 @@
             <text>
                 A Karplus-Strong UGen.
             </text>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <ugen name="DelTapWr" writes-buf="true">
@@ -1691,6 +1752,7 @@
                 Write to a buffer for a `DelTapRd` UGen
             </text>
             <see>ugen.DelTapRd</see>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <ugen name="DelTapRd" reads-buf="true">
@@ -1721,6 +1783,7 @@
                 Tap a delay line from a `DelTapWr` UGen.
             </text>
             <see>ugen.DelTapWr</see>
+            <!-- TODO: example -->
         </doc>
     </ugen>
 
@@ -1750,6 +1813,7 @@
             </text>
             <see>ugen.LocalBuf</see>
             <see>ugen.ClearBuf</see>
+            <!-- TODO: example -->
         </doc>
     </ugen>
 
@@ -1766,6 +1830,7 @@
             </text>
             <see>ugen.LocalBuf</see>
             <see>ugen.SetBuf</see>
+            <!-- TODO: example -->
         </doc>
     </ugen>
 </ugens>
