@@ -390,7 +390,15 @@
                 '''Note''' that currently (SC 3.7.x), the first frame generated is not zero (i.e. the value of
                 the sine oscillation at time zero) but the value at time `1 / SampleRate.ir`.
             </text>
-            <!-- TODO: example -->
+            <example name="plain oscillator">
+                SinOsc.ar(441) * 0.2
+            </example>
+            <example name="modulate frequency">
+                SinOsc.ar(SinOsc.ar(XLine.kr(1, 1000, 9)).madd(200, 800)) * 0.25
+            </example>
+            <example name="modulate phase">
+                SinOsc.ar(800, SinOsc.ar(XLine.kr(1, 1000, 9)) * 2*math.Pi) * 0.25
+            </example>
             <see>ugen.Osc</see>
             <see>ugen.FSinOsc</see>
             <see>ugen.SinOscFB</see>

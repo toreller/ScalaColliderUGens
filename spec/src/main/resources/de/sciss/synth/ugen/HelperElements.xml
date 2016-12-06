@@ -1,0 +1,65 @@
+<!-- these are graph elements that do not constitute genuine UGens -->
+<ugens revision="1">
+    <ugen name="ChannelIndices" helper="true" sourcecode="true">
+        <rate name="scalar" implied="true"/>
+        <arg name="in">
+            <doc>
+                the element whose indices to produce
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A graph element that produces an integer sequence
+                from zero until the number-of-channels of the input element.
+            </text>
+            <example name="cross-faded select">
+                val sines: GE = Seq.fill(4)(SinOsc.ar(ExpRand(200, 2000)))
+                val index   = MouseX.kr(lo = 0, hi = NumChannels(sines) - 1)
+                val indices = ChannelIndices(sines)
+                indices.poll(0, "indices")
+                val select  = 1 - (indices absdif index).min(1)
+                val sig     = Mix(sines * select)
+                sig * 0.2
+            </example>
+            <see>ugen.NumChannels</see>
+        </doc>
+    </ugen>
+    <ugen name="NumChannels" helper="true" sourcecode="true">
+        <rate name="scalar" implied="true"/>
+        <arg name="in">
+            <doc>
+                the element whose number-of-channels to produce
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A graph element that produces an integer with number-of-channels
+                of the input element.
+
+                Because ScalaCollider allows late-expanding
+                graph elements, we have no direct way to get an integer of some
+                array-size of a UGen's outputs. On the other hand, there may be
+                sound synthesis definitions that can abstract over the number of
+                channels at definition time.
+            </text>
+            <example name="amplitude compensation">
+                val sines: GE = Seq.fill(8)(SinOsc.ar(ExpRand(200, 2000)))
+                val norm = Mix(sines) / NumChannels(sines)   // guarantee that they don't clip
+                norm * 0.2
+            </example>
+            <see>ugen.ChannelIndices</see>
+        </doc>
+    </ugen>
+    <ugen name="Nyquist" helper="true" sourcecode="true">
+        <rate name="scalar" implied="true"/>
+        <doc>
+            <text>
+                A helper graph element equivalent to `SampleRate.ir * 0.5`.
+            </text>
+            <example name="as frequency argument">
+                Dust.ar(Nyquist()).pow(8)
+            </example>
+            <see>ugen.SampleRate</see>
+        </doc>
+    </ugen>
+</ugens>

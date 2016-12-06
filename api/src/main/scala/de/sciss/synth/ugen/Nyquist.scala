@@ -14,12 +14,27 @@
 package de.sciss.synth
 package ugen
 
-/** A helper UGen equivalent to `SampleRate.ir * 0.5`. */
+/** A helper graph element equivalent to `SampleRate.ir * 0.5`.
+  *
+  * ===Examples===
+  *
+  * {{{
+  * // as frequency argument
+  * play {
+  *   Dust.ar(Nyquist()).pow(8)
+  * }
+  * }}}
+  *
+  * @see [[de.sciss.synth.ugen.SampleRate$ SampleRate]]
+  */
 object Nyquist {
   def ir: Nyquist = new Nyquist()
 }
 
-/** A helper UGen equivalent to `SampleRate.ir * 0.5`. */
+/** A helper graph element equivalent to `SampleRate.ir * 0.5`.
+  *
+  * @see [[de.sciss.synth.ugen.SampleRate$ SampleRate]]
+  */
 final case class Nyquist() extends GE with ScalarRated {
   private[synth] def expand: UGenInLike = {
     val sr = UGen.SingleOut("SampleRate", scalar, Vector.empty)  // `SampleRate` is only defined in `core`

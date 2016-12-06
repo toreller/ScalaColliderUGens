@@ -34,7 +34,8 @@ private[synth] object UGenSpecParser {
     "name", // required
     "reads-bus",  "reads-buf",  "reads-fft", "random", "indiv",
     "writes-bus", "writes-buf", "writes-fft", "side-effect",
-    "done-flag" /* , "provided" */
+    "done-flag" /* , "provided" */,
+    "helper", "sourcecode"
   )
 
   private val nodeChildKeys = Set(
@@ -407,20 +408,25 @@ private[synth] object UGenSpecParser {
     val doneFlag      = attrs.boolean("done-flag")
     val indiv         = attrs.boolean("indiv")
 
+    val isHelper      = attrs.boolean("helper")
+    val hasSourceCode = attrs.boolean("sourcecode")
+
     var uAttr         = Set.empty[Attribute]
     import Attribute._
-    if (readsBus)     uAttr += ReadsBus
-    if (readsBuffer)  uAttr += ReadsBuffer
-    if (readsFFT)     uAttr += ReadsFFT
-    if (random)       uAttr += UsesRandSeed
-    if (indiv)        uAttr += IsIndividual
+    if (readsBus)       uAttr += ReadsBus
+    if (readsBuffer)    uAttr += ReadsBuffer
+    if (readsFFT)       uAttr += ReadsFFT
+    if (random)         uAttr += UsesRandSeed
+    if (indiv)          uAttr += IsIndividual
 
-    if (writesBus)    uAttr += WritesBus
-    if (writesBuffer) uAttr += WritesBuffer
-    if (writesFFT)    uAttr += WritesFFT
-    if (sideEffect)   uAttr += HasSideEffect
+    if (writesBus)      uAttr += WritesBus
+    if (writesBuffer)   uAttr += WritesBuffer
+    if (writesFFT)      uAttr += WritesFFT
+    if (sideEffect)     uAttr += HasSideEffect
 
-    if (doneFlag)     uAttr += HasDoneFlag
+    if (doneFlag)       uAttr += HasDoneFlag
+    if (isHelper)       uAttr += IsHelper
+    if (hasSourceCode)  uAttr += HasSourceCode
 
     val indSideEffect = writesBus || writesBuffer || writesFFT
     val indIndiv      = readsBus  || readsBuffer  || readsFFT || indSideEffect || random

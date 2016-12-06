@@ -100,6 +100,8 @@ UGen Attributes (`ugenAttr`) are boolean flags (all false by default) which can 
 |`side-effect` |UGen has another side effect, for example causing a 'done-action', sending OSC commands, or printing to the console |`SendTrig`|
 |`random`      |UGen depends on random seeding   |`WhiteNoise`|
 |`indiv`       |Each UGen is otherwise individual, even with identical inputs|Demand UGens advance their inputs|
+|`helper`      |A helper element that is not a genuine UGen itself|`Nyquist`|
+|`sourcecode`  |Manually written source code is provided|`Nyquist`|
 
 Part of this information is used by ScalaCollider when building the UGen graph. For example, subtrees which do not have any side effects are automatically removed. UGens which have side effects are those for which either of the following flags is set: `writes-bus` | `writes-buf` | `writes-fft` | `side-effect`. Furthermore, multiple occurrences of UGens which are functionally equivalent are collapsed. UGens are _functionally not equivalent_ if either of the following flags is set: _any of the side effects_ | _any of the resource readers_ | `random` | `indiv`. That is to say, if there are two `WhiteNoise` UGens, they are functionally distinct by definition and will thus not be collapsed. The same is true for two `Out` UGens, even if their inputs are the same, as they have accumulative side effects on the bus to which they write. On the other hand, two `SinOsc` UGens with the same frequency and rate inputs are functionally equivalent and thus one can be replaced for the other.
 

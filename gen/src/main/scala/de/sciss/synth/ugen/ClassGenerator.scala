@@ -15,7 +15,6 @@ package de.sciss.synth
 package ugen
 
 import de.sciss.file._
-
 import java.io.FileOutputStream
 
 import scala.annotation.tailrec
@@ -29,9 +28,9 @@ import scala.tools.refactoring.transformation.TreeFactory
 import scala.tools.refactoring.common.{CompilerAccess, Tracing}
 import scala.tools.nsc.io.AbstractFile
 import scala.util.control.NonFatal
-
 import UGenSpec.{SignalShape => Sig, _}
 import ArgumentType.GE
+import de.sciss.synth.UGenSpec.Attribute.HasSourceCode
 
 final class ClassGenerator
   extends Refactoring with Tracing with CompilerProvider with CompilerAccess with TreeFactory {
@@ -70,13 +69,17 @@ final class ClassGenerator
         source.close()
       }
     }
-    if (write) {
-      val specs = (node \ "ugen") map { uNode =>
+    val hasFile = !write || {
+      val specs0 = (node \ "ugen") map { uNode =>
         UGenSpec.parse(uNode, docs = docs, verify = true)
       }
-      performSpecs(specs, f, revision)
+      val specs = specs0.filterNot(_.attr.contains(HasSourceCode))
+      val res = specs.nonEmpty
+      if (res) performSpecs(specs, f, revision)
+      res
     }
-    println(f.absolutePath)
+    if (hasFile) println(f.absolutePath)
+
   } catch {
     case NonFatal(e) =>
       Console.err.println(s"Error in '$name':")
@@ -88,22 +91,6 @@ final class ClassGenerator
     try {
       // create class trees
       val classes: List[Tree] = specs.flatMap(performSpec)(breakOut)
-
-//      // figure out whether `inf` is used as default value
-//      val importFloat = specs.exists(_.args.exists(_.defaults.exists {
-//        case (_, ArgumentValue.Inf) => true
-//        case _ => false
-//      }))
-//
-//      // ...if so, include the alias import for `inf`
-//      val imports0 = if(importFloat)
-//       Import(identFloat, ImportSelector(termName(strPositiveInfinity), -1, termName(strInf), -1 ) :: Nil ) :: Nil
-//      else
-//        Nil
-//
-//      // the imports always include the `Vec` alias, and optionally the `inf` alias.
-//      val imports = Import(Select(Ident("collection" ),"immutable"),
-//        ImportSelector(termName("IndexedSeq"), -1, typeName(strVec), -1) :: Nil) :: Nil /* imports0 */
 
       val imports = Import(Ident("UGenSource"), ImportSelector.wild :: Nil) :: Nil /* imports0 */
 
@@ -403,8 +390,8 @@ final class ClassGenerator
   private val strTimes            = "Times"
 //  private val identFloat          = Ident("Float")
 //  private val strPositiveInfinity = "PositiveInfinity"
-  private val strInf              = "inf"
-  private val strNyquist          = "nyquist"
+//  private val strInf              = "inf"
+//  private val strNyquist          = "nyquist"
 
   def performSpec(spec: UGenSpec): List[Tree] = {
     import spec._

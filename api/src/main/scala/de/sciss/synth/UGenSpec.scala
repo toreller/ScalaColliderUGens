@@ -20,12 +20,12 @@ import collection.breakOut
 import impl.{UGenSpecParser => ParserImpl}
 
 object UGenSpec {
-  /** List of standard UGen plugin names. */
+  /** List of standard UGen plugin names, including ScalaCollider helper elements. */
   final val standardPlugins = List(
     "ChaosUGens", "DelayUGens", "DemandUGens", "DiskIOUGens", "DynNoiseUGens", "FFT2_UGens", "FFT_UGens",
     "FilterUGens", "GendynUGens", "GrainUGens", "IOUGens", "KeyboardUGens", "LFUGens", "MachineListening",
     "MouseUGens", /* "MulAddUGens", */ "NoiseUGens", "OSCUGens", "PanUGens", "PhysicalModellingUGens", "ReverbUGens",
-    "TestUGens", "TriggerUGens", "UnpackFFTUGens"
+    "TestUGens", "TriggerUGens", "UnpackFFTUGens", "HelperElements"
   )
 
   /** List of third-party UGens as per https://github.com/supercollider/sc3-plugins,
@@ -121,7 +121,15 @@ object UGenSpec {
     /** Indicates that the UGen sets the so-called "done-flag". This may be read by another UGen
       * which takes this UGen as input.
       */
-    case object HasDoneFlag   extends Attribute
+    case object HasDoneFlag extends Attribute
+
+    /** Indicates that this is not a genuine UGen, but a helper graph element provided by
+      * ScalaCollider.
+      */
+    case object IsHelper extends Attribute
+
+    /** Indicates that manual source code is provided for this UGen. */
+    case object HasSourceCode extends Attribute
   }
   /** An attribute describes an aspect of a UGen related to how it consumes resources, whether it is individual etc. */
   sealed trait Attribute
@@ -179,7 +187,7 @@ object UGenSpec {
     final case class GE(shape: SignalShape, scalar: Boolean = false) extends ArgumentType {
       override def toString = {
         val base = shape.toString
-        if (scalar) base + " (@init)" else base
+        if (scalar) s"$base (@init)" else base
       }
     }
   }
@@ -197,7 +205,7 @@ object UGenSpec {
     }
     /** The rate of a UGen's argument must be exactly as specified here. */
     final case class Fixed(rate: Rate) extends RateConstraint {
-      override def toString = "fixed-rate=" + rate
+      override def toString = s"fixed-rate=$rate"
     }
   }
   /** One of a fixed set of constraints on a UGen argument's calculation rate. */
@@ -257,7 +265,7 @@ object UGenSpec {
     final case class Float(value: scala.Float) extends ArgumentValue {
       override def toString = {
         val s = value.toString
-        if (s.contains('.')) s else s + ".0"
+        if (s.contains('.')) s else s"$s.0"
       }
 
       def toGE: ugen.Constant = ugen.Constant(value)
@@ -272,7 +280,7 @@ object UGenSpec {
     }
     /** Value is a `String` literal. */
     final case class String(value: java.lang.String) extends ArgumentValue {
-      override def toString = "\"" + value + "\""
+      override def toString = s""""$value""""
 
       def toGE: GE = UGenSource.stringArg(value)
     }
@@ -316,7 +324,7 @@ object UGenSpec {
     *               the `Out` UGen.
     */
   final case class Input(arg: String, tpe: Input.Type) {
-    override def toString = if (tpe.variadic) arg + "..." else arg
+    override def toString = if (tpe.variadic) s"$arg..." else arg
 
     def variadic: Boolean = tpe.variadic
   }
@@ -362,7 +370,7 @@ object UGenSpec {
       def set = immutable.Set(rate)
 
       override def toString = {
-        val base = "implied: " + rate
+        val base = s"implied: $rate"
         method match {
           case RateMethod.Default => base
           case _                  => s"$base (method = $method)"
@@ -482,7 +490,10 @@ final case class UGenSpec(name: String,
   /** A convenience field which maps from input argument names to inputs. */
   lazy val inputMap: Map[String, UGenSpec.Input   ] = inputs.map(i => i.arg  -> i)(breakOut)
 
-  override def toString = s"$productPrefix($name, attr = ${attr.mkString("[", ", ", "]")}, rates = $rates, " +
-                          s"args = ${args.mkString("[", ", ", "]")}, inputs = ${inputs.mkString("[", ", ", "]")}, " +
-                          s"outputs = ${outputs.mkString("[", ", ", "]")})"
+  override def toString = {
+    val s1 = s"$productPrefix($name, attr = ${attr.mkString("[", ", ", "]")}, rates = $rates, "
+    val s2 = s"args = ${args.mkString("[", ", ", "]")}, inputs = ${inputs.mkString("[", ", ", "]")}, "
+    val s3 = s"outputs = ${outputs.mkString("[", ", ", "]")})"
+    s"$s1$s2$s3"
+  }
 }
