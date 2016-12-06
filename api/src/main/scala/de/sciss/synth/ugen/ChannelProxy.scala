@@ -14,6 +14,43 @@
 package de.sciss.synth
 package ugen
 
+/** A helper graph element that selects a particular output channel of
+  * another element. The index is an `Integer` and thus cannot be
+  * determined at graph expansion time. If this is desired, the
+  * `Select` UGen can be used.
+  *
+  * Usually the graph element operator `\` (backlash) can be used
+  * instead of explicitly writing `ChannelProxy`. Thus
+  * `elem \ index` is equivalent to `ChannelProxy(elem, index)`.
+  * UGens with a fixed number of outputs often have auxiliary methods
+  * to access the channels in meaningful way, e.g. `Pitch` has
+  * method `freq` and `hasFreq`, which are equivalent to
+  * `pitch \ 0` and `pitch \ 1`.
+  *
+  * Because ScalaCollider allows late-expanding
+  * graph elements, we have no direct way to get some
+  * array of a UGen's outputs.
+  *
+  * ===Examples===
+  *
+  * {{{
+  * // frequency of a pitch estimator
+  * play {
+  *   val sin = SinOsc.ar(MouseX.kr(10, 10000, warp = 1))
+  *   val pch = Pitch.kr(sin)
+  *   val freq = pch \ 0  // same as pch.freq
+  *   freq.poll(label = "freq")
+  *   ()
+  * }
+  * }}}
+  *
+  * @param elem     a multi-channel element from which to select a channel.
+  * @param index    channel index starting at zero. It automatically wraps around
+  *                 the actual number of channels the input `elem` expands to.
+  *
+  * @see [[de.sciss.synth.ugen.NumChannels NumChannels]]
+  * @see [[de.sciss.synth.ugen.Select$ Select]]
+  */
 final case class ChannelProxy(elem: GE, index: Int) extends GE.Lazy {
   def rate = elem.rate
 

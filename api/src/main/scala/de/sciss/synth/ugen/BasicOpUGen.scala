@@ -21,41 +21,6 @@ import de.sciss.synth.ugen.{Constant => c}
 import scala.annotation.switch
 import UGenSource._
 
-final case class MulAdd(in: GE, mul: GE, add: GE)
-  extends UGenSource.SingleOut {
-
-  protected def makeUGens: UGenInLike = unwrap(this, Vector(in.expand, mul.expand, add.expand))
-
-  def rate: MaybeRate = in.rate // XXX TODO - correct?
-
-  private[synth] def makeUGen(args: Vec[UGenIn]): UGenInLike = {
-    import BinaryOpUGen.{Minus, Plus, Times}
-    import UnaryOpUGen.Neg
-
-    val in0  = args(0)
-    val mul0 = args(1)
-    val add0 = args(2)
-    (mul0, add0) match {
-      case (C0, _)    => add0
-      case (C1, C0)   => in0
-      case (C1, _)    => Plus .make1(in0, add0)
-      case (Cm1, C0)  => Neg  .make1(in0)
-      case (_, C0)    => Times.make1(in0, mul0)
-      case (Cm1, _)   => Minus.make1(add0, in0)
-      case _              =>
-        if (in0.rate == `audio` ||
-           (in0.rate == `control` && (mul0.rate == `control` || mul0.rate == `scalar`) &&
-            (add0.rate == `control` || add0.rate == `scalar`))) {
-          UGen.SingleOut(name, in0.rate, args)
-        } else {
-          Plus.make1(Times.make1(in0, mul0), add0)
-        }
-    }
-  }
-
-  override def toString = s"$in.madd($mul, $add)"
-}
-
 /** Unary operations are generally constructed by calling one of the methods of `GEOps`.
   *
   * @see  GEOps
@@ -813,61 +778,4 @@ sealed trait BinaryOpUGen extends UGenSource.SingleOut {
     s"($a ${selector.name} $b)"
   else
     s"$a.${selector.name}($b)"
-}
-
-object Sum3 {
-  private[ugen] def make1(args: Vec[UGenIn]): UGenIn = {
-    val in0i = args(0)
-    val in1i = args(1)
-    val in2i = args(2)
-    import BinaryOpUGen.Plus
-    if (in0i == C0) {
-      Plus.make1(in1i, in2i)
-    } else if (in1i == C0) {
-      Plus.make1(in0i, in2i)
-    } else if (in2i == C0) {
-      Plus.make1(in0i, in1i)
-    } else {
-      val rate  = in0i.rate max in1i.rate max in2i.rate
-      val argsM = if (rate == audio) matchRateFrom(args, 0, audio) else args
-      UGen.SingleOut("Sum3", rate, argsM)
-    }
-  }
-}
-final case class Sum3(in0: GE, in1: GE, in2: GE) extends UGenSource.SingleOut {
-  def rate: MaybeRate = MaybeRate.max_?(in0.rate, in1.rate, in2.rate)
-
-  protected def makeUGens: UGenInLike = unwrap(this, Vector(in0, in1, in2))
-
-  private[synth] def makeUGen(args: Vec[UGenIn]): UGenInLike = Sum3.make1(args)
-}
-
-object Sum4 {
-  private[ugen] def make1(args: Vec[UGenIn]): UGenIn = {
-    val in0i = args(0)
-    val in1i = args(1)
-    val in2i = args(2)
-    val in3i = args(3)
-
-    if (in0i == C0) {
-      Sum3.make1(Vec(in1i, in2i, in3i))
-    } else if (in1i == C0) {
-      Sum3.make1(Vec(in0i, in2i, in3i))
-    } else if (in2i == C0) {
-      Sum3.make1(Vec(in0i, in1i, in3i))
-    } else if (in3i == C0) {
-      Sum3.make1(Vec(in0i, in1i, in2i))
-    } else {
-      val rate  = in0i.rate max in1i.rate max in2i.rate max in3i.rate
-      val argsM = if (rate == audio) matchRateFrom(args, 0, audio) else args
-      UGen.SingleOut("Sum4", rate, argsM)
-    }
-  }
-}
-final case class Sum4(in0: GE, in1: GE, in2: GE, in3: GE) extends UGenSource.SingleOut {
-  def rate: MaybeRate = MaybeRate.max_?(in0.rate, in1.rate, in2.rate, in3.rate)
-
-  protected def makeUGens: UGenInLike = unwrap(this, Vector(in0, in1, in2, in3))
-
-  private[synth] def makeUGen(args: Vec[UGenIn]): UGenInLike = Sum4.make1(args)
 }

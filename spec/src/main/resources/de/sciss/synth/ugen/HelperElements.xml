@@ -1,5 +1,8 @@
 <!-- these are graph elements that do not constitute genuine UGens -->
-<ugens revision="1">
+<ugens revision="2">
+    <!-- TODO: missing (because these have new types): Reduce (uses `Reduce.Op`), WrapOut (uses `Double`) -->
+    <!-- TODO: missing: PhysicalIn (uses `Seq[Int]`), Zip (uses var-args) -->
+    <!-- TODO: missing: Mix, Pad, RepeatChannels, Silent, SplayAz -->
     <ugen name="ChannelIndices" helper="true" sourcecode="true">
         <rate name="scalar" implied="true"/>
         <arg name="in">
@@ -22,6 +25,167 @@
                 sig * 0.2
             </example>
             <see>ugen.NumChannels</see>
+        </doc>
+    </ugen>
+    <ugen name="ChannelProxy" helper="true" sourcecode="true">
+        <rate name="scalar" implied="true"/>
+        <arg name="elem">
+            <doc>
+                a multi-channel element from which to select a channel.
+            </doc>
+        </arg>
+        <arg name="index" type="int">
+            <doc>
+                channel index starting at zero. It automatically wraps around
+                the actual number of channels the input `elem` expands to.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A helper graph element that selects a particular output channel of
+                another element. The index is an `Int` and thus cannot be
+                determined at graph expansion time. If this is desired, the
+                `Select` UGen can be used.
+
+                Usually the graph element operator `\` (backlash) can be used
+                instead of explicitly writing `ChannelProxy`. Thus
+                `elem \ index` is equivalent to `ChannelProxy(elem, index)`.
+                UGens with a fixed number of outputs often have auxiliary methods
+                to access the channels in meaningful way, e.g. `Pitch` has
+                method `freq` and `hasFreq`, which are equivalent to
+                `pitch \ 0` and `pitch \ 1`.
+
+                Because ScalaCollider allows late-expanding
+                graph elements, we have no direct way to get some
+                array of a UGen's outputs.
+            </text>
+            <example name="frequency of a pitch estimator">
+                val sin = SinOsc.ar(MouseX.kr(10, 10000, warp = 1))
+                val pch = Pitch.kr(sin)
+                val freq = pch \ 0  // same as pch.freq
+                freq.poll(label = "freq")
+                ()
+            </example>
+            <see>ugen.NumChannels</see>
+            <see>ugen.Select</see>
+            <see>ugen.ChannelRangeProxy</see>
+        </doc>
+    </ugen>
+    <ugen name="ChannelRangeProxy" helper="true" sourcecode="true">
+        <rate name="scalar" implied="true"/>
+        <arg name="elem">
+            <doc>
+                a multi-channel element from which to select channels.
+            </doc>
+        </arg>
+        <arg name="from" type="int">
+            <doc>
+                the first index (inclusive) of the channel range, counting from zero.
+            </doc>
+        </arg>
+        <arg name="until" type="int">
+            <doc>
+                the end index (exclusive) of the channel range, counting from zero.
+            </doc>
+        </arg>
+        <arg name="step" type="int">
+            <doc>
+                the increment from index to index in the range. A value of one
+                means all channels from `from` until `until` will be selected. A
+                value of two means, every second channel will be skipped. A negative
+                value can be used to count down from high to low indices.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A helper graph element that selects a particular range of
+                output channel of another element. The range is specified with
+                integers and thus cannot be determined at graph expansion time.
+                If this is desired, the `Select` UGen can be used.
+
+                Usually the graph element operator `\` (backlash) along with
+                a standard Scala `Range` argument can be used
+                instead of explicitly writing `ChannelRangeProxy`. Thus
+                `elem \ (0 until 4)` selects the first four channels and is
+                equivalent to `ChannelRangeProxy(elem, from = 0, until = 4, step = 1)`.
+
+                Behind the scene, `ChannelProxy` instances are created, thus
+                `ChannelRangeProxy(x, a, b)` is the same as
+                `(a until b).map(ChannelProxy(x, _)): GE`.
+
+                Because ScalaCollider allows late-expanding
+                graph elements, we have no direct way to get some
+                array of a UGen's outputs.
+            </text>
+            <!-- TODO: example -->
+            <see>ugen.NumChannels</see>
+            <see>ugen.Select</see>
+            <see>ugen.ChannelProxy</see>
+            <see>ugen.RepeatChannels</see>
+        </doc>
+    </ugen>
+    <ugen name="Flatten" helper="true" sourcecode="true">
+        <arg name="elem">
+            <doc>
+                a (possibly multi-channel) element all of whose channels will be
+                represented as one flattened element.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A graph element that flattens the channels from a nested multi-channel structure.
+
+                For example, if a UGen with two outputs has an input argument with two
+                outputs, this will propagate differently in the multi-channel-expansion
+                than a flat representation of the two expanded UGens with each of their
+                two own output channels.
+            </text>
+            <!-- TODO: example -->
+            <see>ugen.ChannelIndices</see>
+            <see>ugen.Mix</see>
+        </doc>
+    </ugen>
+    <ugen name="LinLin" helper="true" sourcecode="true">
+        <arg name="in">
+            <doc>
+                The input signal to convert.
+            </doc>
+        </arg>
+        <arg name="srcLo" default="0.0">
+            <doc>
+                The lower limit of input range.
+            </doc>
+        </arg>
+        <arg name="srcHi" default="1.0">
+            <doc>
+                The upper limit of input range.
+            </doc>
+        </arg>
+        <arg name="dstLo" default="0.0">
+            <doc>
+                The lower limit of output range.
+            </doc>
+        </arg>
+        <arg name="dstHi" default="1.0">
+            <doc>
+                The upper limit of output range.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A graph element which maps a linear range to another linear range.
+                The equivalent formula is `(in - srcLo) / (srcHi - srcLo) * (dstHi - dstLo) + dstLo`.
+
+                '''Note''': No clipping is performed. If the input signal exceeds the input range,
+                the output will also exceed its range.
+            </text>
+            <example name="oscillator to frequency range">
+                val mod = SinOsc.kr(Line.kr(1, 10, 10))
+                SinOsc.ar(LinLin(mod, -1, 1, 100, 900)) * 0.1
+            </example>
+            <see>ugen.LinExp</see>
+            <see>ugen.Clip</see>
+            <see>ugen.MulAdd</see>
         </doc>
     </ugen>
     <ugen name="NumChannels" helper="true" sourcecode="true">
@@ -62,4 +226,70 @@
             <see>ugen.SampleRate</see>
         </doc>
     </ugen>
+    <ugen name="PhysicalOut" helper="true" sourcecode="true">
+        <no-outputs/>
+        <rate name="audio" implied="true"/>
+        <arg name="indices" default="0">
+            <doc>
+                the physical index to write to (beginning at zero which corresponds to
+                the first channel of the audio interface or sound driver). may be a
+                multichannel argument to specify discrete channels. In this case, any
+                remaining channels in `in` are associated with the last bus index offset.
+            </doc>
+        </arg>
+        <arg name="in">
+            <doc>
+                the signal to write
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A graph element which writes to a connected sound driver output. This is a convenience
+                element for `Out` with the ability to provide a set of discrete indices to which
+                corresponding channels of the input signal are mapped, whereas multichannel expansion
+                with respect to the index argument of `Out` typically do not achieve what you expect.
+            </text>
+            <example name="flip left and right when writing a stereo signal">
+                val indices = Seq(1, 0)
+                val in:GE   = Seq(SinOsc.ar * LFPulse.ar(4), WhiteNoise.ar)
+                // sine appears on the right channel, and noise on the left
+                PhysicalOut(indices, in * 0.2)
+            </example>
+            <see>ugen.Out</see>
+            <see>ugen.PhysicalIn</see>
+        </doc>
+    </ugen>
+    <!--<ugen name="Zip" helper="true" sourcecode="true">-->
+        <!--<arg name="elems">-->
+            <!--VARARGS-->
+            <!--<doc>-->
+                <!--the signals to interleave in a multi-channel output signal-->
+            <!--</doc>-->
+        <!--</arg>-->
+        <!--<doc>-->
+            <!--<text>-->
+                <!--A graph element that interleaves a number of (multi-channel) input signals.-->
+                <!--For example, if two stereo-signals `a` and `b` are zipped, the output will be a four-channel-->
+                <!--signal corresponding to `[ a \ 0, b \ 0, a \ 1, b \ 1 ]`. If the input signals-->
+                <!--have different numbers of channels, the minimum number of channels is used.-->
+            <!--</text>-->
+            <!--<example name="peak and RMS metering" type="full">-->
+                <!--val x = play {-->
+                  <!--val sig   = PhysicalIn.ar(0 to 1)  // stereo input-->
+                  <!--val tr    = Impulse.kr(5)-->
+                  <!--val peak  = Peak.kr(sig, tr)-->
+                  <!--val rms   = A2K.kr(Lag.ar(sig.squared, 0.1))-->
+                  <!--SendReply.kr(tr, Zip(peak, rms), "/meter")-->
+                <!--}-->
+
+                <!--val r = message.Responder.add(x.server) {-->
+                  <!--case osc.Message("/meter", x.id, _, peakL: Float, rmsL: Float, peakR: Float, rmsR: Float) =>-->
+                    <!--println(f"peak-left $peakL%g, rms-left $rmsL%g, peak-right $peakR%g, rms-right $rmsR%g")-->
+                <!--}-->
+
+                <!--x.free(); r.remove()-->
+            <!--</example>-->
+            <!--<see>ugen.ChannelIndices</see>-->
+        <!--</doc>-->
+    <!--</ugen>-->
 </ugens>
