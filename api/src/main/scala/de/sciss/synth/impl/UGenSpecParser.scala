@@ -477,7 +477,7 @@ private[synth] object UGenSpecParser {
       }
 
     val rNodes = node \ "rate"
-    if (rNodes.isEmpty) sys.error(s"No rates specified for $uName")
+    if (rNodes.isEmpty && !isHelper) sys.error(s"No rates specified for $uName")
     val impliedRate = (rNodes.size == 1) && rNodes.head.attributes.asAttrMap.boolean("implied")
     val rates = if (impliedRate) {
       val rNode   = rNodes.head

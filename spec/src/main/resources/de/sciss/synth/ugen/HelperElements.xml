@@ -1,10 +1,9 @@
 <!-- these are graph elements that do not constitute genuine UGens -->
-<ugens revision="2">
+<ugens revision="5">
     <!-- TODO: missing (because these have new types): Reduce (uses `Reduce.Op`), WrapOut (uses `Double`) -->
     <!-- TODO: missing: PhysicalIn (uses `Seq[Int]`), Zip (uses var-args) -->
-    <!-- TODO: missing: Mix, Pad, RepeatChannels, Silent, SplayAz -->
     <ugen name="ChannelIndices" helper="true" sourcecode="true">
-        <rate name="scalar" implied="true"/>
+        <rate name="scalar" implied="true" method="apply"/>
         <arg name="in">
             <doc>
                 the element whose indices to produce
@@ -28,7 +27,7 @@
         </doc>
     </ugen>
     <ugen name="ChannelProxy" helper="true" sourcecode="true">
-        <rate name="scalar" implied="true"/>
+        <rate name="scalar" implied="true" method="apply"/>
         <arg name="elem">
             <doc>
                 a multi-channel element from which to select a channel.
@@ -72,7 +71,7 @@
         </doc>
     </ugen>
     <ugen name="ChannelRangeProxy" helper="true" sourcecode="true">
-        <rate name="scalar" implied="true"/>
+        <rate name="scalar" implied="true" method="apply"/>
         <arg name="elem">
             <doc>
                 a multi-channel element from which to select channels.
@@ -188,8 +187,98 @@
             <see>ugen.MulAdd</see>
         </doc>
     </ugen>
+    <ugen name="Mix" helper="true" sourcecode="true">
+        <arg name="elem">
+            <doc>
+                the graph element whose channels to mix together
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A graph element that mixes the channels of a signal together.
+                It works like the sclang counterpart.
+
+                The `Mix` companion object contains various useful mixing idioms:
+
+                - `Mix.tabulate(n: Int)(fun: Int => GE)`: corresponds to `Seq.tabulate`
+                  and to `Array.fill` in sclang.
+
+                - `Mix.fill(n: Int)(thunk: => GE)`: corresponds to `Seq.fill`.
+
+                - `Mix.seq(elems: GE*)`: A shortcut for `Mix(GESeq(elems: _*))`.
+
+                A separate graph element is `Mix.mono`.
+                `Mix.mono(elem: GE)` flattens all channels of
+                the input element before summing them, guaranteeing that the result is monophonic.
+
+                Finally, `Mix.fold` is an idiom that not actually adds elements,
+                but recursively folds them. Thus,
+                `Mix.fold(elem: GE, n: Int)(fun: GE => GE)` is equivalent to
+                {{{
+                (1 to n).foldLeft(elem) { (res, _) => fun(res) }
+                }}}
+
+                `Mix.fold` is often used in the SuperCollider examples to apply a filtering
+                process such as reverberation several times. For cases where the iteration
+                index is needed, the full form as shown above can be used instead.
+            </text>
+            <see>ugen.Reduce</see>
+            <see>ugen.BinaryOpUGen</see>
+            <example name="non-nested multi-channel signal reduced to mono (1)">
+                Mix(SinOsc.ar(440 :: 660 :: Nil)) * 0.2 // --> SinOsc.ar(440) + SinOsc.ar(660)
+            </example>
+            <example name="non-nested multi-channel signal reduced to mono (2)">
+                Mix(Pan2.ar(SinOsc.ar)) * 0.2 // --> left + right
+            </example>
+            <example name="mix inner channels">
+                // --> [left(440) + left(660), right(440) + right(660)]
+                Mix(Pan2.ar(SinOsc.ar(440 :: 660 :: Nil))) * 0.2
+            </example>
+            <example name="enforce monophonic mix">
+                // --> left(440) + left(660) + right(440) + right(660)
+                Mix.mono(Pan2.ar(SinOsc.ar(440 :: 660 :: Nil))) * 0.2
+            </example>
+            <example name="combine Mix(), Mix.fill(), Mix.fold()">
+                // from original SC examples: reverberated sine percussion
+                val d = 6    // number of percolators
+                val c = 5    // number of comb delays
+                val a = 4    // number of allpass delays
+
+                // sine percolation sound :
+                val s = Mix.fill(d) { Resonz.ar(Dust.ar(2.0 / d) * 50, Rand(200, 3200), 0.003) }
+
+                // reverb pre-delay time :
+                val z = DelayN.ar(s, 0.048)
+
+                // 'c' length modulated comb delays in parallel :
+                val y = Mix(CombL.ar(z, 0.1, LFNoise1.kr(Seq.fill(c)(Rand(0, 0.1))).madd(0.04, 0.05), 15))
+
+                // chain of 'a' allpass delays on each of two channels (2 times 'a' total) :
+                val x = Mix.fold(y, a) { in =>
+                  AllpassN.ar(in, 0.050, Seq(Rand(0, 0.050), Rand(0, 0.050)), 1)
+                }
+
+                // add original sound to reverb and play it :
+                s + 0.2 * x
+            </example>
+            <example name="Mix.tabulate usage">
+                // from original SC examples: harmonic swimming
+                val f = 50       // fundamental frequency
+                val p = 20       // number of partials per channel
+                val offset = Line.kr(0, -0.02, 60, doneAction = freeSelf) // causes sound to separate and fade
+                Mix.tabulate(p) { i =>
+                  FSinOsc.ar(f * (i+1)) * // freq of partial
+                    LFNoise1.kr(Seq(Rand(2, 10), Rand(2, 10)))  // amplitude rate
+                    .madd(
+                      0.02,     // amplitude scale
+                      offset    // amplitude offset
+                    ).max(0)    // clip negative amplitudes to zero
+                }
+            </example>
+        </doc>
+    </ugen>
     <ugen name="NumChannels" helper="true" sourcecode="true">
-        <rate name="scalar" implied="true"/>
+        <rate name="scalar" implied="true" method="apply"/>
         <arg name="in">
             <doc>
                 the element whose number-of-channels to produce
@@ -215,7 +304,7 @@
         </doc>
     </ugen>
     <ugen name="Nyquist" helper="true" sourcecode="true">
-        <rate name="scalar" implied="true"/>
+        <rate name="scalar" implied="true" method="apply"/>
         <doc>
             <text>
                 A helper graph element equivalent to `SampleRate.ir * 0.5`.
@@ -224,6 +313,27 @@
                 Dust.ar(Nyquist()).pow(8)
             </example>
             <see>ugen.SampleRate</see>
+        </doc>
+    </ugen>
+    <ugen name="Pad" helper="true" sourcecode="true">
+        <arg name="in">
+            <doc>
+                the element to replicate
+            </doc>
+        </arg>
+        <arg name="to">
+            <doc>
+                the reference element that controls the multi-channel expansion.
+                the signal itself is not used or output by `Pad`.
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A graph element that controls the multi-channel expansion of
+                its `in` argument to match the `to` argument by padding (extending
+                and wrapping) it.
+            </text>
+            <!-- TODO: example -->
         </doc>
     </ugen>
     <ugen name="PhysicalOut" helper="true" sourcecode="true">
@@ -259,37 +369,170 @@
             <see>ugen.PhysicalIn</see>
         </doc>
     </ugen>
-    <!--<ugen name="Zip" helper="true" sourcecode="true">-->
-        <!--<arg name="elems">-->
-            <!--VARARGS-->
-            <!--<doc>-->
-                <!--the signals to interleave in a multi-channel output signal-->
-            <!--</doc>-->
-        <!--</arg>-->
-        <!--<doc>-->
-            <!--<text>-->
-                <!--A graph element that interleaves a number of (multi-channel) input signals.-->
-                <!--For example, if two stereo-signals `a` and `b` are zipped, the output will be a four-channel-->
-                <!--signal corresponding to `[ a \ 0, b \ 0, a \ 1, b \ 1 ]`. If the input signals-->
-                <!--have different numbers of channels, the minimum number of channels is used.-->
-            <!--</text>-->
-            <!--<example name="peak and RMS metering" type="full">-->
-                <!--val x = play {-->
-                  <!--val sig   = PhysicalIn.ar(0 to 1)  // stereo input-->
-                  <!--val tr    = Impulse.kr(5)-->
-                  <!--val peak  = Peak.kr(sig, tr)-->
-                  <!--val rms   = A2K.kr(Lag.ar(sig.squared, 0.1))-->
-                  <!--SendReply.kr(tr, Zip(peak, rms), "/meter")-->
-                <!--}-->
+    <ugen name="RepeatChannels" helper="true" sourcecode="true">
+        <arg name="a">
+            <doc>
+                the signal whose channels to repeat
+            </doc>
+        </arg>
+        <arg name="num" type="int">
+            <doc>
+                the number of repetitions for each input channel
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                An auxiliary graph element that repeats
+                the channels of an input signal, allowing
+                for example for an exhaustive element-wise
+                combination with another signal.
 
-                <!--val r = message.Responder.add(x.server) {-->
-                  <!--case osc.Message("/meter", x.id, _, peakL: Float, rmsL: Float, peakR: Float, rmsR: Float) =>-->
-                    <!--println(f"peak-left $peakL%g, rms-left $rmsL%g, peak-right $peakR%g, rms-right $rmsR%g")-->
-                <!--}-->
+                Normally, the way multi-channel expansion
+                works is that when two signals are combined,
+                the output signal has a number of channels
+                that is the ''maximum'' of the individual number
+                of channels, and channels will be automatically
+                wrapped around.
 
-                <!--x.free(); r.remove()-->
-            <!--</example>-->
-            <!--<see>ugen.ChannelIndices</see>-->
-        <!--</doc>-->
-    <!--</ugen>-->
+                For example, in `x * y` if `x` has three and
+                `y` has five channels, the result expands to
+
+                {{{
+                Seq[GE](
+                  x\0 * y\0, x\1 * y\1, x\2 * y\2, x\0 * y\3, x\1 * y\4
+                )
+                }}}
+
+                Using this element, we can enforce the appearance
+                of all combinations of channels, resulting in a signal
+                whose number of channels is the ''sum'' of the individual
+                number of channels.
+
+                For example, `RepeatChannels(x, 5)` expands to
+
+                {{{
+                Seq[GE](
+                  x \ 0, x \ 0, x \ 0, x \ 0, x \ 0,
+                  x \ 1, x \ 1, x \ 1, x \ 1, x \ 1,
+                  x \ 2, x \ 2, x \ 2, x \ 2, x \ 2
+                )
+                }}}
+
+                And `RepeatChannels(x, 5) * y` accordingly expands to
+                the fifteen-channels signal
+
+                {{{
+                Seq[GE](
+                  (x\0) * (y\0), (x\0) * (y\1), (x\0) * (y\2), (x\0) * (y\3), (x\0) * (y\4),
+                  (x\1) * (y\0), (x\1) * (y\1), (x\1) * (y\2), (x\1) * (y\3), (x\1) * (y\4),
+                  (x\2) * (y\0), (x\2) * (y\1), (x\2) * (y\2), (x\2) * (y\3), (x\2) * (y\4)
+                )
+                }}}
+            </text>
+            <!-- TODO: example -->
+            <see>ugen.ChannelRangeProxy</see>
+        </doc>
+    </ugen>
+    <ugen name="Silent" helper="true" sourcecode="true">
+        <rate name="audio" implied="true"/>
+        <arg name="numChannels" type="int" default="1">
+            <doc>
+                the number of output channels
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A graph element that produces a constant silent
+                (zero) audio-rate output signal.
+            </text>
+            <!-- TODO: example -->
+            <see>ugen.DC</see>
+        </doc>
+    </ugen>
+    <ugen name="SplayAz" helper="true" sourcecode="true">
+        <rate name="audio"/>
+        <arg name="numChannels" type="int">
+            <doc>
+                the number of output channels
+            </doc>
+        </arg>
+        <arg name="in">
+            <doc>
+                the input signal
+            </doc>
+        </arg>
+        <arg name="spread" default="1.0">
+            <doc>
+                the spacing between input channels with respect to the output panning
+            </doc>
+        </arg>
+        <arg name="center" default="0.0">
+            <doc>
+                the position of the first channel (see `PanAz`)
+            </doc>
+        </arg>
+        <arg name="level" default="1.0">
+            <doc>
+                a global gain factor (see `PanAz`)
+            </doc>
+        </arg>
+        <arg name="width" default="2.0">
+            <doc>
+                the `width` parameter for each `PanAz`
+            </doc>
+        </arg>
+        <arg name="orient" default="0.0">
+            <doc>
+                the `orient` parameter for each `PanAz`
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A graph element that spreads a sequence of input channels across a ring of output channels.
+                This works by feeding each input channel through a dedicated `PanAz` UGen, and mixing the
+                results together.
+
+                The panning position of each input channel with index `ch` is calculated by the formula:
+                {{{
+                val pf = 2.0 / (num-in-channels - 1) * (num-out-channels - 1) / num-out-channels
+                ch * pf + center
+                }}}
+            </text>
+            <!-- TODO: example -->
+            <see>ugen.PanAz</see>
+        </doc>
+    </ugen>
+<!--    <ugen name="Zip" helper="true" sourcecode="true">
+        <arg name="elems">
+            VARARGS
+            <doc>
+                the signals to interleave in a multi-channel output signal
+            </doc>
+        </arg>
+        <doc>
+            <text>
+                A graph element that interleaves a number of (multi-channel) input signals.
+                For example, if two stereo-signals `a` and `b` are zipped, the output will be a four-channel
+                signal corresponding to `[ a \ 0, b \ 0, a \ 1, b \ 1 ]`. If the input signals
+                have different numbers of channels, the minimum number of channels is used.
+            </text>
+            <example name="peak and RMS metering" type="full">
+                val x = play {
+                  val sig   = PhysicalIn.ar(0 to 1)  // stereo input
+                  val tr    = Impulse.kr(5)
+                  val peak  = Peak.kr(sig, tr)
+                  val rms   = A2K.kr(Lag.ar(sig.squared, 0.1))
+                  SendReply.kr(tr, Zip(peak, rms), "/meter")
+                }
+
+                val r = message.Responder.add(x.server) {
+                  case osc.Message("/meter", x.id, _, peakL: Float, rmsL: Float, peakR: Float, rmsR: Float) =>
+                    println(f"peak-left $peakL%g, rms-left $rmsL%g, peak-right $peakR%g, rms-right $rmsR%g")
+                }
+
+                x.free(); r.remove()
+            </example>
+            <see>ugen.ChannelIndices</see>
+        </doc>
+    </ugen> -->
 </ugens>
