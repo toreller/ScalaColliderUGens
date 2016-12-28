@@ -1,7 +1,7 @@
 lazy val baseName       = "ScalaColliderUGens"
 lazy val baseNameL      = baseName.toLowerCase
 
-lazy val projectVersion = "1.16.3"
+lazy val projectVersion = "1.16.4-SNAPSHOT"
 lazy val mimaVersion    = "1.16.0"
 
 name := baseName
@@ -30,7 +30,6 @@ lazy val scalaTestVersion    = "3.0.0"
 
 lazy val fileUtilVersion     = "1.1.2"
 lazy val scoptVersion        = "3.5.0"
-lazy val refactoringVersion  = "0.8.0"
 
 // ---
 
@@ -92,20 +91,12 @@ lazy val gen = Project(id = s"$baseNameL-gen", base = file("gen")).
   settings(
     description := "Source code generator for ScalaCollider UGens",
     licenses := lgpl,
-    libraryDependencies ++= {
-      // why did they publish two artifacts for 2.11.7 and 2.11.8 ?!
-      // val refact = scalaBinaryVersion.value match {
-      //   case "2.11" => "2.11.8"
-      //   case other => other
-      // }
-      Seq(
-      "com.github.scopt"      %% "scopt"                         % scoptVersion,
-      // "de.sciss"              %% "scalarefactoring"              % refactoringVersion,
-      "org.scala-refactoring" %% "org.scala-refactoring.library" % refactoringVersion,
-      "de.sciss"              %% "fileutil"                      % fileUtilVersion,
-      "org.scalatest"         %% "scalatest"                     % scalaTestVersion % "test"
-      )
-    },
+    libraryDependencies ++= Seq(
+      "com.github.scopt" %% "scopt"     % scoptVersion,
+      "de.sciss"         %% "fileutil"  % fileUtilVersion,
+      "org.scala-lang"   %  "scala-compiler" % scalaVersion.value,
+      "org.scalatest"    %% "scalatest" % scalaTestVersion % "test"
+    ),
     publishLocal    := {},
     publish         := {},
     publishArtifact := false,   // cf. http://stackoverflow.com/questions/8786708/

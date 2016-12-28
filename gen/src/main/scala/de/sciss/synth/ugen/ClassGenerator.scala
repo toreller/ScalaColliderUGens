@@ -14,34 +14,22 @@
 package de.sciss.synth
 package ugen
 
-import de.sciss.file._
 import java.io.FileOutputStream
+
+import de.sciss.file._
+import de.sciss.synth.UGenSpec.ArgumentType.GE
+import de.sciss.synth.UGenSpec.Attribute.HasSourceCode
+import de.sciss.synth.UGenSpec.{SignalShape => Sig, _}
 
 import scala.annotation.tailrec
 import scala.collection.breakOut
 import scala.collection.immutable.{IndexedSeq => Vec}
 import scala.io.Source
-import scala.tools.nsc.symtab.Flags
-import scala.tools.refactoring.Refactoring
-import scala.tools.refactoring.util.CompilerProvider
-import scala.tools.refactoring.transformation.TreeFactory
-import scala.tools.refactoring.common.{CompilerAccess, Tracing}
-import scala.tools.nsc.io.AbstractFile
 import scala.util.control.NonFatal
-import UGenSpec.{SignalShape => Sig, _}
-import ArgumentType.GE
-import de.sciss.synth.UGenSpec.Attribute.HasSourceCode
 
-final class ClassGenerator
-  extends Refactoring with Tracing with CompilerProvider with CompilerAccess with TreeFactory {
+final class ClassGenerator {
   me =>
   
-  import global._
-  import me.{global => gl}
-
-  private def termName(s: String): TermName = stringToTermName(s) // deprecated in 2.11 but required in 2.10
-  private def typeName(s: String): TypeName = stringToTypeName(s) // deprecated in 2.11 but required in 2.10
-
   val CHARSET       = "UTF-8"
 
   val DocWidth      = 80
@@ -92,14 +80,24 @@ final class ClassGenerator
       // create class trees
       val classes: List[Tree] = specs.flatMap(performSpec)(breakOut)
 
-      val imports = Import(Ident("UGenSource"), ImportSelector.wild :: Nil) :: Nil /* imports0 */
+//      val imports = Import(MyIdent("UGenSource"), ImportSelector.wild :: Nil) :: Nil /* imports0 */
+//
+//      // the package definition defines the `synth` and `ugen` packages, adds the imports and then the classes
+//      val pkg     = PackageDef(MySelect(MySelect(MyIdent("de"), "sciss"), "synth"),
+//        PackageDef(MyIdent("ugen"), imports ::: classes) :: Nil)
 
-      // the package definition defines the `synth` and `ugen` packages, adds the imports and then the classes
-      val pkg     = PackageDef(Select(Select(Ident("de"), "sciss"), "synth"),
-        PackageDef(Ident("ugen"), imports ::: classes) :: Nil)
+      val header =
+        """package de.sciss.synth
+          |package ugen
+          |
+          |import UGenSource._
+          |
+          |""".stripMargin
+
+      val strBody = classes.map(_.mkString).mkString(header, "\n", "")
 
       // convert the tree to plain text and write it to the output file
-      val strBody = createText(pkg)
+      // val strBody = createText(pkg)
       // we prepend a revision line comment which reflects the version
       // of the spec file used
       val strRev  = s"// revision: $revision\n$strBody"
@@ -110,7 +108,7 @@ final class ClassGenerator
     }
   }
 
-  def compilationUnitOfFile(f: AbstractFile): Option[CompilationUnit] = unitOfFile.get(f)
+  // def compilationUnitOfFile(f: AbstractFile): Option[CompilationUnit] = unitOfFile.get(f)
 
   // Expects a paragraph already with newlines replaced by whitespace.
   private def linesWrap(para: String, width: Int): List[String] = {
@@ -192,6 +190,156 @@ final class ClassGenerator
     b.result()
   }
 
+  trait Tree {
+    def mkString: String
+  }
+
+  private case class ParamDef(name: String, tpe: String, default: Tree = EmptyTree)
+    extends Tree {
+
+    def mkString: String = {
+      val base = s"$name: $tpe"
+      if (default == EmptyTree) base else s"$base = ${default.mkString}"
+    }
+
+    def hasDefault: Boolean = default != EmptyTree
+  }
+
+  private case object EmptyTree extends Tree {
+    def mkString: String = ""
+  }
+
+  private case object This extends Tree {
+    def mkString: String = "this"
+  }
+
+  private case class ValDef(name: String, tpe: Option[String] = None, rhs: Tree)
+    extends Tree {
+
+    def mkString: String = {
+      val base  = tpe.fold(name)(t => s"name: $t")
+      val res0  = if (rhs == EmptyTree) base else s"$base = ${rhs.mkString}"
+      s"val $res0"
+    }
+  }
+
+  private case class Apply(receiver: Tree, args: List[Tree]) extends Tree {
+    def mkString: String = {
+      val argsS     = args.map(_.mkString)
+      val receiverS = receiver.mkString
+      argsS.mkString(s"$receiverS(", ", ", ")")
+    }
+  }
+
+  private case class Select(receiver: Tree, method: String) extends Tree {
+    def mkString: String = {
+      val receiverS = receiver.mkString
+      s"$receiverS.$method"
+    }
+  }
+
+  private case class Ident(name: String) extends Tree {
+    def mkString: String = name
+  }
+
+  private case class Block(body: Tree*) extends Tree {
+    def mkString: String = {
+      val bodyS     = body.map(_.mkString)
+      bodyS.mkString(s"{\n  ", "\n  ", "}")
+    }
+  }
+
+  private case class New(name: String, args: List[Tree]) extends Tree {
+    def mkString: String = {
+      val argsS = args.map(_.mkString)
+      argsS.mkString(s"new $name(", ", ", ")")
+    }
+  }
+
+  private case class If(cond: Tree, thenp: Tree, elsep: Tree) extends Tree {
+    def mkString: String = {
+      val condS = cond.mkString
+      val thenS = thenp.mkString
+      val elseS = elsep.mkString
+      val res0  = s"if ($condS) $thenS"
+      if (elsep == EmptyTree) res0 else s"$res0 else $elseS"
+    }
+  }
+
+  private case class BooleanLiteral(value: Boolean) extends Tree {
+    def mkString: String = value.toString
+  }
+
+  private case class IntLiteral(value: Int) extends Tree {
+    def mkString: String = value.toString
+  }
+
+  private case class FloatLiteral(value: Float) extends Tree {
+    def mkString: String = s"${value}f"
+  }
+
+  private case class StringLiteral(value: String) extends Tree {
+    def mkString: String = quote(value)
+  }
+
+  private case class MethodDef(name: String, tpe: List[String] = Nil, params: List[List[ParamDef]],
+                               ret: String, body: Tree, isProtected: Boolean = false, isPrivate: Boolean = false,
+                               scope: Option[String] = None) extends Tree {
+    def mkString: String = {
+      val tpeS    = if (tpe.isEmpty) "" else tpe.mkString("[", ", ", "]")
+      val paramsS = params.map(sub => sub.map(_.mkString).mkString("(", ", ", ")")).mkString
+      val abs     = s"def $name$tpeS$paramsS: $ret"
+      val bodyS   = body.mkString
+      val res0    = if (body == EmptyTree) abs else s"$abs = $bodyS"
+      val scopeS  = scope.fold("")(s => s"[$s]")
+      val pre0    = if (isProtected) s"protected$scopeS " else if (isPrivate) s"private$scopeS " else ""
+      s"$pre0$res0"
+    }
+  }
+
+  private case class CaseClassDef(name: String, tpe: List[String] = Nil, params: List[List[ParamDef]],
+                                  parents: List[String], body: List[Tree],
+                                  isProtected: Boolean = false, isPrivate: Boolean = false,
+                                  scope: Option[String] = None,
+                                  isFinal: Boolean = false) extends Tree {
+    def mkString: String = {
+      val tpeS    = if (tpe.isEmpty) "" else tpe.mkString("[", ", ", "]")
+      val paramsS = params.map(sub => sub.map(_.mkString).mkString("(", ", ", ")")).mkString
+
+      val parentsS = parents match {
+        case Nil => ""
+        case single :: rest =>
+          val pre = s" extends $single"
+          if (rest.isEmpty) pre else rest.mkString(s"$pre with ", " with ", "")
+      }
+      val abs     = s"case class $name$tpeS$paramsS$parentsS"
+      val res0    = if (body.isEmpty) abs else body.map(_.mkString).mkString(s"$abs {\n  ", "\n  ", "}")
+      val scopeS  = scope.fold("")(s => s"[$s]")
+      val pre0    = if (isProtected) s"protected$scopeS " else if (isPrivate) s"private$scopeS " else ""
+      val pre1    = if (isFinal) s"${pre0}final " else pre0
+      s"$pre1$res0"
+    }
+  }
+
+  private case class ObjectDef(name: String, parents: List[String] = Nil, body: List[Tree])
+    extends Tree {
+
+    def mkString: String = {
+      val parentsS = parents match {
+        case Nil => ""
+        case single :: rest =>
+          val pre = s" extends $single"
+          if (rest.isEmpty) pre else rest.mkString(s"$pre with ", " with ", "")
+      }
+      val pre = s"object $name$parentsS"
+      if (body.isEmpty) pre else body.map(_.mkString).mkString(s"$pre {\n  ", "\n  ", "}")
+    }
+  }
+
+  private case class DocTree(comments: String, body: Tree) extends Tree {
+    def mkString: String = s"$comments${body.mkString}"
+  }
+
   private def wrapDoc(spec: UGenSpec, tree: Tree, body: Boolean, args: Boolean, examples: Boolean): Tree = {
     if (spec.doc.isEmpty) return tree
     val doc       = spec.doc.get
@@ -260,7 +408,8 @@ final class ClassGenerator
     }
 
     // `body == false` is used for methods; in that case do not prepend new-lines
-    DocDef(DocComment(body4.mkString(if (body) s"\n\n/** " else s"/** ", "\n  * ", "\n  */\n"), NoPosition), tree)
+    val comm = body4.mkString(if (body) s"\n\n/** " else s"/** ", "\n  * ", "\n  */\n")
+    DocTree(comm, tree)
   }
 
   private def mkLink(link0: String): String = {
@@ -301,14 +450,38 @@ final class ClassGenerator
     def traitTypeString = s"${peer.name.capitalize}Rated"
   }
 
+  private def quote (s: String): String = "\"" + escape(s) + "\""
+  private def escape(s: String): String = s.flatMap(escapedChar)
+
+  private def escapedChar(ch: Char): String = ch match {
+    case '\b' => "\\b"
+    case '\t' => "\\t"
+    case '\n' => "\\n"
+    case '\f' => "\\f"
+    case '\r' => "\\r"
+    case '"'  => "\\\""
+    case '\'' => "\\\'"
+    case '\\' => "\\\\"
+    case _    => if (ch.isControl) "\\0" + Integer.toOctalString(ch.toInt)
+    else              String.valueOf(ch)
+  }
+
   private implicit final class RichArgumentValue(val peer: ArgumentValue) /* extends AnyVal */ {
-    import ArgumentValue._
+    import ArgumentValue.{String => AString, _}
+
+//    def mkString: String = peer match {
+//      case Int(i)         => i.toString
+//      case Float(f)       => s"${f}f"
+//      case Boolean(b)     => (if (b) 1 else 0).toString   // currently no type class for GE | Switch
+//      case AString(s)     => quote(s)                     // currently no type class for GE | String
+//      case other          => other.toString
+//    }
 
     def toTree: Tree = peer match {
-      case Int(i)         => Literal(gl.Constant(i))
-      case Float(f)       => Literal(gl.Constant(f))
-      case Boolean(b)     => Literal(gl.Constant(if (b) 1 else 0)) // currently no type class for GE | Switch
-      case String(s)      => Literal(gl.Constant(s))               // currently no type class for GE | String
+      case Int(i)         => IntLiteral(i)
+      case Float(f)       => FloatLiteral(f)
+      case Boolean(b)     => IntLiteral(if (b) 1 else 0) // currently no type class for GE | Switch
+      case AString(s)     => StringLiteral(s)               // currently no type class for GE | String
       case other          => Ident(other.toString)
 //      case Inf            => Ident(strInf)
 //      case DoneAction(a)  => Ident(a.name)
@@ -328,6 +501,9 @@ final class ClassGenerator
       case ArgumentType.Int   => "Int"
     }
 
+//    def defaultString(rate: MaybeRate = UndefinedRate): Option[String] =
+//      peer.defaults.getWithDefault(rate).map(_.mkString)
+
     def defaultTree(rate: MaybeRate = UndefinedRate): Tree = peer.defaults.getWithDefault(rate) match {
       case Some(df) => df.toTree
       case _        => EmptyTree
@@ -344,10 +520,13 @@ final class ClassGenerator
     }
   }
 
-  private val traitSideEffect   = TypeDef(Modifiers(Flags.TRAIT), typeName("HasSideEffect"), Nil, EmptyTree)
-  private val traitDoneFlag     = TypeDef(Modifiers(Flags.TRAIT), typeName("HasDoneFlag"  ), Nil, EmptyTree)
+  private val strSideEffect   = "HasSideEffect"
+  // private val traitSideEffect = TypeDef(Modifiers(Flags.TRAIT), typeName(strSideEffect), Nil, EmptyTree)
+  private val strDoneFlag     = "HasDoneFlag"
+  // private val traitDoneFlag   = TypeDef(Modifiers(Flags.TRAIT), typeName(strDoneFlag), Nil, EmptyTree)
   // val traitRandom       = TypeDef(Modifiers(Flags.TRAIT), "UsesRandSeed":  TypeName, Nil, EmptyTree)
-  private val traitIndiv        = TypeDef(Modifiers(Flags.TRAIT), typeName("IsIndividual" ), Nil, EmptyTree)
+  private val strIndiv        = "IsIndividual"
+  // private val traitIndiv      = TypeDef(Modifiers(Flags.TRAIT), typeName(strIndiv), Nil, EmptyTree)
   // val traitWritesBuffer = TypeDef(Modifiers(Flags.TRAIT), "WritesBuffer":  TypeName, Nil, EmptyTree)
   // val traitWritesFFT    = TypeDef(Modifiers(Flags.TRAIT), "WritesFFT":     TypeName, Nil, EmptyTree)
   // val traitWritesBus    = TypeDef(Modifiers(Flags.TRAIT), "WritesBus":     TypeName, Nil, EmptyTree)
@@ -355,9 +534,11 @@ final class ClassGenerator
   private val strApply            = "apply"
   // private val identApply          = Ident(strApply)
   private val strVec              = "Vec"
-  private val identVector         = Ident("Vector")
+  private val strVector           = "Vector"
+  private val identVector         = Ident(strVector)
   private val identConstant       = Ident("Constant")
-  private val identChannelProxy   = Ident("ChannelProxy")
+  private val strChannelProxy     = "ChannelProxy"
+  private val identChannelProxy   = Ident(strChannelProxy)
   private val strMakeUGens        = "makeUGens"
   private val strMakeUGen         = "makeUGen"
   private val identMakeUGen       = Ident(strMakeUGen)
@@ -366,8 +547,8 @@ final class ClassGenerator
   private val identUArgs          = Ident(strUArgs)
   private val identUnwrap         = Ident("unwrap")
   private val identThis           = Ident("this")
-  private val identMaybeRate      = Ident("MaybeRate")
-  private val identRate           = Ident("Rate")
+  private val strMaybeRate        = "MaybeRate"
+  private val strRate             = "Rate"
   private val strMaybeResolve     = "getOrElse" // "?|"
   private val strOutputs          = "outputs"
   private val strUGenIn           = "UGenIn"
@@ -375,7 +556,8 @@ final class ClassGenerator
   private val strRateArg          = "rate"
   private val strRateMethod       = "rate"
   private val identRateArg        = Ident(strRateArg)
-  private val identStringArg      = Ident("stringArg")
+  private val strStringArg        = "stringArg"
+  private val identStringArg      = Ident(strStringArg)
   private val identMatchRate      = Ident("matchRate")
   private val identMatchRateT     = Ident("matchRateT")
   private val identMatchRateFrom  = Ident("matchRateFrom")
@@ -388,13 +570,9 @@ final class ClassGenerator
   private val identBinaryOp       = Ident("BinaryOpUGen")
   private val strMake1            = "make1"
   private val strTimes            = "Times"
-//  private val identFloat          = Ident("Float")
-//  private val strPositiveInfinity = "PositiveInfinity"
-//  private val strInf              = "inf"
-//  private val strNyquist          = "nyquist"
 
   def performSpec(spec: UGenSpec): List[Tree] = {
-    import spec._
+    import spec.{name => uName, _}
 
     val impliedRate = rates match {
       case Rates.Implied(r, _) => Some(r)
@@ -407,14 +585,14 @@ final class ClassGenerator
         case GE(Sig.Mul, _)  => true
         case _               => false
       })
-      require(muls.size <= 1, s"Can only have one expandBin ($name)")
+      require(muls.size <= 1, s"Can only have one expandBin ($uName)")
       muls.headOption
     }
 
     // this is to ensure for makeUGen that when expandBin is defined, we simply do not pass in
     // _args to the UGen constructor, simplifying the process of filtering out the argument
     // which corresponds to expandBin!
-    require(expandBin.isEmpty || inputs.size == 1, s"Currently `mul` input must be sole input ($name)")
+    require(expandBin.isEmpty || inputs.size == 1, s"Currently `mul` input must be sole input ($uName)")
 
     val argsIn  = args.toList
     // val argsOut = args.filter(a => inputMap.contains(a.name))
@@ -429,33 +607,31 @@ final class ClassGenerator
 
     val sortedRates = rates.set.toList.sorted
     // the companion object's methods
-    val objectMethodDefs = sortedRates.flatMap { rate =>
+    val objectMethodDefs: List[Tree] = sortedRates.flatMap { rate =>
       // e.g. `freq: GE, phase: GE = 0f`
-      val objectMethodArgs: List[ValDef] = argsIn.map { uArgInfo =>
-        ValDef(
-          Modifiers(Flags.PARAM),
-          termName(uArgInfo.name),
-          Ident(uArgInfo.typeString),
-          uArgInfo.defaultTree(rate)
+      val objectMethodArgs: List[ParamDef] = argsIn.map { uArgInfo =>
+        ParamDef(
+          name    = uArgInfo.name,
+          tpe     = uArgInfo.typeString,
+          default = uArgInfo.defaultTree(rate)
         )
       }
 
       // either a parenthesised arg list, or no parens if there aren't any args
-      val objectMethodArgsList: List[List[ValDef]] =
+      val objectMethodArgsList: List[List[ParamDef]] =
         if (objectMethodArgs.nonEmpty) objectMethodArgs :: Nil else Nil
 
       // e.g. `apply(audio, freq, phase)
       // -- now replaced by `new SinOsc(audio, freq, phase)` to avoid overloading problems
-      val methodBody = {
-        val argIdents = argsIn.map(i => Ident(i.name))
+      val methodBody: Tree = {
+        val argIdents = argsIn.map(a => Ident(a.name))
         // prepend the rate argument if necessary
         val applyArgs = if (impliedRate.isEmpty)
           Ident(rate.name) :: argIdents
         else
           argIdents
 
-        New(Ident(name), applyArgs :: Nil)
-        // Apply(identApply, applyArgs)
+        New(uName, applyArgs)
       }
 
       val methodNames = rates.method match {
@@ -468,22 +644,20 @@ final class ClassGenerator
       // e.g. `def ar(freq: GE, phase: GE = 0f): SinOsc`
       // e.g. `def apply(chain: GE, winType: GE = 0.0f, winSize: GE = 0.0f): IFFT`
       val fullMethods: List[(String, Tree)] = methodNames.map { mName =>
-        val df = DefDef(
-          NoMods withPosition(Flags.METHOD, NoPosition),
-          termName(mName),
-          Nil,                   // tparams
-          objectMethodArgsList,  // vparamss
-
+        val df = MethodDef(
+          name    = mName,
+          tpe     = Nil,
+          params  = objectMethodArgsList,
           // Note: to help faster compilation of use site code, always produce the return type annotation
           // if (mName != strApply) EmptyTree else
-          TypeDef(NoMods, typeName(name), Nil, EmptyTree),
-          methodBody             // rhs
+          ret     = uName, // TypeDef(NoMods, typeName(name), Nil, EmptyTree),
+          body    = methodBody             // rhs
         )
         mName -> wrapDoc(spec, df, /* indent = 1, */ body = false, args = true, examples = false)
       }
 
       // whether the number of arguments is non-zero and there are defaults for all of them
-      val allArgsHaveDefaults = objectMethodArgs.nonEmpty && !objectMethodArgs.exists(_.rhs.isEmpty)
+      val allArgsHaveDefaults = objectMethodArgs.nonEmpty && objectMethodArgs.forall(_.hasDefault)
 
       val fullButApply = if (!hasApply) fullMethods else fullMethods.filterNot(_._1 == strApply)
 
@@ -491,15 +665,14 @@ final class ClassGenerator
       if (allArgsHaveDefaults && methodNames.nonEmpty) {
         fullButApply.flatMap { case (mName, fullMethod) =>
           // e.g. `kr()`
-          val overloadedBody    = Apply(Ident(mName), Nil)
+          val overloadedBody = Apply(Ident(mName), Nil)
           // e.g. `def kr: SinOsc = kr()
-          val overloadedMethod  = DefDef(
-            NoMods withPosition(Flags.METHOD, NoPosition),
-            termName(mName),
-            Nil,            // tparams
-            Nil,            // vparams
-            TypeDef(NoMods, typeName(name), Nil, EmptyTree),
-            overloadedBody  // rhs
+          val overloadedMethod  = MethodDef(
+            name = mName,
+            tpe     = Nil,    // tparams
+            params  = Nil,    // vparams
+            ret     = uName,
+            body    = overloadedBody  // rhs
           )
           overloadedMethod :: fullMethod :: Nil
         }
@@ -515,14 +688,10 @@ final class ClassGenerator
     // the complete companion object. this is given as a List[Tree],
     // because there might be no object (in that case objectDef is Nil).
     val objectDef = if (forceCompanion || objectMethodDefs.nonEmpty) {
-      val mod = ModuleDef(
-        NoMods,
-        termName(name),
-        Template(
-          EmptyTree :: Nil, // parents
-          emptyValDef,      // self
-          objectMethodDefs  // body
-        )
+      val mod = ObjectDef(
+        name    = uName,
+        parents = Nil,
+        body    = objectMethodDefs  // body
       )
       wrapDoc(spec, mod, /* indent = 0, */ body = true, args = false, examples = true) :: Nil
     } else Nil
@@ -533,24 +702,20 @@ final class ClassGenerator
       argsIn.filter(_.rates.get(UndefinedRate) == Some(RateConstraint.SameAsUGen))
     } else Vector.empty
 
-    val caseClassConstrArgs = {
+    val caseClassConstrArgs: List[ParamDef] = {
       // for each argument the tuple (NoMods, argName, type or type-and-default)
       val argTuples = argsIn map { arg =>
-        val tpe     = Ident(arg.typeString)
+        val tpe = arg.typeString
         // Note: it's not possible to define `apply` on the companion object
         // for case classes, even if we omit the default arguments on the
         // case class constructor!
-        val tpeRHS  = /* if (forceCompanion) tpe else */ arg.defaultTree() match {
-          case EmptyTree  => tpe
-          case t          => Assign(tpe, t)
-        }
-        (NoMods, arg.name, tpeRHS)
+        ParamDef(name = arg.name, tpe = tpe, default = arg.defaultTree())
       }
 
       // if a rate is implied, we're done, otherwise prepend the rate argument
       if (impliedRate.isDefined) argTuples else {
-        val tpe = if (maybeRateRef.nonEmpty) identMaybeRate else identRate
-        (NoMods, strRateArg, tpe) :: argTuples
+        val tpe = if (maybeRateRef.nonEmpty) strMaybeRate else strRate
+        ParamDef(strRateArg, tpe) :: argTuples
       }
     }
 
@@ -577,14 +742,14 @@ final class ClassGenerator
 
     // generates the mixins such as `HasDoneFlag`, `IsIndividual`, and in the
     // case of an implied rate `AudioRated` etc.
-    val caseClassMixins: List[TypeDef] = {
+    val caseClassMixins: List[String] = {
 
-      val mixin1 = if (doneFlag)                    traitDoneFlag   :: Nil    else Nil
-      val mixin2 = if (indiv      || indIndiv)      traitIndiv      :: mixin1 else mixin1
-      val mixin3 = if (sideEffect || indSideEffect) traitSideEffect :: mixin2 else mixin2
+      val mixin1 = if (doneFlag)                    strDoneFlag   :: Nil    else Nil
+      val mixin2 = if (indiv      || indIndiv)      strIndiv      :: mixin1 else mixin1
+      val mixin3 = if (sideEffect || indSideEffect) strSideEffect :: mixin2 else mixin2
 
       impliedRate match {
-        case Some(r)  => TypeDef(NoMods, typeName(r.traitTypeString), Nil, EmptyTree) :: mixin3
+        case Some(r)  => r.traitTypeString :: mixin3
         case _        => mixin3
       }
     }
@@ -604,28 +769,27 @@ final class ClassGenerator
     // for each named output, we create a corresponding method in
     // the case class that produces a `ChannelProxy` instance.
     val namedOutputDefs: List[Tree] = if (!hasMultipleOuts) Nil else outputs.zipWithIndex.collect {
-      case (UGenSpec.Output(Some(outName), _, variadic), idx) =>
+      case (UGenSpec.Output(Some(outName), _, Some(_)), idx) =>
         if (hasVariadicOut) {
           sys.error(s"The combination of variadic and named outputs is not yet supported (${spec.name}, $outName)")
         }
 
         // ChannelProxy(this, idx)
-        val methodBody: Tree = Apply(identChannelProxy, This(tpnme.EMPTY) :: Literal(gl.Constant(idx)) :: Nil)
+        val methodBody = Apply(identChannelProxy, This :: IntLiteral(idx) :: Nil)
 
-        DefDef(
-          NoMods withPosition(Flags.METHOD, NoPosition),
-          termName(outName),
-          Nil,                                                        // tparams
-          Nil,                                                        // vparamss
-          TypeDef(NoMods, typeName("GE"), Nil, EmptyTree),            // tpt
-          methodBody                                                  // rhs
+        MethodDef(
+          name    = outName,
+          tpe     = Nil,
+          params  = Nil,
+          ret     = "GE",
+          body    = methodBody
         )
     } (breakOut)
 
     // `protected def makeUGens: UGenInLike = ...`
-    val makeUGensDef = {
+    val makeUGensDef: MethodDef = {
       val methodBody: Tree = {
-        val argsApp = argsOut.map { a =>
+        val argsApp: Vec[Tree] = argsOut.map { a =>
           val id = Ident(a.name)
           a.tpe match {
             case GE(Sig.String,_) => Apply(identStringArg, id :: Nil)
@@ -638,12 +802,12 @@ final class ClassGenerator
                   if (prepSz) {
                     Block(
                       ValDef(
-                        NoMods,
-                        termName("_exp"),
-                        EmptyTree,
-                        sel1
+                        name  = "_exp",
+                        tpe   = None,
+                        rhs   = sel1
                       ),
-                      Apply(Select(Ident("_exp"), strPlusColon), Apply(identConstant, Select(Ident("_exp"), strSize) :: Nil) :: Nil)
+                      Apply(Select(Ident("_exp"), strPlusColon), 
+                        Apply(identConstant, Select(Ident("_exp"), strSize) :: Nil) :: Nil)
                     )
                   } else sel1
               }
@@ -680,22 +844,24 @@ final class ClassGenerator
           case None =>
             Apply(identMakeUGen, Select(identVector, strEmpty) :: Nil) // shortcut, works because we do not use type apply
           case Some(l) =>
-            Apply(identUnwrap, identThis :: argsApp2.init.foldRight(l)((a, t) => Apply(Select(a, strPlusPlus), t :: Nil)) :: Nil)
+            Apply(identUnwrap, identThis :: argsApp2.init.foldRight(l)({
+              (a, t) => Apply(Select(a, strPlusPlus), t :: Nil)
+            }) :: Nil)
         }
       }
 
-      DefDef(
-        NoMods withPosition(Flags.PROTECTED, NoPosition) withPosition(Flags.METHOD, NoPosition),
-        termName(strMakeUGens),
-        Nil,                                                        // tparams
-        Nil,                                                        // vparamss
-        TypeDef(NoMods, typeName(expandResultStr), Nil, EmptyTree), // tpt
-        methodBody                                                  // rhs
+      MethodDef(
+        isProtected = true,
+        name    = strMakeUGens,
+        tpe     = Nil,
+        params  = Nil,
+        ret     = expandResultStr,
+        body    = methodBody
       )
     }
 
     // `protected def makeUGen(_args: Vec[UGenIn]): UGenInLike = ...`
-    val makeUGenDef = {
+    val makeUGenDef: MethodDef = {
       val methodBody: Tree = {
         val (preBody, ugenConstrArgs, rateConsArgs) = {
           // args1 are the last two args (isIndividual, hasSideEffect)
@@ -704,34 +870,34 @@ final class ClassGenerator
             // it has a default value of `false`, so we need to add this argument only
             // if there is a side effect and the UGen is not zero-out.
             val args0 = if ((sideEffect || indSideEffect) && outputs.nonEmpty) {
-              Literal(gl.Constant(true)) :: Nil
+              BooleanLiteral(true) :: Nil
             } else Nil
 
             // the preceding argument is `isIndividual` for all UGens
             if (indiv || indIndiv) {
-              Literal(gl.Constant(true)) :: args0
+              BooleanLiteral(true) :: args0
             } else if (args0.nonEmpty) {
-              Literal(gl.Constant(false)) :: args0
+              BooleanLiteral(false) :: args0
             } else args0
           }
 
           // if the rate is of type `MaybeRate`, it will be resolved at the beginning of
           // the body and stored in local variable `_rate`. Otherwise we can use
           // `rate` straight away.
-          val strResolvedRateArg = if (maybeRateRef.nonEmpty) "_rate" else strRateArg
-          val identResolvedRate = Ident(impliedRate.map(_.name).getOrElse(strResolvedRateArg))
+          val strResolvedRateArg  = if (maybeRateRef.nonEmpty) "_rate" else strRateArg
+          val identResolvedRate   = Ident(impliedRate.map(_.name).getOrElse(strResolvedRateArg))
 
           // for a UGen.MultiOut the next preceding arg is `outputRates: Vec[Rate]`
           val args2 = if (!multiOut) Nil else {
             val numFixed  = outputs.count(_.variadic.isEmpty)
             val variadic  = outputs.collect {
-              case Output(oName, _, Some(v)) => v
+              case Output(_ /* oName */, _, Some(v)) => v
             }
             if (numFixed > 0 && variadic.nonEmpty) {
-              sys.error(s"Mixed variadic / non-variadic outputs not supported, in $name")
+              sys.error(s"Mixed variadic / non-variadic outputs not supported, in $uName")
             }
             if (variadic.size > 1) {
-              sys.error(s"Multiple variadic outputs not supported, in $name")
+              sys.error(s"Multiple variadic outputs not supported, in $uName")
             }
 
             // tree that defines the number of outputs
@@ -739,19 +905,19 @@ final class ClassGenerator
               case Some(v) =>
                 val refArg = argMap(v)
                 refArg.tpe match {
-                  case GE(Sig.String,_) => sys.error(s"Strings not supported for variadic outputs, in $name")
+                  case GE(Sig.String,_) => sys.error(s"Strings not supported for variadic outputs, in $uName")
                   case GE(_,_) =>
                     val numFixedArgs = argsOut.size - 1       // we ensured above that there is only one variadic argument
                     val selSz = Select(identUArgs, strSize)   // `_args.size`
                     if (numFixedArgs == 0) selSz else {
                       // `_args.size.-(<numFixedArgs>)`
-                      Apply(Select(selSz, strMinus), Literal(gl.Constant(numFixedArgs)) :: Nil)
+                      Apply(Select(selSz, strMinus), IntLiteral(numFixedArgs) :: Nil)
                     }
                   case ArgumentType.Int =>
                     Ident(refArg.name)
                 }
 
-              case _ => Literal(gl.Constant(numFixed))
+              case _ => IntLiteral(numFixed)
             }
 
             // `Vector.fill(<numOuts>)(<resolvedRate>)
@@ -766,13 +932,13 @@ final class ClassGenerator
             case (res @ (_consTrees, _consArgs, _consCount), (arg, argIdx)) =>
               // the rate to which the ugen input is forced
               def implCons(cons: RateConstraint, sameRate: Ident = identResolvedRate)
-                          (rhs: Tree => Tree = identity): (List[Tree], Ident, Int) = {
+                          (rhsFun: Tree => Tree = identity): (List[Tree], Ident, Int) = {
                 val tgt = cons match {
                   case RateConstraint.SameAsUGen  => sameRate
                   case RateConstraint.Fixed(r)    => Ident(r.name)
                 }
                 val newCount  = _consCount + 1
-                val newArgs   = identUArgs.name.toString + newCount
+                val newArgs   = s"${identUArgs.name}$newCount"
                 val isTrig    = arg.tpe match {
                   case ArgumentType.GE(Sig.Trigger, _) => true
                   case _ => false
@@ -784,10 +950,9 @@ final class ClassGenerator
                 // val <newArgs> = matchRate(<oldArgs>, argIdx, tgt)
                 val matchMethod = if (isTrig) identMatchRateT else if (isMulti) identMatchRateFrom else identMatchRate
                 val df = ValDef(
-                  NoMods,
-                  termName(newArgs),
-                  EmptyTree,
-                  rhs(Apply(matchMethod, _consArgs :: Literal(gl.Constant(argIdx)) :: tgt :: Nil))
+                  name  = newArgs,
+                  tpe   = None,
+                  rhs   = rhsFun(Apply(matchMethod, _consArgs :: IntLiteral(argIdx) :: tgt :: Nil))
                 )
                 val newTrees = _consTrees ++ List(df)
                 (newTrees, Ident(newArgs), newCount)
@@ -813,7 +978,7 @@ final class ClassGenerator
 
           // might support Mul besides other args in the future
           val inArg = if (expandBin.isDefined) {
-            require(argsOut.size == 1, s"At present, Mul input must be only input, in $name")
+            require(argsOut.size == 1, s"At present, Mul input must be only input, in $uName")
             Select(identVector, strEmpty) // `inputs = Vector.empty`
           } else {
             rateConsArgs0  // `inputs = _args`
@@ -832,11 +997,10 @@ final class ClassGenerator
               require(argsOut.take(aPos).forall(a => a.typeIsGE && !inputMap(a.name).variadic), "Cannot resolve MaybeRate ref after multi args")
               // `val _rate = rate |? _args(<pos>).rate`
               val rateResolution = ValDef(
-                NoMods,
-                termName(strResolvedRateArg),
-                EmptyTree,
-                Apply(Select(identRateArg, strMaybeResolve),
-                  Select(Apply(identUArgs, Literal(gl.Constant(aPos)) :: Nil), strRateMethod) :: Nil)
+                name = strResolvedRateArg,
+                tpe = None,
+                rhs = Apply(Select(identRateArg, strMaybeResolve),
+                  Select(Apply(identUArgs, IntLiteral(aPos) :: Nil), strRateMethod) :: Nil)
               )
               rateResolution :: rateConsTrees
             }
@@ -845,9 +1009,9 @@ final class ClassGenerator
           (_preBody, args4 :: Nil, rateConsArgs0) // only single argument list
         }
 
-        val ugenTpe     = TypeDef(NoMods, typeName(s"UGen.${outputsPrefix}Out"), Nil, EmptyTree)
+        val ugenTpe     = s"UGen.${outputsPrefix}Out"
         // val ugenConstr = New(ugenTpe, ugenConstrArgs)
-        val ugenConstr  = Apply(ugenTpe, ugenConstrArgs.head)
+        val ugenConstr  = Apply(Ident(ugenTpe), ugenConstrArgs.head)
 
         // the resulting application is either the ugen instantiation, or, if a Mul is used,
         // a binary op of the ugen instantiation
@@ -855,7 +1019,7 @@ final class ClassGenerator
           case Some(mul) =>
             val aPos      = argsOut.indexOf(mul)
             val mulMake1  = Select(Select(identBinaryOp, strTimes), strMake1)
-            Apply(mulMake1, ugenConstr :: Apply(rateConsArgs, Literal(gl.Constant(aPos)) :: Nil) :: Nil)
+            Apply(mulMake1, ugenConstr :: Apply(rateConsArgs, IntLiteral(aPos) :: Nil) :: Nil)
 
           case _ => ugenConstr
         }
@@ -867,26 +1031,19 @@ final class ClassGenerator
         }
       }
 
-      val methodArgs = List(List(ValDef(
-        Modifiers(Flags.PARAM),
-        termName(strUArgs),
-        TypeDef(NoMods, typeName(strVec), TypeDef(NoMods, typeName(strUGenIn), Nil, EmptyTree) :: Nil, EmptyTree),
-        EmptyTree
+      val methodArgs = List(List(ParamDef(
+        name  = strUArgs,
+        tpe   = s"$strVec[$strUGenIn]"
       )))
 
-      //        Modifiers(Flags.PRIVATE | Flags.METHOD, typeName("synth")).setPositions(
-      //          Map(Flags.PRIVATE.toLong -> NoPosition, Flags.METHOD.toLong -> NoPosition)),
-      //        Modifiers(NoFlags, typeName("synth")).withPosition(Flags.PRIVATE, NoPosition).withPosition(Flags.METHOD, NoPosition), // 'private[synth]'
-      //        Modifiers(Flags.PRIVATE | Flags.METHOD, typeName("synth")), // 'private[synth]'
-      // .withPosition(Flags.PRIVATE, NoPosition).withPosition(Flags.METHOD, NoPosition), // 'private[synth]'
-
-      DefDef(
-        NoMods,
-        termName(s"private[synth] def $strMakeUGen"), // can't get the [synth] otherwise
-        Nil,                                                        // tparams
-        methodArgs,                                                 // vparamss
-        TypeDef(NoMods, typeName(expandResultStr), Nil, EmptyTree), // tpt
-        methodBody                                                  // rhs
+      MethodDef(
+        isPrivate = true,
+        scope     = Some("synth"),
+        name    = strMakeUGen,
+        tpe     = Nil,
+        params  = methodArgs,
+        ret     = expandResultStr,
+        body    = methodBody
       )
     }
 
@@ -898,34 +1055,17 @@ final class ClassGenerator
     // e.g. `UGenSource.ZeroOut` or `UGenSource.SingleOut`, ...
     val outputsTypeString = s"UGenSource.${outputsPrefix}Out"
     // super class and traits
-    val caseClassParents  = TypeDef(NoMods, typeName(outputsTypeString), Nil, EmptyTree) :: caseClassMixins
+    val caseClassParents  = outputsTypeString :: caseClassMixins
 
-    // if there is a companion object or the UGen is individual or it has arguments, a case class
-    // is constructed (the usual case)....
-    val caseClassDef = if (objectDef.nonEmpty || indiv || indIndiv || caseClassConstrArgs.nonEmpty) {
-      mkCaseClass(
-        NoMods withPosition(Flags.FINAL, NoPosition),
-        name,
-        Nil, // tparams
-        caseClassConstrArgs :: Nil,
-        caseClassMethods,
-        caseClassParents,  // parents
-        Nil // super args
+    val caseClassDef =
+      CaseClassDef(
+        isFinal = true,
+        name    = uName,
+        tpe     = Nil, // tparams
+        params  = caseClassConstrArgs :: Nil,
+        body    = caseClassMethods,
+        parents = caseClassParents  // parents
       )
-
-    // ...but there are no constructor methods and no args,
-    // the UGen is not individual. thus make it a case object
-    } else {
-      ModuleDef(
-        NoMods withPosition(Flags.CASE, NoPosition),
-        termName(name),
-        Template(
-          caseClassParents, // parents
-          emptyValDef,      // self
-          caseClassMethods  // body
-        )
-      )
-    }
 
     val caseClassWithDoc = wrapDoc(spec, caseClassDef, body = true, args = true, examples = false)
     objectDef ::: (caseClassWithDoc :: Nil)
