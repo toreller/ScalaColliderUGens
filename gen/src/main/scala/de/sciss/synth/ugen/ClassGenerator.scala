@@ -14,23 +14,24 @@
 package de.sciss.synth
 package ugen
 
-import de.sciss.file._
 import java.io.FileOutputStream
+
+import de.sciss.file._
+import de.sciss.synth.UGenSpec.ArgumentType.GE
+import de.sciss.synth.UGenSpec.Attribute.HasSourceCode
+import de.sciss.synth.UGenSpec.{SignalShape => Sig, _}
 
 import scala.annotation.tailrec
 import scala.collection.breakOut
 import scala.collection.immutable.{IndexedSeq => Vec}
 import scala.io.Source
+import scala.tools.nsc.io.AbstractFile
 import scala.tools.nsc.symtab.Flags
 import scala.tools.refactoring.Refactoring
-import scala.tools.refactoring.util.CompilerProvider
-import scala.tools.refactoring.transformation.TreeFactory
 import scala.tools.refactoring.common.{CompilerAccess, Tracing}
-import scala.tools.nsc.io.AbstractFile
+import scala.tools.refactoring.transformation.TreeFactory
+import scala.tools.refactoring.util.CompilerProvider
 import scala.util.control.NonFatal
-import UGenSpec.{SignalShape => Sig, _}
-import ArgumentType.GE
-import de.sciss.synth.UGenSpec.Attribute.HasSourceCode
 
 final class ClassGenerator
   extends Refactoring with Tracing with CompilerProvider with CompilerAccess with TreeFactory {

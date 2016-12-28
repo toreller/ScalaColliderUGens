@@ -1,7 +1,7 @@
 lazy val baseName       = "ScalaColliderUGens"
 lazy val baseNameL      = baseName.toLowerCase
 
-lazy val projectVersion = "1.16.3"
+lazy val projectVersion = "1.16.4"
 lazy val mimaVersion    = "1.16.0"
 
 name := baseName
@@ -12,7 +12,7 @@ lazy val commonSettings = Seq(
   description        := "UGens for ScalaCollider",
   homepage           := Some(url(s"https://github.com/Sciss/$baseName")),
   scalaVersion       := "2.11.8",
-  crossScalaVersions := Seq(/* "2.12.0-RC2", */ "2.11.8", "2.10.6"),
+  crossScalaVersions := Seq("2.12.1", "2.11.8", "2.10.6"),
   scalacOptions      ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture", "-Xlint"),
   initialCommands in console := """import de.sciss.synth._"""
 ) ++ publishSettings
@@ -24,7 +24,7 @@ lazy val scalaXMLVersion     = "1.0.6"
 
 // --- test-only dependencies ---
 
-lazy val scalaTestVersion    = "3.0.0"
+lazy val scalaTestVersion    = "3.0.1"
 
 // --- gen project (not published, thus not subject to major version concerns) ---
 
@@ -92,20 +92,16 @@ lazy val gen = Project(id = s"$baseNameL-gen", base = file("gen")).
   settings(
     description := "Source code generator for ScalaCollider UGens",
     licenses := lgpl,
-    libraryDependencies ++= {
-      // why did they publish two artifacts for 2.11.7 and 2.11.8 ?!
-      // val refact = scalaBinaryVersion.value match {
-      //   case "2.11" => "2.11.8"
-      //   case other => other
-      // }
-      Seq(
-      "com.github.scopt"      %% "scopt"                         % scoptVersion,
-      // "de.sciss"              %% "scalarefactoring"              % refactoringVersion,
-      "org.scala-refactoring" %% "org.scala-refactoring.library" % refactoringVersion,
-      "de.sciss"              %% "fileutil"                      % fileUtilVersion,
-      "org.scalatest"         %% "scalatest"                     % scalaTestVersion % "test"
-      )
-    },
+    crossPaths := false,
+    scalaVersion := "2.10.6",
+    crossScalaVersions := Seq("2.10.6"),
+    sbtPlugin := true,
+    libraryDependencies ++= Seq(
+      "com.github.scopt"      % "scopt_2.10"                         % scoptVersion,
+      "org.scala-refactoring" % "org.scala-refactoring.library_2.10" % refactoringVersion,
+      "de.sciss"              % "fileutil_2.10"                      % fileUtilVersion,
+      "org.scalatest"         % "scalatest_2.10"                     % scalaTestVersion % "test"
+    ),
     publishLocal    := {},
     publish         := {},
     publishArtifact := false,   // cf. http://stackoverflow.com/questions/8786708/
