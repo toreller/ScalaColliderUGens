@@ -1,4 +1,4 @@
-<ugens revision="10">
+<ugens revision="11">
     <!-- all documented -->
     <ugen name="WhiteNoise" random="true">
         <rate name="control"/>
@@ -262,7 +262,7 @@
         </arg>
         <doc>
             <text>
-                A UGen that returns a unique output value from zero to one for each input value according to
+                A UGen that returns a unique output value from -1 to +1 for each input value according to
                 a hash function. The same input value will always produce the same output value.
                 The input values can have any range.
             </text>

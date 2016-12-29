@@ -9,9 +9,7 @@
 
 Specification and base API of [ScalaCollider](https://github.com/Sciss/ScalaCollider) UGens, as well as a core library of generated UGen classes.
 
-This project is (C)opyright 2008&ndash;2016 by Hanns Holger Rutz. All rights reserved. All sub projects released under the GNU LGPL v2.1+, except for the specification which is released under a BSD-style license. All code comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
-
-Big thanks to Mirko Stocker for the [Scala-Refactoring Library](http://scala-refactoring.org/) which provides the AST-to-source code converter.
+This project is (C)opyright 2008&ndash;2017 by Hanns Holger Rutz. All rights reserved. All sub projects released under the GNU LGPL v2.1+, except for the specification which is released under a BSD-style license. All code comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
 
 ## sub projects
 
@@ -29,13 +27,13 @@ All artifacts are published to Maven Central, and are available as follows:
     "de.sciss" %% "scalacolliderugens-core" % v
     "de.sciss" %% "scalacolliderugens-plugins" % v
 
-The current stable version `v` is `"1.16.3"`.
+The current stable version `v` is `"1.16.4"`.
 
 The `spec` contains the XML meta data, `api` contains basic types without specific UGens, `core` contains the standard UGens included with SuperCollider, and `plugins` will include the third-party plugins managed by the [sc3-plugins](https://github.com/supercollider/sc3-plugins) project (still incomplete).
 
 ## building
 
-The project builds with sbt 0.13 against Scala 2.11, 2.10. To compile, run `sbt compile`.
+The project builds with sbt 0.13 against Scala 2.12, 2.11, 2.10. To compile, run `sbt compile`.
 
 ## contributing
 

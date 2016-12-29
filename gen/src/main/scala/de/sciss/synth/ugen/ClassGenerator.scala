@@ -32,8 +32,9 @@ final class ClassGenerator {
   
   val CHARSET       = "UTF-8"
 
-  val DocWidth      = 80
-  val ParamColumns  = 24
+  val DocWidth      =  80
+  val LineWidth     = 100
+  val ParamColumns  =  24
 
   private[this] val forceCompanion = true
 
@@ -91,7 +92,6 @@ final class ClassGenerator {
           |package ugen
           |
           |import UGenSource._
-          |
           |""".stripMargin
 
       val strBody = classes.map(_.mkString).mkString(header, "\n", "")
@@ -190,6 +190,11 @@ final class ClassGenerator {
     b.result()
   }
 
+  private def indent(in: String): String = {
+    val lines = in.split('\n')
+    lines.mkString("  ", "\n  ", "")
+  }
+
   trait Tree {
     def mkString: String
   }
@@ -244,8 +249,8 @@ final class ClassGenerator {
 
   private case class Block(body: Tree*) extends Tree {
     def mkString: String = {
-      val bodyS     = body.map(_.mkString)
-      bodyS.mkString(s"{\n  ", "\n  ", "}")
+      val bodyS = body.map(_.mkString)
+      bodyS.mkString(s"{\n  ", "\n  ", "\n}")
     }
   }
 
@@ -290,7 +295,14 @@ final class ClassGenerator {
       val paramsS = params.map(sub => sub.map(_.mkString).mkString("(", ", ", ")")).mkString
       val abs     = s"def $name$tpeS$paramsS: $ret"
       val bodyS   = body.mkString
-      val res0    = if (body == EmptyTree) abs else s"$abs = $bodyS"
+      val res0    = if (body == EmptyTree) abs else {
+        if (!bodyS.startsWith("{") && abs.length + bodyS.length > LineWidth) {
+          val bodyI = indent(bodyS)
+          s"$abs = \n$bodyI"
+        } else {
+          s"$abs = $bodyS"
+        }
+      }
       val scopeS  = scope.fold("")(s => s"[$s]")
       val pre0    = if (isProtected) s"protected$scopeS " else if (isPrivate) s"private$scopeS " else ""
       s"$pre0$res0"
@@ -309,11 +321,22 @@ final class ClassGenerator {
       val parentsS = parents match {
         case Nil => ""
         case single :: rest =>
-          val pre = s" extends $single"
+          val pre = s"extends $single"
           if (rest.isEmpty) pre else rest.mkString(s"$pre with ", " with ", "")
       }
-      val abs     = s"case class $name$tpeS$paramsS$parentsS"
-      val res0    = if (body.isEmpty) abs else body.map(_.mkString).mkString(s"$abs {\n  ", "\n  ", "}")
+      val abs0    = s"case class $name$tpeS$paramsS"
+      val abs     = if (parentsS.isEmpty) {
+        abs0
+      } else if (abs0.length + parentsS.length > LineWidth) {
+        s"case class $name$tpeS$paramsS\n  $parentsS"
+      } else {
+        s"case class $name$tpeS$paramsS $parentsS"
+      }
+      val res0    = if (body.isEmpty) abs else {
+        val bodyS = indent(body.map(_.mkString).mkString("\n\n"))
+        val space = if (abs.contains("\n")) "\n\n" else "\n"
+        s"$abs {$space$bodyS\n}"
+      }
       val scopeS  = scope.fold("")(s => s"[$s]")
       val pre0    = if (isProtected) s"protected$scopeS " else if (isPrivate) s"private$scopeS " else ""
       val pre1    = if (isFinal) s"${pre0}final " else pre0
@@ -331,8 +354,12 @@ final class ClassGenerator {
           val pre = s" extends $single"
           if (rest.isEmpty) pre else rest.mkString(s"$pre with ", " with ", "")
       }
-      val pre = s"object $name$parentsS"
-      if (body.isEmpty) pre else body.map(_.mkString).mkString(s"$pre {\n  ", "\n  ", "}")
+      val abs = s"object $name$parentsS"
+      val res0    = if (body.isEmpty) abs else {
+        val bodyS = indent(body.map(_.mkString).mkString("\n\n"))
+        s"$abs {\n$bodyS\n}"
+      }
+      res0
     }
   }
 
@@ -408,7 +435,7 @@ final class ClassGenerator {
     }
 
     // `body == false` is used for methods; in that case do not prepend new-lines
-    val comm = body4.mkString(if (body) s"\n\n/** " else s"/** ", "\n  * ", "\n  */\n")
+    val comm = body4.mkString(if (body) s"\n/** " else s"/** ", "\n  * ", "\n  */\n")
     DocTree(comm, tree)
   }
 
@@ -769,7 +796,7 @@ final class ClassGenerator {
     // for each named output, we create a corresponding method in
     // the case class that produces a `ChannelProxy` instance.
     val namedOutputDefs: List[Tree] = if (!hasMultipleOuts) Nil else outputs.zipWithIndex.collect {
-      case (UGenSpec.Output(Some(outName), _, Some(_)), idx) =>
+      case (UGenSpec.Output(Some(outName), _, _), idx) =>
         if (hasVariadicOut) {
           sys.error(s"The combination of variadic and named outputs is not yet supported (${spec.name}, $outName)")
         }
@@ -869,15 +896,14 @@ final class ClassGenerator {
             // the last argument to UGen.SingleOut and UGen.MultiOut is `hasSideEffect`.
             // it has a default value of `false`, so we need to add this argument only
             // if there is a side effect and the UGen is not zero-out.
-            val args0 = if ((sideEffect || indSideEffect) && outputs.nonEmpty) {
-              BooleanLiteral(true) :: Nil
+            // the preceding argument is `isIndividual` for all UGens
+
+            val args0 = if (indiv || indIndiv) {
+              Ident("isIndividual = true") :: Nil
             } else Nil
 
-            // the preceding argument is `isIndividual` for all UGens
-            if (indiv || indIndiv) {
-              BooleanLiteral(true) :: args0
-            } else if (args0.nonEmpty) {
-              BooleanLiteral(false) :: args0
+            if ((sideEffect || indSideEffect) && outputs.nonEmpty) {
+              Ident("hasSideEffect = true") :: args0
             } else args0
           }
 
