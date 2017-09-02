@@ -1,7 +1,7 @@
 lazy val baseName       = "ScalaColliderUGens"
 lazy val baseNameL      = baseName.toLowerCase
 
-lazy val projectVersion = "1.16.4"
+lazy val projectVersion = "1.16.5-SNAPSHOT"
 lazy val mimaVersion    = "1.16.0"
 
 name := baseName
@@ -11,7 +11,7 @@ lazy val commonSettings = Seq(
   organization       := "de.sciss",
   description        := "UGens for ScalaCollider",
   homepage           := Some(url(s"https://github.com/Sciss/$baseName")),
-  scalaVersion       := "2.11.8",
+  scalaVersion       := "2.12.2",
   crossScalaVersions := Seq("2.12.1", "2.11.8", "2.10.6"),
   scalacOptions      ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture", "-Xlint"),
   initialCommands in console := """import de.sciss.synth._"""
