@@ -148,7 +148,7 @@ def runUGenGenerator(switch: String, specDir: File, outputDir: File, cp: Seq[Fil
   val tmp         = java.io.File.createTempFile("sources", ".txt")
   val os          = new java.io.FileOutputStream(tmp)
 
-  log.info("Generating UGen source code...")
+  log.info("Generating UGen source code in " + outputDir + " for specs in " + specDir)
 
   try {
     val outs  = CustomOutput(os)
