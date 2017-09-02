@@ -29,7 +29,7 @@ object SynthGraph {
   // using a synchronized map, plus we don't need
   // to look after its cleaning
   private val builders = new ThreadLocal[Builder] {
-    override protected def initialValue = BuilderDummy
+    override protected def initialValue: Builder = BuilderDummy
   }
 
   def builder: Builder = builders.get

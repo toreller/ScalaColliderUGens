@@ -428,8 +428,8 @@ private[synth] object UGenSpecParser {
     if (isHelper)       uAttr += IsHelper
     if (hasSourceCode)  uAttr += HasSourceCode
 
-    val indSideEffect = writesBus || writesBuffer || writesFFT
-    val indIndiv      = readsBus  || readsBuffer  || readsFFT || indSideEffect || random
+    // val indSideEffect = writesBus || writesBuffer || writesFFT
+    // val indIndiv      = readsBus  || readsBuffer  || readsFFT || indSideEffect || random
 
     val aNodes = node \ "arg"
 
@@ -498,7 +498,7 @@ private[synth] object UGenSpecParser {
         //          RateMethod.None
         case (Some(m), None)  => RateMethod.Custom(m)
         case (None, Some(m))  => RateMethod.Alias(m)
-        case other            =>
+        case _ =>
           sys.error(s"Cannot use both method and method-alias attributes, in ugen $uName, rate $r")
       }
       addArgRate(r, rNode)
@@ -613,7 +613,7 @@ private[synth] object UGenSpecParser {
 
     if (argsOrd.nonEmpty) {
       val sq = argsOrd.keys.toIndexedSeq.sorted
-      if (sq != (0 until sq.size)) sys.error(s"Non contiguous argument positions, in ugen $uName: ${sq.mkString(",")}")
+      if (sq != sq.indices) sys.error(s"Non contiguous argument positions, in ugen $uName: ${sq.mkString(",")}")
       args = sq.map(argsOrd)
     }
 

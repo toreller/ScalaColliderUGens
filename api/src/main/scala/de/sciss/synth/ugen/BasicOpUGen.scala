@@ -104,7 +104,7 @@ object UnaryOpUGen {
     final val id = 0
     override val name = "-"
     override def prefix = true
-    def make1(a: Float) = -a
+    def make1(a: Float): Float = -a
   }
 
   case object Not extends Op {
@@ -141,7 +141,7 @@ object UnaryOpUGen {
 
   case object Signum extends Op {
     final val id = 11
-    def make1(a: Float) = math.signum(a)
+    def make1(a: Float): Float = math.signum(a)
   }
 
   case object Squared extends Op {
@@ -304,7 +304,7 @@ object UnaryOpUGen {
 
   // Note: only deterministic selectors are implemented!!
   private def UGenImpl(selector: Op, a: UGenIn): UGen.SingleOut =
-      UGen.SingleOut("UnaryOpUGen", a.rate, Vector(a), isIndividual = false, hasSideEffect = false,
+      UGen.SingleOut("UnaryOpUGen", a.rate, Vector(a),
         specialIndex = selector.id)
 }
 
@@ -320,7 +320,7 @@ final case class UnaryOpUGen(selector: UnaryOpUGen.Op, a: GE)
     selector.make1(a)
   }
 
-  override def toString = if (selector.prefix)
+  override def toString: String = if (selector.prefix)
     s"(${selector.name}$a)"
   else
     s"$a.${selector.name}"
@@ -503,42 +503,42 @@ object BinaryOpUGen {
     final val id = 6
     override val name = "sig_=="
     override def infix = true
-    def make1(a: Float, b: Float) = if( a == b ) 1 else 0
+    def make1(a: Float, b: Float): Float = if( a == b ) 1 else 0
   }
 
   case object Neq extends Op {
     final val id = 7
     override val name = "sig_!="
     override def infix = true
-    def make1(a: Float, b: Float) = if( a != b ) 1 else 0
+    def make1(a: Float, b: Float): Float = if( a != b ) 1 else 0
   }
 
   case object Lt extends Op {
     final val id = 8
     override val name = "<"
     override def infix = true
-    def make1(a: Float, b: Float) = if (a < b) 1f else 0f // NOT rf.< !
+    def make1(a: Float, b: Float): Float = if (a < b) 1f else 0f // NOT rf.< !
   }
 
   case object Gt extends Op {
     final val id = 9
     override val name = ">"
     override def infix = true
-    def make1(a: Float, b: Float) = if (a > b) 1f else 0f // NOT rf.> !
+    def make1(a: Float, b: Float): Float = if (a > b) 1f else 0f // NOT rf.> !
   }
 
   case object Leq extends Op {
     final val id = 10
     override val name = "<="
     override def infix = true
-    def make1(a: Float, b: Float) = if (a <= b) 1f else 0f // NOT rf.<= !
+    def make1(a: Float, b: Float): Float = if (a <= b) 1f else 0f // NOT rf.<= !
   }
 
   case object Geq extends Op {
     final val id = 11
     override val name = ">="
     override def infix = true
-    def make1(a: Float, b: Float) = if (a >= b) 1f else 0f // NOT rf.>= !
+    def make1(a: Float, b: Float): Float = if (a >= b) 1f else 0f // NOT rf.>= !
   }
 
   case object Min extends Op {
@@ -731,7 +731,7 @@ object BinaryOpUGen {
       case _              => UGenImpl(this, a, b, hasSideEffect = true)
     }
 
-    def make1(a: Float, b: Float) = a
+    def make1(a: Float, b: Float): Float = a
   }
 
   // case object Rrand          extends Op( 47 )
@@ -746,7 +746,7 @@ object BinaryOpUGen {
 
   // Note: only deterministic selectors are implemented!!
   private[this] def UGenImpl(selector: Op, a: UGenIn, b: UGenIn, hasSideEffect: Boolean): UGen.SingleOut =
-      UGen.SingleOut("BinaryOpUGen", a.rate max b.rate, Vector(a, b), isIndividual = false,
+      UGen.SingleOut("BinaryOpUGen", a.rate max b.rate, Vector(a, b),
         hasSideEffect = hasSideEffect, specialIndex = selector.id)
 }
 
@@ -774,7 +774,7 @@ sealed trait BinaryOpUGen extends UGenSource.SingleOut {
     selector.make1(a0, a1)
   }
 
-  override def toString = if (selector.infix)
+  override def toString: String = if (selector.infix)
     s"($a ${selector.name} $b)"
   else
     s"$a.${selector.name}($b)"

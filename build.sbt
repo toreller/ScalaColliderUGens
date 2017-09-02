@@ -1,8 +1,8 @@
 lazy val baseName       = "ScalaColliderUGens"
 lazy val baseNameL      = baseName.toLowerCase
 
-lazy val projectVersion = "1.16.5-SNAPSHOT"
-lazy val mimaVersion    = "1.16.0"
+lazy val projectVersion = "1.16.5"
+lazy val mimaVersion    = "1.16.4"
 
 name := baseName
 
@@ -11,8 +11,8 @@ lazy val commonSettings = Seq(
   organization       := "de.sciss",
   description        := "UGens for ScalaCollider",
   homepage           := Some(url(s"https://github.com/Sciss/$baseName")),
-  scalaVersion       := "2.12.2",
-  crossScalaVersions := Seq("2.12.2", "2.11.11", "2.10.6"),
+  scalaVersion       := "2.12.3",
+  crossScalaVersions := Seq("2.12.3", "2.11.11", "2.10.6"),
   scalacOptions      ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8", "-Xfuture", "-Xlint"),
   initialCommands in console := """import de.sciss.synth._"""
 ) ++ publishSettings
@@ -24,12 +24,12 @@ lazy val scalaXMLVersion     = "1.0.6"
 
 // --- test-only dependencies ---
 
-lazy val scalaTestVersion    = "3.0.3"
+lazy val scalaTestVersion    = "3.0.4"
 
 // --- gen project (not published, thus not subject to major version concerns) ---
 
-lazy val fileUtilVersion     = "1.1.2"
-lazy val scoptVersion        = "3.6.0"
+lazy val fileUtilVersion     = "1.1.3"
+lazy val scoptVersion        = "3.7.0"
 
 // ---
 
@@ -162,7 +162,7 @@ def runUGenGenerator(switch: String, specDir: File, outputDir: File, cp: Seq[Fil
   } finally {
     os.close()
   }
-  val sources = io.Source.fromFile(tmp).getLines().map(file).toList
+  val sources = scala.io.Source.fromFile(tmp).getLines().map(file).toList
   tmp.delete()
   sources
 }

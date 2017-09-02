@@ -54,7 +54,7 @@ final class RawUGenImpl(val name: String, val rate: Rate, val numInputs: Int, va
                         val specialIndex: Int) extends RawUGen {
   def numOutputs: Int = outputRates.size
 
-  override def toString = {
+  override def toString: String = {
 //    val inputsS = inputs.map {
 //      case Constant(f)                      => f.toString
 //      case UGenOutProxy       (source, idx) => s"${source.name}[$idx]"
