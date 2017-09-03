@@ -82,18 +82,18 @@ trait GE extends Product {
 
 package ugen {
   final case class GESeq(elems: Vec[GE]) extends GE {
-    def numOutputs            = elems.size
-    def expand: UGenInLike    = UGenInGroup(elems.map(_.expand))
-    def rate                  = MaybeRate.reduce(elems.map(_.rate): _*)
+    def numOutputs: Int           = elems.size
+    def expand    : UGenInLike    = UGenInGroup(elems.map(_.expand))
+    def rate      : MaybeRate     = MaybeRate.reduce(elems.map(_.rate): _*)
 
-    override def toString     = elems.mkString("GESeq(", ",", ")")
+    override def toString: String = elems.mkString("GESeq(", ",", ")")
   }
 
   private[synth] final case class UGenInSeq(elems: Vec[UGenIn]) extends GE {
-    def numOutputs            = elems.size
-    def expand: UGenInLike    = UGenInGroup(elems)
-    def rate                  = MaybeRate.reduce(elems.map(_.rate): _*)
+    def numOutputs: Int           = elems.size
+    def expand    : UGenInLike    = UGenInGroup(elems)
+    def rate      : MaybeRate     = MaybeRate.reduce(elems.map(_.rate): _*)
 
-    override def toString     = elems.mkString("UGenInSeq(", ",", ")")
+    override def toString: String = elems.mkString("UGenInSeq(", ",", ")")
   }
 }

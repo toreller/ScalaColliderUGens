@@ -85,7 +85,7 @@ case object UndefinedRate extends MaybeRate {
 
 object Rate {
   /** Rates are implicitly ordered by their identifiers. */
-  implicit val ordering = Ordering.ordered[Rate]
+  implicit val ordering: Ordering[Rate] = Ordering.ordered[Rate]
 
   /** Constructs a rate from a given identifier. */
   def apply(id: Int): Rate = (id: @switch) match {
@@ -117,11 +117,11 @@ sealed abstract class Rate extends MaybeRate with Ordered[Rate] {
   /** Returns the minimum of this and another rate, based on their identifiers
     * (e.g., `scalar < control`).
     */
-  final def min(that: Rate) = if (id < that.id) this else that
+  final def min(that: Rate): Rate = if (id < that.id) this else that
   /** Returns the maximum of this and another rate, based on their identifiers
     * (e.g., `control > scalar`).
     */
-  final def max(that: Rate) = if (id > that.id) this else that
+  final def max(that: Rate): Rate = if (id > that.id) this else that
 
   /** Compares this and another rate, based on their identifiers
     * (e.g., `scalar compare control == -1` and `audio compare audio == 0`).

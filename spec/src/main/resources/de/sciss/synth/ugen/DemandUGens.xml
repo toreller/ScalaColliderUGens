@@ -1,4 +1,4 @@
-<ugens revision="5">
+<ugens revision="7">
     <ugen name="Demand" done-flag="true"> <!-- set done flag, but doesn't have done action -->
         <rate name="control"/>
         <rate name="audio"/>
@@ -493,7 +493,7 @@
     </ugen>
     <ugen name="Dser" indiv="true">
         <rate name="demand" implied="true" method="apply"/>
-        <arg name="repeats" default="1" pos="1">
+        <arg name="repeats" default="1" pos="1"> <!-- TODO: name="length"  -->
             <doc>
                 The number of items polled from the sequence
             </doc>
@@ -508,10 +508,10 @@
         <doc>
             <text>
                 A demand-rate UGen which reproduces and repeats values of a sequence.
-                It is very similar to `Dseq`, the difference being that the `repeats`
+                It is very similar to `Dseq`, the difference being that the `length`
                 parameter specifies the length of output sequence, not the number
                 of repetitions of the input sequence. The input sequence is repeated
-                if `repeats` is greater than the length of the input sequence.
+                if `length` is greater than the length of the input sequence.
 
                 The arguments can be constant or any other ugens,
                 where demand rate UGens are normally polled, proceeding
@@ -566,7 +566,7 @@
     </ugen>
     <ugen name="Drand" indiv="true" random="true">
         <rate name="demand" implied="true" method="apply"/>
-        <arg name="repeats" default="1" pos="1">
+        <arg name="repeats" default="1" pos="1"> <!-- TODO: name="length"  -->
             <doc>
                 The number of items polled from the sequence
             </doc>
@@ -600,7 +600,7 @@
     </ugen>
     <ugen name="Dxrand" indiv="true" random="true">
         <rate name="demand" implied="true" method="apply"/>
-        <arg name="repeats" default="1" pos="1">
+        <arg name="repeats" default="1" pos="1"> <!-- TODO: name="length"  -->
             <doc>
                 The number of items polled from the sequence
             </doc>

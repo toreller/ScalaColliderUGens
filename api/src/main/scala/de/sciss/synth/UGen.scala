@@ -127,7 +127,7 @@ object UGen {
   /** A class for UGens with multiple outputs. */
   trait MultiOut extends ugen.UGenInGroup with UGen {
 
-    final def numOutputs = outputRates.size
+    final def numOutputs: Int = outputRates.size
 
     final def unwrap(i: Int): UGenInLike = ugen.UGenOutProxy(this, i % numOutputs)
 
@@ -194,7 +194,7 @@ package ugen {
       private[synth] def unwrap(i: Int): UGenInLike = outputs(i % outputs.size)
       private[synth] def unbubble: UGenInLike = this
 
-      override def toString = outputs.mkString("UGenInGroup(", ",", ")")
+      override def toString: String = outputs.mkString("UGenInGroup(", ",", ")")
 
       // ---- GE ----
       def rate: MaybeRate = MaybeRate.reduce(outputs.map(_.rate): _*)
@@ -236,7 +236,7 @@ package ugen {
   final case class ControlUGenOutProxy(source: ControlProxyLike, outputIndex: Int /*, rate: Rate */)
     extends UGenIn {
 
-    def rate = source.rate
+    def rate: Rate = source.rate
     override def toString = s"$source.\\($outputIndex)"
   }
 
@@ -247,7 +247,7 @@ package ugen {
   final case class UGenOutProxy(source: UGen.MultiOut, outputIndex: Int /*, rate: Rate */)
     extends UGenIn with UGenProxy {
 
-    override def toString =
+    override def toString: String =
       if (source.numOutputs == 1) source.toString else s"$source.\\($outputIndex)"
 
     def rate: Rate = source.outputRates(outputIndex)

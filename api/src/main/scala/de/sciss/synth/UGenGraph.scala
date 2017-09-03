@@ -199,7 +199,7 @@ object UGenGraph {
   // ---- graph builder ----
 
   private final val builders = new ThreadLocal[Builder] {
-    override protected def initialValue = BuilderDummy
+    override protected def initialValue: Builder = BuilderDummy
   }
 
   /** The current, thread local ugen graph builder instance. When called
@@ -214,8 +214,8 @@ object UGenGraph {
 
     def addControl(values: Vec[Float], name: Option[String]): Int = 0
 
-    def addUGen    (ugen: UGen) = ()
-    def prependUGen(ugen: UGen) = ()
+    def addUGen    (ugen: UGen): Unit = ()
+    def prependUGen(ugen: UGen): Unit = ()
 
     def visit[U](ref: AnyRef, init: => U): U = outOfContext
 

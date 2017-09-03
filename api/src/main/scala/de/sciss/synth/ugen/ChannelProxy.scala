@@ -52,7 +52,7 @@ package ugen
   * @see [[de.sciss.synth.ugen.Select$ Select]]
   */
 final case class ChannelProxy(elem: GE, index: Int) extends GE.Lazy {
-  def rate = elem.rate
+  def rate: MaybeRate = elem.rate
 
   override def toString = s"$elem.\\($index)"
 

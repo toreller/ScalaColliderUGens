@@ -148,7 +148,7 @@ object UGenSpec {
   final case class Argument(name: String, tpe: ArgumentType,
                             defaults: Map[MaybeRate, ArgumentValue],
                             rates   : Map[MaybeRate, RateConstraint]) {
-    override def toString = {
+    override def toString: String = {
       val base = s"$name: $tpe"
       val s1 = defaults.get(UndefinedRate) match {
         case Some(v)  => s"$base = $v"
@@ -185,7 +185,7 @@ object UGenSpec {
       *                 usable by the client.
       */
     final case class GE(shape: SignalShape, scalar: Boolean = false) extends ArgumentType {
-      override def toString = {
+      override def toString: String = {
         val base = shape.toString
         if (scalar) s"$base (@init)" else base
       }
@@ -257,13 +257,13 @@ object UGenSpec {
   object ArgumentValue {
     /** Value is given as an `Int` constant. */
     final case class Int(value: scala.Int) extends ArgumentValue {
-      override def toString = value.toString
+      override def toString: Predef.String = value.toString
 
       def toGE: ugen.Constant = ugen.Constant(value)
     }
     /** Value is given as a `Float` constant. */
     final case class Float(value: scala.Float) extends ArgumentValue {
-      override def toString = {
+      override def toString: Predef.String = {
         val s = value.toString
         if (s.contains('.')) s else s"$s.0"
       }
@@ -274,7 +274,7 @@ object UGenSpec {
       * does not support this, and automatically uses `0` and `1`.
       */
     final case class Boolean(value: scala.Boolean) extends ArgumentValue {
-      override def toString = value.toString
+      override def toString: Predef.String = value.toString
 
       def toGE: ugen.Constant = ugen.Constant(if (value) 1f else 0f)
     }
@@ -286,13 +286,13 @@ object UGenSpec {
     }
     /** Value is `Float.PositiveInfinity` (but more prettily written). */
     case object Inf extends ArgumentValue {
-      override def toString = productPrefix.toLowerCase
+      override def toString: Predef.String = productPrefix.toLowerCase
 
       def toGE: ugen.Constant = ugen.Constant(scala.Float.PositiveInfinity)
     }
     /** Values is a `DoneAction`, such as `doNothing` or `freeSelf`. */
     final case class DoneAction(peer: synth.DoneAction) extends ArgumentValue {
-      override def toString = peer.toString
+      override def toString: Predef.String = peer.toString
 
       def toGE: ugen.Constant = synth.DoneAction.toGE(peer)
     }
@@ -324,7 +324,7 @@ object UGenSpec {
     *               the `Out` UGen.
     */
   final case class Input(arg: String, tpe: Input.Type) {
-    override def toString = if (tpe.variadic) s"$arg..." else arg
+    override def toString: String = if (tpe.variadic) s"$arg..." else arg
 
     def variadic: Boolean = tpe.variadic
   }
@@ -369,7 +369,7 @@ object UGenSpec {
     final case class Implied(rate: Rate, method: RateMethod) extends Rates {
       def set = immutable.Set(rate)
 
-      override def toString = {
+      override def toString: String = {
         val base = s"implied: $rate"
         method match {
           case RateMethod.Default => base
@@ -388,9 +388,9 @@ object UGenSpec {
     }
     /** An explicit set of supported rates. */
     final case class Set(set: immutable.Set[Rate]) extends Rates {
-      override def toString = set.mkString("[", ", ", "]")
+      override def toString: String = set.mkString("[", ", ", "]")
       /** Explicitly specified rates always use the `Default` type of method naming. */
-      def method = RateMethod.Default
+      def method /*  TODO annotate : RateMethod */ = RateMethod.Default
 
       def methodName(r: Rate): String = {
         require(set.contains(r))
@@ -431,7 +431,7 @@ object UGenSpec {
     *                 type `Int`, determining the number of channels in this output.
     */
   final case class Output(name: Option[String], shape: SignalShape, variadic: Option[String]) {
-    override def toString = {
+    override def toString: String = {
       val base  = name getOrElse "<out>"
       val s1    = if (shape != SignalShape.Generic) s"$base: $shape" else base
       variadic match {
@@ -490,7 +490,7 @@ final case class UGenSpec(name: String,
   /** A convenience field which maps from input argument names to inputs. */
   lazy val inputMap: Map[String, UGenSpec.Input   ] = inputs.map(i => i.arg  -> i)(breakOut)
 
-  override def toString = {
+  override def toString: String = {
     val s1 = s"$productPrefix($name, attr = ${attr.mkString("[", ", ", "]")}, rates = $rates, "
     val s2 = s"args = ${args.mkString("[", ", ", "]")}, inputs = ${inputs.mkString("[", ", ", "]")}, "
     val s3 = s"outputs = ${outputs.mkString("[", ", ", "]")})"
