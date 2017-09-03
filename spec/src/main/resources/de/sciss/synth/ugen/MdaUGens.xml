@@ -14,7 +14,7 @@
         </output>
         <arg name="freq" default="440">
             <doc>
-                Frequency of the note.
+                Frequency of the note in Hz.
             </doc>
         </arg>
         <arg name="gate" default="1">
@@ -23,7 +23,7 @@
                 Most of the other controls are only updated when a new note-on occurs.
             </doc>
         </arg>
-        <arg name="vel" default="100">
+        <arg name="velocity" default="100">
             <doc>
                 velocity (range is 0 to 127)
             </doc>
@@ -38,23 +38,25 @@
                 The time for notes to decay after the key is released.
             </doc>
         </arg>
-        <arg name="hard" default="0.8">
+        <arg name="hardness" default="0.8">
             <doc>
+                adjusts sample keyranges up or down to change the "size" and brightness of the piano.
             </doc>
         </arg>
-        <arg name="velhard" default="0.8">
+        <arg name="velHard" default="0.8">
             <doc>
             </doc>
         </arg>
         <arg name="muffle" default="0.8">
             <doc>
+                gentle low pass filter.
             </doc>
         </arg>
-        <arg name="velmuff" default="0.8">
+        <arg name="velMuff" default="0.8">
             <doc>
             </doc>
         </arg>
-        <arg name="velcurve" default="0.8">
+        <arg name="velCurve" default="0.8">
             <doc>
             </doc>
         </arg>
@@ -81,14 +83,6 @@
         <arg name="sustain" default="0">
             <doc>
                 if positive, act as if the piano's sustain pedal is pressed.
-            </doc>
-        </arg>
-        <arg name="mul" default="1">
-            <doc>
-            </doc>
-        </arg>
-        <arg name="add" default="0">
-            <doc>
             </doc>
         </arg>
         <doc>
